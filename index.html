@@ -528,8 +528,10 @@
       --ds-bottom-mid: .40;
       --ds-bottom-end: .92;      /* 맨 아래 농도. 1 이면 완전히 떨어짐 */
 
-      /* ───── 박스 (PC·모바일 모두 화면 높이 100%) ───── */
-      --ds-vh: 100svh;           /* svh 미지원 브라우저는 JS 가 px 로 덮어씀 */
+      /* ───── 박스 (PC·모바일 모두 화면 높이 100%) ─────
+         --ds-vh 는 JS 가 로드 시 px 로 고정한다.
+         주소창이 접히고 펴져도 값이 바뀌지 않으며, 폭이 바뀔 때(회전)만 다시 잰다. */
+      --ds-vh: 100svh;
       --ds-pad-ratio-top: .145;  /* 화면 높이 대비 상단 여백 비율 */
       --ds-pad-ratio-bot: .04;
       --ds-pad-top: calc(var(--ds-vh) * var(--ds-pad-ratio-top));
@@ -548,7 +550,7 @@
          파일 경로를 바꿀 땐 아래 --ds-mark-src 와 <img src> 두 곳을 같이 수정 */
       --ds-mark-src: url("./img/logo-f.png");
       --ds-mark-h: clamp(40px, 4.4cqw, 72px);
-      --ds-mark-pad: clamp(26px, 4.6vh, 84px);   /* 로고 위아래 최소 여백 */
+      --ds-mark-pad: clamp(26px, calc(var(--ds-vh) * .046), 84px);   /* 로고 위아래 최소 여백 */
       --ds-mark-rule: rgb(255 255 255 / .3);
       --ds-mark-rule-w: clamp(30px, 4.4cqw, 120px);
       --ds-mark-gap: clamp(16px, 2.2cqw, 56px);
@@ -562,7 +564,7 @@
       --ds-cta-fill-ink: #0d1119;
 
       /* ───── 스크롤 유도선 ───── */
-      --ds-scroll-h: clamp(40px, 6vh, 86px);
+      --ds-scroll-h: clamp(40px, calc(var(--ds-vh) * .06), 86px);
       --ds-scroll-dot: 5px;
       --ds-scroll-line: rgb(255 255 255 / .22);
       --ds-scroll-hi: rgb(255 255 255 / .95);
@@ -576,8 +578,9 @@
       display: block;
       width: 100%;
       height: 100vh;             /* 폴백 */
-      height: var(--ds-vh);      /* 모바일 주소창 변동에도 흔들리지 않는 높이 */
+      height: var(--ds-vh);      /* JS 가 px 로 고정 → 스크롤 중 높이 불변 */
       overflow: hidden;
+      overflow-anchor: none;
       background-color: var(--ds-base);
       color: var(--ds-ink);
       font-family: var(--ds-sans);
@@ -740,7 +743,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: var(--ds-pad-top) 6cqw max(var(--ds-pad-bot), env(safe-area-inset-bottom, 0px));
+      /* 가로 모드 노치·홈바 영역까지 피한다 */
+      padding:
+        var(--ds-pad-top)
+        max(6cqw, env(safe-area-inset-right, 0px))
+        max(var(--ds-pad-bot), env(safe-area-inset-bottom, 0px))
+        max(6cqw, env(safe-area-inset-left, 0px));
       text-align: center;
       text-shadow: 0 1px 24px rgb(0 0 0 / .45);
       /* 버튼만 클릭을 받고 나머지는 스크롤을 방해하지 않는다 */
@@ -942,7 +950,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: clamp(10px, 1.4vh, 18px);
+      gap: clamp(10px, calc(var(--ds-vh) * .014), 18px);
       flex: 0 0 auto;
       pointer-events: none;
     }
@@ -1023,7 +1031,7 @@
     @container dsharp-intro (max-width: 768px){
       #dsharp-intro{
         --ds-mark-h: clamp(30px, 7cqw, 50px);
-        --ds-mark-pad: clamp(18px, 3.4vh, 44px);
+        --ds-mark-pad: clamp(18px, calc(var(--ds-vh) * .034), 44px);
         --ds-mark-rule-w: clamp(22px, 7cqw, 64px);
         --ds-mark-gap: clamp(12px, 3.6cqw, 32px);
         --ds-cta-h: 48px;
@@ -1045,7 +1053,7 @@
         --ds-pad-ratio-top: .17;
         --ds-pad-ratio-bot: .05;
         --ds-bottom-band: 34%;
-        --ds-scroll-h: clamp(44px, 7vh, 88px);
+        --ds-scroll-h: clamp(44px, calc(var(--ds-vh) * .07), 88px);
       }
       #dsharp-intro .dsharp-intro__bg{
         background-position: var(--ds-bg-pos-m);
@@ -1072,20 +1080,45 @@
       #dsharp-intro .dsharp-intro__cta{ height: 46px; font-size: 12.5px; }
     }
 
-    /* 가로로 누운 모바일 등 높이가 짧은 화면 — 100vh 안에 눌러 담기 */
-    @media (max-height: 560px){
-      #dsharp-intro{
-        --ds-pad-ratio-top: .08;
-        --ds-pad-ratio-bot: .03;
-        --ds-mark-pad: 10px;
-        --ds-scroll-h: clamp(30px, 8vh, 56px);
-        --ds-mark-h: clamp(18px, 4.6vh, 36px);
-        --ds-cta-h: 42px;
-      }
-      #dsharp-intro .dsharp-intro__cta{ margin-top: 14px; font-size: 12px; }
-      #dsharp-intro .dsharp-intro__scroll{ gap: 1.1vh; margin-bottom: 2vh; }
-      #dsharp-intro .dsharp-intro__scrollLabel{ display: none; }
+    /* ───── 가로 모바일 등 높이가 짧은 화면 (높이 560px 이하) ─────
+       폭(cqw) 기준 크기는 가로 모드에서 과하게 커져 아래가 잘린다.
+       모든 치수를 고정 높이(--ds-vh) 비율로 바꿔 어떤 기기에서도 한 화면에 들어오게 한다.
+       JS 가 고정 높이 기준으로 판정하므로 스크롤 중 토글되지 않는다.
+       (선택자 우선순위가 위의 @container / @media 규칙보다 높아 항상 덮어쓴다) */
+    #dsharp-intro[data-short="true"]{
+      --ds-pad-top: max(calc(var(--ds-vh) * .07), env(safe-area-inset-top, 0px));
+      --ds-pad-bot: calc(var(--ds-vh) * .03);
+      --ds-mark-pad: calc(var(--ds-vh) * .025);
+      --ds-mark-h: clamp(16px, calc(var(--ds-vh) * .06), 30px);
+      --ds-cta-h: clamp(34px, calc(var(--ds-vh) * .11), 42px);
+      --ds-scroll-h: clamp(18px, calc(var(--ds-vh) * .07), 40px);
     }
+    #dsharp-intro[data-short="true"] .dsharp-intro__title{
+      font-size: clamp(20px, calc(var(--ds-vh) * .085), 40px);
+      line-height: 1.12;
+    }
+    #dsharp-intro[data-short="true"] .dsharp-intro__rule{
+      margin-top: calc(var(--ds-vh) * .03);
+    }
+    #dsharp-intro[data-short="true"] .dsharp-intro__tagline{
+      font-size: clamp(12px, calc(var(--ds-vh) * .042), 18px);
+      margin-top: calc(var(--ds-vh) * .025);
+    }
+    #dsharp-intro[data-short="true"] .dsharp-intro__cta{
+      margin-top: calc(var(--ds-vh) * .04);
+      font-size: clamp(11.5px, calc(var(--ds-vh) * .036), 14px);
+      padding: 0 16px 0 10px;
+    }
+    #dsharp-intro[data-short="true"] .dsharp-intro__scroll{
+      gap: 0;
+      margin-bottom: calc(var(--ds-vh) * .015);
+    }
+    #dsharp-intro[data-short="true"] .dsharp-intro__scrollLabel{ display: none; }
+
+    /* 넘침 안전망 — 그래도 넘치는 기기에서는 JS 가 유도선 → 로고 순으로 숨긴다 */
+    #dsharp-intro[data-fit="tight"] .dsharp-intro__scroll,
+    #dsharp-intro[data-fit="tighter"] .dsharp-intro__scroll,
+    #dsharp-intro[data-fit="tighter"] .dsharp-intro__mark{ display: none; }
 
     /* 진입 연출 */
     #dsharp-intro .dsharp-intro__title,
@@ -1294,11 +1327,16 @@
       outline-offset: 3px;
     }
 
-    /* 닫기 — 화면 우상단 고정, 최소 44px 터치 영역 */
-    #dsharp-lightbox .dsharp-lightbox__close{
-      position: absolute;
+    /* ───── 상단 도구(전체 화면 · 닫기) — 화면 우상단, 최소 44px 터치 영역 ───── */
+    #dsharp-lightbox .dsharp-lightbox__tools{
+      position: absolute; z-index: 5;
       top: max(var(--dl-gap), calc(env(safe-area-inset-top, 0px) + 10px));
       right: max(var(--dl-gap), calc(env(safe-area-inset-right, 0px) + 10px));
+      display: flex;
+      gap: 10px;
+    }
+    #dsharp-lightbox .dsharp-lightbox__fs,
+    #dsharp-lightbox .dsharp-lightbox__close{
       width: 46px; height: 46px;
       display: grid; place-items: center;
       padding: 0;
@@ -1309,6 +1347,7 @@
               backdrop-filter: blur(8px);
       color: #fff;
       cursor: pointer;
+      touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       transition: background .3s ease, border-color .3s ease, transform .4s cubic-bezier(.16,.68,.4,1);
     }
@@ -1319,23 +1358,108 @@
       fill: none;
       stroke-linecap: round;
     }
+    #dsharp-lightbox .dsharp-lightbox__fs svg{
+      width: 17px; height: 17px;
+      stroke: currentColor;
+      stroke-width: 1.5;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    #dsharp-lightbox .dsharp-lightbox__fsExit{ display: none; }
+    #dsharp-lightbox[data-fs-on="true"] .dsharp-lightbox__fsEnter{ display: none; }
+    #dsharp-lightbox[data-fs-on="true"] .dsharp-lightbox__fsExit{ display: block; }
+    #dsharp-lightbox[data-fs-hide="true"] .dsharp-lightbox__fs{ display: none; }
+
     @media (hover: hover){
+      #dsharp-lightbox .dsharp-lightbox__fs:hover,
       #dsharp-lightbox .dsharp-lightbox__close:hover{
         background: rgb(255 255 255 / .14);
         border-color: rgb(255 255 255 / .5);
-        transform: rotate(90deg);
       }
+      #dsharp-lightbox .dsharp-lightbox__close:hover{ transform: rotate(90deg); }
+      #dsharp-lightbox .dsharp-lightbox__fs:hover{ transform: scale(1.06); }
     }
+    #dsharp-lightbox .dsharp-lightbox__fs:focus-visible,
     #dsharp-lightbox .dsharp-lightbox__close:focus-visible{
       outline: 2px solid #fff;
       outline-offset: 3px;
     }
 
+    /* ───── 몰입 모드 ─────
+       모바일 가로 회전 · 전체 화면 버튼 · 브라우저 전체 화면 모두 이 상태를 쓴다.
+       영상이 화면 전체를 채우고, 도구는 Vimeo 우상단 버튼과 겹치지 않게 좌상단으로 옮긴다. */
+    #dsharp-lightbox[data-immersive="true"]{ padding: 0; }
+    #dsharp-lightbox[data-immersive="true"] .dsharp-lightbox__scrim{
+      background: #000;
+      -webkit-backdrop-filter: none;
+              backdrop-filter: none;
+    }
+    #dsharp-lightbox[data-immersive="true"] .dsharp-lightbox__frame{
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      aspect-ratio: auto;
+      border-radius: 0;
+      box-shadow: none;
+      background: #000;
+    }
+    #dsharp-lightbox[data-immersive="true"] .dsharp-lightbox__tools{
+      top: max(10px, env(safe-area-inset-top, 0px));
+      right: auto;
+      left: max(10px, env(safe-area-inset-left, 0px));
+      gap: 8px;
+    }
+    #dsharp-lightbox[data-immersive="true"] .dsharp-lightbox__fs,
+    #dsharp-lightbox[data-immersive="true"] .dsharp-lightbox__close{
+      width: 44px; height: 44px;
+      background: rgb(0 0 0 / .42);
+      border-color: rgb(255 255 255 / .26);
+    }
+    /* 브라우저 전체 화면(안드로이드 · PC · 아이패드) */
+    #dsharp-lightbox:fullscreen{ width: 100%; height: 100%; background: #000; }
+    #dsharp-lightbox:-webkit-full-screen{ width: 100%; height: 100%; background: #000; }
+    #dsharp-lightbox::backdrop{ background: #000; }
+
+    /* 아이폰 세로에서 전체 화면 버튼 — 브라우저 전체 화면 API 가 없으므로
+       레이어를 90° 돌려 가로 화면처럼 꽉 채운다. (폰을 직접 가로로 돌리면 자동 해제) */
+    #dsharp-lightbox[data-rotate="true"]{
+      inset: auto;
+      top: 50%; left: 50%; right: auto; bottom: auto;
+      width: var(--dl-vh, 100vh);
+      height: var(--dl-vw, 100vw);
+      transform: translate(-50%, -50%) rotate(90deg);
+      transform-origin: 50% 50%;
+    }
+    #dsharp-lightbox[data-rotate="true"] .dsharp-lightbox__tools{ top: 12px; left: 12px; }
+
     /* 세로 모바일: 영상은 가로형이라 화면 중앙에 그대로 두고 여백만 줄인다 */
     @media (max-width: 640px){
       #dsharp-lightbox{ --dl-gap: 12px; }
       #dsharp-lightbox .dsharp-lightbox__frame{ max-width: 100%; }
+      #dsharp-lightbox .dsharp-lightbox__fs,
       #dsharp-lightbox .dsharp-lightbox__close{ width: 44px; height: 44px; }
+    }
+
+    /* 가로 모바일: 상단 60px 여백을 없애고 영상을 화면 높이에 꽉 맞춘다.
+       닫기 버튼은 영상 위가 아닌 오른쪽 여백(노치 반대편 포함)에 둔다. */
+    @media (max-height: 560px) and (orientation: landscape){
+      #dsharp-lightbox{
+        padding:
+          max(12px, env(safe-area-inset-top, 0px))
+          max(68px, calc(env(safe-area-inset-right, 0px) + 60px))
+          max(12px, env(safe-area-inset-bottom, 0px))
+          max(68px, calc(env(safe-area-inset-left, 0px) + 60px));
+      }
+      #dsharp-lightbox .dsharp-lightbox__frame{
+        width: 100%;
+        max-width: calc((100svh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9);
+      }
+      #dsharp-lightbox .dsharp-lightbox__tools{
+        top: max(12px, env(safe-area-inset-top, 0px));
+        right: max(12px, calc(env(safe-area-inset-right, 0px) + 6px));
+        flex-direction: column;
+      }
     }
 
     @keyframes dsharp-lightbox-spin{ to{ transform: rotate(360deg); } }
@@ -1419,9 +1543,15 @@
         </button>
       </div>
     </div>
-    <button type="button" class="dsharp-lightbox__close" aria-label="영상 닫기">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-    </button>
+    <div class="dsharp-lightbox__tools">
+      <button type="button" class="dsharp-lightbox__fs" aria-label="전체 화면" aria-pressed="false">
+        <svg class="dsharp-lightbox__fsEnter" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <svg class="dsharp-lightbox__fsExit" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+      </button>
+      <button type="button" class="dsharp-lightbox__close" aria-label="영상 닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
   </div>
 
   <script>
@@ -1437,14 +1567,84 @@
       var bgPlayer = null;      /* 배경 영상 Vimeo Player 인스턴스 */
       var noop = function(){};
 
-      /* ── svh 미지원 브라우저용 높이 폴백 ── */
+      /* ── 넘침 안전망 ──
+         기기별 글꼴·안전영역·툴바 차이로 그래도 내용이 섹션을 넘치면
+         유도선 → 로고 순으로 숨겨 타이틀·버튼이 잘리지 않게 한다. */
+      var bodyEl = el.querySelector('.dsharp-intro__body');
+      function isOverflowing(){
+        var cs = getComputedStyle(bodyEl);
+        var limit = bodyEl.clientHeight - (parseFloat(cs.paddingBottom) || 0);
+        var kids = bodyEl.children, last = null;
+        for(var i = kids.length - 1; i >= 0; i--){
+          if(kids[i].offsetParent !== null){ last = kids[i]; break; }
+        }
+        if(!last) return false;
+        var mb = parseFloat(getComputedStyle(last).marginBottom) || 0;
+        return last.offsetTop + last.offsetHeight + mb > limit + 1;
+      }
+      function fitContent(){
+        if(!bodyEl) return;
+        el.removeAttribute('data-fit');
+        if(!isOverflowing()) return;
+        el.dataset.fit = 'tight';
+        if(!isOverflowing()) return;
+        el.dataset.fit = 'tighter';
+      }
+
+      /* ── 섹션 높이 고정 ──
+         주소창이 접히고 펴져도 높이가 변하지 않도록 px 로 한 번 고정하고,
+         폭이 바뀔 때(회전·창 크기 변경)만 다시 잰다. */
       (function(){
-        var ok = window.CSS && CSS.supports && CSS.supports('height', '100svh');
-        if(ok) return;
-        var setH = function(){ el.style.setProperty('--ds-vh', window.innerHeight + 'px'); };
-        setH();
-        window.addEventListener('resize', setH);
-        window.addEventListener('orientationchange', setH);
+        var touch = !(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches);
+        var lastW = -1, lastH = -1, timer = 0;
+
+        /* 주소창이 펼쳐진 상태 기준(= svh) 높이. 미지원이면 innerHeight */
+        function measure(){
+          var h = 0;
+          if(window.CSS && CSS.supports && CSS.supports('height', '100svh')){
+            var p = document.createElement('div');
+            p.style.cssText = 'position:fixed;top:0;left:0;width:0;height:100svh;visibility:hidden;pointer-events:none;';
+            document.body.appendChild(p);
+            h = p.offsetHeight;
+            document.body.removeChild(p);
+          }
+          return h || window.innerHeight || document.documentElement.clientHeight;
+        }
+
+        function lock(force){
+          var w = window.innerWidth;
+          /* 터치 기기: 폭이 그대로면(= 주소창 변동) 무시 */
+          if(!force && touch && Math.abs(w - lastW) < 2) return;
+          var h = Math.round(measure());
+          if(!force && w === lastW && h === lastH) return;
+          lastW = w; lastH = h;
+          el.style.setProperty('--ds-vh', h + 'px');
+          el.dataset.short = h <= 560 ? 'true' : 'false';
+          fitContent();
+        }
+
+        lock(true);
+
+        /* 웹폰트·이미지 로드 후 글자 폭이 바뀌므로 한 번 더 확인 */
+        if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitContent).catch(noop);
+        window.addEventListener('load', fitContent);
+        var logo = el.querySelector('.dsharp-intro__markImg');
+        if(logo && !logo.complete) logo.addEventListener('load', fitContent);
+
+        window.addEventListener('resize', function(){
+          clearTimeout(timer);
+          timer = setTimeout(function(){ lock(false); }, 120);
+        }, { passive: true });
+
+        /* 회전 직후엔 치수가 늦게 확정되므로 두 번 잰다 */
+        window.addEventListener('orientationchange', function(){
+          lastW = -1;
+          setTimeout(function(){ lock(true); }, 250);
+          setTimeout(function(){ lock(true); }, 600);
+        });
+
+        /* bfcache 복귀 시 재측정 */
+        window.addEventListener('pageshow', function(e){ if(e.persisted) lock(true); });
       })();
 
       /* ── 배경 평균 밝기로 톤 프리셋 자동 선택 ── */
@@ -1492,15 +1692,15 @@
       }
 
       function watchSize(){
+        /* 섹션 높이가 고정돼 있으므로 주소창 변동에는 반응하지 않고 회전 시에만 재계산된다 */
         if('ResizeObserver' in window){
           new ResizeObserver(fitVideo).observe(host);
         }else{
           window.addEventListener('resize', fitVideo);
           window.addEventListener('orientationchange', fitVideo);
         }
-        /* 모바일 주소창 접힘 / 회전 직후 한 박자 뒤 재계산 */
         window.addEventListener('orientationchange', function(){
-          setTimeout(fitVideo, 260);
+          setTimeout(fitVideo, 700);
         });
       }
 
@@ -1650,8 +1850,8 @@
         var boxFrame = box.querySelector('.dsharp-lightbox__frame');
         var closeBtn = box.querySelector('.dsharp-lightbox__close');
         var scrim = box.querySelector('.dsharp-lightbox__scrim');
-        var endCover = box.querySelector('.dsharp-lightbox__end');
         var replayBtn = box.querySelector('.dsharp-lightbox__replay');
+        var fsBtn = box.querySelector('.dsharp-lightbox__fs');
         var modalFrame = null;
         var modalPlayer = null;
         var lastFocus = null;
@@ -1698,16 +1898,141 @@
           return base + '?autoplay=1&playsinline=1&title=0&byline=0&portrait=0&dnt=1';
         }
 
+        /* ════════ 전체 화면 · 가로 몰입 모드 ════════
+           · 안드로이드 · PC · 아이패드: 브라우저 전체 화면 API (+ 안드로이드는 가로 고정)
+           · 아이폰 · 일부 인앱 브라우저: API 가 없으므로 CSS 몰입 모드
+             - 폰을 가로로 돌리면 → 영상이 화면 전체를 채운다 (전 기기 공통, 자동)
+             - 세로에서 전체 화면 버튼 → 레이어를 90° 돌려 가로처럼 채운다
+           브라우저는 사용자 탭 없이 전체 화면 API 를 허용하지 않으므로,
+           가로 회전 시에는 몰입 모드로 즉시 채우고 제스처가 살아 있을 때만 API 까지 시도한다. */
+        var coarse = !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+        var fsApi = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+        var pseudoFs = false;
+        var orientLocked = false;
+        var viewTimer = 0;
+
+        function fsEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+        function isLand(){ return window.innerWidth > window.innerHeight; }
+
+        function reqFs(){
+          return new Promise(function(res, rej){
+            try{
+              if(box.requestFullscreen){
+                var r = box.requestFullscreen({ navigationUI: 'hide' });
+                if(r && typeof r.then === 'function'){ r.then(res, rej); return; }
+              }else if(box.webkitRequestFullscreen){
+                box.webkitRequestFullscreen();
+              }else{ rej(new Error('unsupported')); return; }
+              /* 프라미스를 돌려주지 않는 구형 webkit 대비 */
+              setTimeout(function(){ fsEl() ? res() : rej(new Error('denied')); }, 400);
+            }catch(e){ rej(e); }
+          });
+        }
+        function exitFs(){
+          try{
+            if(!fsEl()) return;
+            var r = document.exitFullscreen ? document.exitFullscreen()
+                  : (document.webkitExitFullscreen ? document.webkitExitFullscreen() : null);
+            if(r && typeof r.catch === 'function') r.catch(noop);
+          }catch(e){}
+        }
+        function lockLand(){
+          try{
+            var so = window.screen && screen.orientation;
+            if(so && typeof so.lock === 'function'){
+              so.lock('landscape').then(function(){ orientLocked = true; }).catch(noop);
+            }
+          }catch(e){}
+        }
+        function unlockOrient(){
+          if(!orientLocked) return;
+          orientLocked = false;
+          try{ screen.orientation.unlock(); }catch(e){}
+        }
+
+        function clearView(){
+          ['immersive', 'rotate', 'fsOn', 'fsHide'].forEach(function(k){ delete box.dataset[k]; });
+          box.style.removeProperty('--dl-vw');
+          box.style.removeProperty('--dl-vh');
+          fsBtn.setAttribute('aria-pressed', 'false');
+          fsBtn.setAttribute('aria-label', '전체 화면');
+        }
+
+        function syncView(){
+          if(!boxOpen) return;
+          var real = !!fsEl();
+          var land = isLand();
+          if(land && pseudoFs) pseudoFs = false;   /* 폰을 직접 가로로 돌리면 90° 회전 연출은 해제 */
+          var on = real || pseudoFs;
+
+          box.style.setProperty('--dl-vw', window.innerWidth + 'px');
+          box.style.setProperty('--dl-vh', window.innerHeight + 'px');
+          box.dataset.immersive = (on || (coarse && land)) ? 'true' : 'false';
+          box.dataset.rotate = (pseudoFs && !real) ? 'true' : 'false';
+          box.dataset.fsOn = on ? 'true' : 'false';
+          /* API 가 없는 기기에서 이미 가로 몰입 중이면 버튼이 할 일이 없으므로 숨긴다 */
+          box.dataset.fsHide = (!fsApi && coarse && land) ? 'true' : 'false';
+          fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+          fsBtn.setAttribute('aria-label', on ? '전체 화면 종료' : '전체 화면');
+          if(!real) unlockOrient();
+        }
+
+        function pseudoOn(){
+          if(isLand()){ syncView(); return; }   /* 이미 가로면 몰입 모드로 충분 */
+          pseudoFs = true;
+          syncView();
+        }
+
+        /* 버튼 탭 안에서 동기적으로 호출해야 전체 화면이 허용된다 */
+        function toggleFs(){
+          if(fsEl()){ exitFs(); return; }
+          if(pseudoFs){ pseudoFs = false; syncView(); return; }
+          if(fsApi){
+            reqFs()
+              .then(function(){ if(coarse) lockLand(); syncView(); })
+              .catch(pseudoOn);
+          }else{
+            pseudoOn();
+          }
+        }
+
+        function onViewport(){
+          if(!boxOpen) return;
+          clearTimeout(viewTimer);
+          viewTimer = setTimeout(function(){
+            syncView();
+            /* 가로 전환 직후 사용자 제스처가 아직 유효하면(일부 안드로이드) 진짜 전체 화면까지 */
+            if(boxOpen && coarse && fsApi && isLand() && !fsEl()){
+              var ua = navigator.userActivation;
+              if(ua && ua.isActive) reqFs().then(syncView).catch(noop);
+            }
+          }, 160);
+        }
+        function onFsChange(){
+          if(!fsEl()) unlockOrient();
+          syncView();
+        }
+
+        window.addEventListener('resize', onViewport);
+        window.addEventListener('orientationchange', onViewport);
+        if(window.screen && screen.orientation && screen.orientation.addEventListener){
+          screen.orientation.addEventListener('change', onViewport);
+        }
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
+
         function openBox(){
           if(boxOpen) return;
           var src = fullSrc();
           if(!src) return;
 
           boxOpen = true;
+          pseudoFs = false;
           reachedEnd = false;
           delete box.dataset.ended;
           lastFocus = document.activeElement;
           lockScroll();
+          syncView();   /* 이미 가로로 들고 있으면 처음부터 꽉 채운다 */
 
           if(bgPlayer) bgPlayer.pause().catch(noop);
 
@@ -1717,6 +2042,9 @@
           modalFrame.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media';
           modalFrame.setAttribute('frameborder', '0');
           modalFrame.setAttribute('allowfullscreen', '');
+          modalFrame.setAttribute('webkitallowfullscreen', '');
+          modalFrame.setAttribute('mozallowfullscreen', '');
+          modalFrame.setAttribute('playsinline', '');
           modalFrame.addEventListener('load', function(){ box.dataset.loaded = 'true'; });
           boxFrame.appendChild(modalFrame);
 
@@ -1746,6 +2074,12 @@
           reachedEnd = false;
           document.removeEventListener('keydown', onKey, true);
 
+          /* 전체 화면 · 가로 고정 · 몰입 상태 해제 */
+          clearTimeout(viewTimer);
+          pseudoFs = false;
+          exitFs();
+          unlockOrient();
+
           if(modalPlayer){ try{ modalPlayer.unload().catch(noop); }catch(e){} }
           modalPlayer = null;
 
@@ -1756,6 +2090,7 @@
           setTimeout(function(){
             if(f && f.parentNode) f.parentNode.removeChild(f);
             delete box.dataset.loaded;
+            if(!boxOpen) clearView();   /* 페이드아웃이 끝난 뒤 크기를 되돌려 튀지 않게 */
           }, 520);
 
           unlockScroll();
@@ -1770,7 +2105,9 @@
             return;
           }
           if(e.key === 'Tab'){        /* 포커스를 레이어 안에 가둔다 */
-            var focusables = [closeBtn];
+            var focusables = [];
+            if(fsBtn.offsetParent !== null) focusables.push(fsBtn);
+            focusables.push(closeBtn);
             if(box.dataset.ended === 'true') focusables.push(replayBtn);
             else if(modalFrame) focusables.push(modalFrame);
             var first = focusables[0], last = focusables[focusables.length - 1];
@@ -1784,6 +2121,7 @@
 
         cta.addEventListener('click', openBox);
         closeBtn.addEventListener('click', closeBox);
+        fsBtn.addEventListener('click', toggleFs);
         scrim.addEventListener('click', closeBox);
         replayBtn.addEventListener('click', replay);
       }
@@ -1909,8 +2247,8 @@
       <span class="slg-filter-name">종류</span>
       <div class="slg-chips" data-filter="cat">
         <button type="button" class="slg-chip is-on" data-value="all" aria-pressed="true">전체</button>
-        <button type="button" class="slg-chip slg-chip--play" data-value="play" aria-pressed="false">플레이 랜드</button>
-        <button type="button" class="slg-chip slg-chip--relax" data-value="relax" aria-pressed="false">릴렉스 스팟</button>
+        <button type="button" class="slg-chip slg-chip--play" data-value="play" aria-pressed="false"><i class="slg-key">P</i>플레이 랜드</button>
+        <button type="button" class="slg-chip slg-chip--relax" data-value="relax" aria-pressed="false"><i class="slg-key">R</i>릴렉스 스팟</button>
       </div>
     </div>
   </div>
@@ -1950,7 +2288,8 @@
                      data-v-seek aria-label="영상 재생 위치">
               <span class="slg-vtime" data-v-dur>0:00</span>
               <button type="button" class="slg-vbtn" data-v-full aria-label="전체화면">
-                <svg class="slg-vfs" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                <svg class="slg-vfs slg-vfs--in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+                <svg class="slg-vfs slg-vfs--out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
               </button>
             </div>
           </div>
@@ -2036,8 +2375,13 @@
   --slg-ink-3:#6f7873;
   --slg-line:rgba(242,239,233,.11);
   --slg-line-2:rgba(242,239,233,.22);
-  --slg-gold:#c6a96b;      /* 구역 · 릴렉스 */
-  --slg-water:#8bb0bd;     /* 플레이 */
+  --slg-gold:#c6a96b;      /* UI 포인트(재생바 등) */
+
+  /* 단지 배치도 마커와 같은 색 */
+  --slg-play:#1a9fd9;      /* P · 플레이 랜드 (파랑) */
+  --slg-relax:#e8732f;     /* R · 릴렉스 스팟 (주황) */
+  --slg-zone:#c3222c;      /* A~D · 정원 구역 (빨강) */
+  --slg-zone-ink:#ef5b63;  /* 어두운 배경 위 구역 글자색 */
 
   container-type:inline-size;
   container-name:slg;
@@ -2050,6 +2394,17 @@
   color:var(--slg-ink);
   font-family:"Pretendard","Pretendard Variable","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic",sans-serif;
   -webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+
+  /* 가로로 삐져나오는 요소만 잘라냅니다.
+     clip 은 스크롤 영역을 만들지 않으므로 세로 드래그에 끼어들지 않습니다
+     (hidden 은 섹션을 스크롤 영역으로 바꿔 터치가 걸릴 수 있어 쓰지 않습니다) */
+  overflow-x:clip;
+
+  /* 스크롤 앵커링 제외 — 영상 SDK 로딩·필터로 섹션 높이가 바뀔 때
+     브라우저가 보정 스크롤을 넣어 화면이 '툭' 튀는 것을 막습니다 */
+  overflow-anchor:none;
 }
 #seosin-landscape-guide *,
 #seosin-landscape-guide *::before,
@@ -2095,6 +2450,7 @@
   padding:.5em 0; border:0; background:none; cursor:pointer;
   font:inherit; font-size:clamp(12px,1.22cqw,15px); font-weight:400; line-height:1.3;
   color:var(--slg-ink-3);
+  touch-action:manipulation;
   transition:color .25s ease;
 }
 #seosin-landscape-guide .slg-chip::after{
@@ -2102,33 +2458,44 @@
   background:currentColor; transform:scaleX(0); transform-origin:left;
   transition:transform .3s cubic-bezier(.2,.7,.3,1);
 }
-#seosin-landscape-guide .slg-chip:hover{ color:var(--slg-ink-2); }
 #seosin-landscape-guide .slg-chip:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:6px; }
 #seosin-landscape-guide .slg-chip.is-on{ color:var(--slg-ink); }
 #seosin-landscape-guide .slg-chip.is-on::after{ transform:scaleX(1); }
-#seosin-landscape-guide .slg-chip--play.is-on{ color:var(--slg-water); }
-#seosin-landscape-guide .slg-chip--relax.is-on{ color:var(--slg-gold); }
+#seosin-landscape-guide .slg-chip--play.is-on{ color:var(--slg-play); }
+#seosin-landscape-guide .slg-chip--relax.is-on{ color:var(--slg-relax); }
+
+/* 구역 마크 — 배치도의 빨간 원 */
 #seosin-landscape-guide .slg-mark{
   display:grid; place-items:center; width:1.75em; height:1.75em; border-radius:50%;
-  border:1px solid var(--slg-line-2); color:var(--slg-gold);
-  font-size:.74em; font-weight:500; font-style:normal; letter-spacing:.02em;
+  border:1px solid rgba(195,34,44,.75); color:var(--slg-zone-ink);
+  font-size:.74em; font-weight:600; font-style:normal; letter-spacing:.02em;
   transition:border-color .25s ease, background-color .25s ease, color .25s ease;
 }
 #seosin-landscape-guide .slg-chip.is-on .slg-mark{
-  border-color:var(--slg-gold); background:var(--slg-gold); color:#12180f;
+  border-color:#fff; background:var(--slg-zone); color:#fff;
 }
+
+/* 종류 키 — 배치도의 P(파랑) · R(주황) 라벨 */
+#seosin-landscape-guide .slg-key{
+  display:grid; place-items:center; min-width:1.75em; height:1.55em; padding:0 .3em;
+  border-radius:5px; font-size:.74em; font-weight:700; font-style:normal; color:#fff;
+  opacity:.55; transition:opacity .25s ease, box-shadow .25s ease;
+}
+#seosin-landscape-guide .slg-chip--play .slg-key{ background:var(--slg-play); }
+#seosin-landscape-guide .slg-chip--relax .slg-key{ background:var(--slg-relax); }
+#seosin-landscape-guide .slg-chip.is-on .slg-key{ opacity:1; box-shadow:0 0 0 1.5px rgba(255,255,255,.9); }
 
 /* ── 구역 패널 ────────────────────────────────────────────── */
 #seosin-landscape-guide .slg-zone{
   position:relative; display:block;
   margin-top:3.6cqw; padding:4cqw 4.2cqw;
   border:1px solid var(--slg-line);
-  background:linear-gradient(115deg, rgba(198,169,107,.075), rgba(198,169,107,0) 58%);
+  background:linear-gradient(115deg, rgba(195,34,44,.08), rgba(195,34,44,0) 58%);
   animation:slg-zone-in .5s cubic-bezier(.2,.7,.3,1) both;
 }
 #seosin-landscape-guide .slg-zone::before{
   content:""; position:absolute; left:0; top:0; bottom:0; width:2px;
-  background:linear-gradient(var(--slg-gold), rgba(198,169,107,.15));
+  background:linear-gradient(var(--slg-zone), rgba(195,34,44,.15));
 }
 #seosin-landscape-guide .slg-zone[hidden]{ display:none; }
 
@@ -2137,9 +2504,11 @@
   padding-bottom:3cqw; border-bottom:1px solid var(--slg-line);
 }
 #seosin-landscape-guide .slg-zone-mark{
-  flex:0 0 auto; display:block; line-height:.86;
-  font-size:clamp(38px,5.6cqw,72px); font-weight:200; letter-spacing:-.04em;
-  color:var(--slg-gold); opacity:.85;
+  flex:0 0 auto; display:grid; place-items:center;
+  width:clamp(46px,5.4cqw,68px); height:clamp(46px,5.4cqw,68px);
+  border:2px solid #fff; border-radius:50%;
+  background:var(--slg-zone); color:#fff;
+  font-size:clamp(20px,2.6cqw,32px); font-weight:600; line-height:1;
 }
 #seosin-landscape-guide .slg-zone-heading{ min-width:0; }
 #seosin-landscape-guide .slg-zone-title{
@@ -2148,7 +2517,7 @@
 }
 #seosin-landscape-guide .slg-zone-sub{
   display:block; margin-top:.7em; font-size:clamp(11px,1.15cqw,14px);
-  letter-spacing:.06em; color:var(--slg-gold); word-break:keep-all;
+  letter-spacing:.06em; color:var(--slg-zone-ink); word-break:keep-all;
 }
 
 #seosin-landscape-guide .slg-zone-grid{
@@ -2166,8 +2535,12 @@
 #seosin-landscape-guide .slg-video-frame{
   position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#000;
 }
+#seosin-landscape-guide .slg-video-frame > div{
+  position:absolute; inset:0; width:100%; height:100%; overflow:hidden;
+}
 #seosin-landscape-guide .slg-video-frame iframe{
-  position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+  position:absolute; inset:0; width:100% !important; height:100% !important; max-width:100%;
+  border:0; display:block;
   pointer-events:none;   /* 유튜브·비메오 자체 UI가 뜨지 않게 막습니다 */
 }
 /* SDK를 못 불러온 경우에만 원래 플레이어로 되돌립니다 */
@@ -2180,6 +2553,7 @@
   position:absolute; inset:0; z-index:2;
   display:grid; place-items:center;
   padding:0; border:0; background:none; cursor:pointer;
+  touch-action:manipulation;
 }
 #seosin-landscape-guide .slg-video-hit:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:-3px; }
 #seosin-landscape-guide .slg-video-hit-ico{
@@ -2190,9 +2564,6 @@
   transition:opacity .3s ease, transform .3s ease, background-color .25s ease, border-color .25s ease, color .25s ease;
 }
 #seosin-landscape-guide .slg-video-hit-ico svg{ width:36%; height:36%; fill:currentColor; margin-left:8%; }
-#seosin-landscape-guide .slg-video-hit:hover .slg-video-hit-ico{
-  background:var(--slg-gold); border-color:var(--slg-gold); color:#12180f;
-}
 #seosin-landscape-guide .slg-player.is-playing .slg-video-hit-ico{ opacity:0; transform:scale(.92); }
 
 /* 컨트롤 바 */
@@ -2205,10 +2576,9 @@
   pointer-events:none;
   transition:none;          /* 마우스가 벗어나면 지연 없이 즉시 사라집니다 */
 }
-#seosin-landscape-guide .slg-player:hover .slg-video-bar,
 #seosin-landscape-guide .slg-player:focus-within .slg-video-bar{
   opacity:1; transform:none; pointer-events:auto;
-  transition:opacity .2s ease, transform .2s ease;   /* 나타날 때만 부드럽게 */
+  transition:opacity .2s ease, transform .2s ease;
 }
 /* 호버가 없는 터치 기기에서는 항상 노출 */
 @media (hover:none){
@@ -2218,9 +2588,9 @@
   flex:0 0 auto; display:grid; place-items:center;
   width:clamp(24px,2.2cqw,32px); height:clamp(24px,2.2cqw,32px);
   padding:0; border:0; background:none; color:var(--slg-ink); cursor:pointer;
+  touch-action:manipulation;
   transition:color .2s ease;
 }
-#seosin-landscape-guide .slg-vbtn:hover{ color:var(--slg-gold); }
 #seosin-landscape-guide .slg-vbtn:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:2px; }
 #seosin-landscape-guide .slg-vico{ width:80%; height:80%; fill:currentColor; grid-area:1/1; }
 #seosin-landscape-guide .slg-vico--pause{ display:none; }
@@ -2228,12 +2598,25 @@
 #seosin-landscape-guide .slg-player.is-playing .slg-vico--pause{ display:block; }
 #seosin-landscape-guide .slg-vfs{
   width:76%; height:76%; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round;
+  grid-area:1/1;
+}
+#seosin-landscape-guide .slg-vfs--out{ display:none; }
+#seosin-landscape-guide .slg-player.is-fs .slg-vfs--in{ display:none; }
+#seosin-landscape-guide .slg-player.is-fs .slg-vfs--out{ display:block; }
+
+/* 터치 기기 — 컨트롤 버튼 터치 영역 44px 확보 */
+@media (pointer:coarse){
+  #seosin-landscape-guide .slg-video-bar{ gap:4px; padding:10px 4px 2px; }
+  #seosin-landscape-guide .slg-vbtn{ width:44px; height:44px; }
+  #seosin-landscape-guide .slg-vico{ width:52%; height:52%; }
+  #seosin-landscape-guide .slg-vfs{ width:50%; height:50%; }
+  #seosin-landscape-guide .slg-vseek{ height:28px; }
 }
 #seosin-landscape-guide .slg-vtime{
   flex:0 0 auto; font-size:clamp(10px,1.02cqw,12px); color:var(--slg-ink-2);
   font-variant-numeric:tabular-nums;
 }
-#seosin-landscape-guide .slg-vseek{ flex:1 1 auto; height:14px; }
+#seosin-landscape-guide .slg-vseek{ flex:1 1 auto; min-width:0; height:14px; }
 
 /* 전체화면 */
 #seosin-landscape-guide .slg-player:fullscreen{
@@ -2242,6 +2625,32 @@
 #seosin-landscape-guide .slg-player:fullscreen .slg-video-frame{ width:100%; height:100%; aspect-ratio:auto; }
 #seosin-landscape-guide .slg-player:-webkit-full-screen{ width:100%; height:100%; border:0; background:#000; }
 #seosin-landscape-guide .slg-player:-webkit-full-screen .slg-video-frame{ width:100%; height:100%; aspect-ratio:auto; }
+
+/* 가상 전체화면 — 아이폰(요소 전체화면 미지원) · 가로 회전 자동 전환용 */
+#seosin-landscape-guide.slg-fs-lock{
+  container-type:normal;   /* 일부 브라우저에서 fixed 기준점이 섹션으로 잡히는 것 방지 */
+  overflow:visible;
+}
+#seosin-landscape-guide.slg-fs-lock .slg-zone{ animation:none; transform:none; }
+#seosin-landscape-guide .slg-player.is-pseudo-fs{
+  position:fixed; top:0; left:0; right:0; bottom:0; z-index:2147483000;
+  width:100vw; height:100vh; height:100dvh; max-width:none;
+  margin:0; border:0; background:#000;
+  display:flex; align-items:center; justify-content:center;
+  touch-action:none;       /* 전체화면 중 뒤 페이지 스크롤 차단 */
+}
+#seosin-landscape-guide .slg-player.is-pseudo-fs .slg-video-frame{
+  width:min(100vw, calc(100vh * 16 / 9));
+  width:min(100vw, calc(100dvh * 16 / 9));
+  height:auto; aspect-ratio:16/9;
+}
+/* 전체화면 컨트롤 — 노치·홈 인디케이터 피하기 */
+#seosin-landscape-guide .slg-player.is-fs .slg-video-bar{
+  padding-left:max(12px, env(safe-area-inset-left));
+  padding-right:max(12px, env(safe-area-inset-right));
+  padding-bottom:max(8px, env(safe-area-inset-bottom));
+}
+#seosin-landscape-guide .slg-player.is-fs .slg-vtime{ font-size:13px; }
 
 #seosin-landscape-guide .slg-video-tools{
   display:flex; align-items:center; justify-content:space-between; gap:2cqw;
@@ -2264,7 +2673,6 @@
   width:100%; height:100%; object-fit:cover; display:block;
   transition:transform .8s cubic-bezier(.2,.7,.3,1);
 }
-#seosin-landscape-guide .slg-shot:hover img{ transform:scale(1.05); }
 
 /* 설명 · 음성 */
 #seosin-landscape-guide .slg-zone-text{ display:block; }
@@ -2283,9 +2691,9 @@
   width:clamp(38px,3.8cqw,48px); height:clamp(38px,3.8cqw,48px);
   border:1px solid var(--slg-gold); border-radius:50%;
   background:none; color:var(--slg-gold); cursor:pointer; padding:0;
+  touch-action:manipulation;
   transition:background-color .25s ease, color .25s ease;
 }
-#seosin-landscape-guide .slg-audio-btn:hover{ background:var(--slg-gold); color:#12180f; }
 #seosin-landscape-guide .slg-audio-btn:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:4px; }
 #seosin-landscape-guide .slg-audio-btn[disabled]{
   border-color:var(--slg-line-2); color:var(--slg-ink-3); cursor:not-allowed; background:none;
@@ -2342,70 +2750,86 @@
   grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));
 }
 #seosin-landscape-guide .slg-card{
+  --slg-c:var(--slg-ink-2);
   display:flex; flex-direction:column; width:100%; padding:0; margin:0;
   border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer;
   -webkit-appearance:none; appearance:none;
+  touch-action:manipulation;
 }
+/* 카드별 대표색 — 배치도와 동일 */
+#seosin-landscape-guide .slg-card[data-cat="play"]{ --slg-c:var(--slg-play); }
+#seosin-landscape-guide .slg-card[data-cat="relax"]{ --slg-c:var(--slg-relax); }
 #seosin-landscape-guide .slg-card[hidden]{ display:none; }
-#seosin-landscape-guide .slg-card:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:6px; }
+#seosin-landscape-guide .slg-card:focus-visible{ outline:1px solid var(--slg-c); outline-offset:6px; }
 
 #seosin-landscape-guide .slg-thumb{
   position:relative; aspect-ratio:4/3; margin:0; overflow:hidden;
   background:var(--slg-bg-2); display:grid; place-items:center;
 }
+#seosin-landscape-guide .slg-thumb::before{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:3px; z-index:1;
+  background:var(--slg-c);
+}
 #seosin-landscape-guide .slg-thumb::after{
   content:""; position:absolute; inset:0; box-shadow:inset 0 0 0 1px var(--slg-line);
   transition:box-shadow .3s ease; pointer-events:none;
 }
-#seosin-landscape-guide .slg-card:hover .slg-thumb::after{ box-shadow:inset 0 0 0 1px var(--slg-line-2); }
 #seosin-landscape-guide .slg-thumb img{
   width:100%; height:100%; object-fit:cover; display:block;
-  transform:scale(1.001); transition:transform .8s cubic-bezier(.2,.7,.3,1);
+  transition:transform .8s cubic-bezier(.2,.7,.3,1);
 }
-#seosin-landscape-guide .slg-card:hover .slg-thumb img{ transform:scale(1.06); }
 #seosin-landscape-guide .slg-thumb-fallback{
   display:grid; place-items:center; gap:.9em; text-align:center;
 }
 #seosin-landscape-guide .slg-thumb-fallback b{
-  font-size:clamp(20px,2.4cqw,30px); font-weight:200; letter-spacing:.06em; color:var(--slg-ink-3);
+  font-size:clamp(20px,2.4cqw,30px); font-weight:300; letter-spacing:.06em; color:var(--slg-c);
 }
 #seosin-landscape-guide .slg-thumb-fallback span{
   font-size:clamp(10px,1.02cqw,12px); letter-spacing:.2em; color:var(--slg-ink-3); opacity:.7;
 }
+/* 코드 배지 — 배치도 마커 모양 그대로 */
 #seosin-landscape-guide .slg-badge{
-  position:absolute; top:0; left:0; z-index:1;
-  padding:.85em 1.1em; font-size:clamp(10px,1.05cqw,12px); font-weight:500;
-  letter-spacing:.1em; color:var(--slg-ink-2);
-  background:linear-gradient(135deg, rgba(11,17,15,.82), rgba(11,17,15,0));
+  position:absolute; top:10px; left:10px; z-index:2;
+  display:grid; place-items:center; min-width:2.4em;
+  padding:.3em .55em; border-radius:6px;
+  font-size:clamp(12px,1.2cqw,15px); font-weight:700; line-height:1.2; letter-spacing:.01em;
+  color:#fff; background:var(--slg-c);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.9), 0 2px 8px rgba(0,0,0,.35);
 }
 #seosin-landscape-guide .slg-more{
-  position:absolute; right:0; bottom:0; z-index:1;
+  position:absolute; right:0; bottom:3px; z-index:1;
   padding:.9em 1.1em; font-size:clamp(10px,1.02cqw,12px); letter-spacing:.12em;
   color:var(--slg-ink-3);
   background:linear-gradient(315deg, rgba(11,17,15,.82), rgba(11,17,15,0));
   opacity:0; transform:translateY(4px);
   transition:opacity .25s ease, transform .25s ease, color .25s ease;
 }
-#seosin-landscape-guide .slg-card:hover .slg-more,
 #seosin-landscape-guide .slg-card:focus-visible .slg-more{
-  opacity:1; transform:none; color:var(--slg-gold);
+  opacity:1; transform:none; color:var(--slg-c);
 }
 
 #seosin-landscape-guide .slg-info{ padding:1.6cqw .2cqw 0; }
 #seosin-landscape-guide .slg-cat{
   display:inline-flex; align-items:center; gap:.6em;
-  margin:0; font-size:clamp(10px,1.02cqw,12px); letter-spacing:.14em; color:var(--slg-ink-3);
+  margin:0; font-size:clamp(10px,1.02cqw,12px); letter-spacing:.14em; color:var(--slg-c);
 }
 #seosin-landscape-guide .slg-cat::before{
-  content:""; width:.42em; height:.42em; border-radius:50%; background:currentColor;
+  content:""; width:.5em; height:.5em; border-radius:2px; background:currentColor;
 }
-#seosin-landscape-guide .slg-card[data-cat="play"] .slg-cat{ color:var(--slg-water); }
-#seosin-landscape-guide .slg-card[data-cat="relax"] .slg-cat{ color:var(--slg-gold); }
 #seosin-landscape-guide .slg-name{
+  display:flex; align-items:center; gap:.5em; min-width:0;
   margin:.8em 0 0; font-size:clamp(15px,1.55cqw,19px); font-weight:400; letter-spacing:-.01em;
   transition:color .25s ease;
 }
-#seosin-landscape-guide .slg-card:hover .slg-name{ color:var(--slg-gold); }
+/* 이름 옆 P/R 코드 — 배치도 마커와 같은 색 */
+#seosin-landscape-guide .slg-name-code{
+  flex:0 0 auto; display:inline-grid; place-items:center;
+  min-width:2.3em; padding:.22em .45em; border-radius:5px;
+  font-size:.68em; font-weight:700; line-height:1.2; letter-spacing:.01em;
+  color:#fff; background:var(--slg-c);
+  box-shadow:0 0 0 1px rgba(255,255,255,.85);
+}
+#seosin-landscape-guide .slg-name-text{ min-width:0; word-break:keep-all; }
 #seosin-landscape-guide .slg-sub{
   margin:.5em 0 0; font-size:clamp(11px,1.14cqw,13px); color:var(--slg-ink-3);
 }
@@ -2426,12 +2850,46 @@
   animation-delay:calc(var(--slg-i, 0) * 32ms);
 }
 
+/* ── 호버 효과는 마우스 기기에서만 ──────────────────────────
+   터치 기기에서는 스크롤하다 손가락이 닿은 카드에 호버가 '붙어서'
+   이미지가 확대되고 글자색이 바뀌며 화면이 밀리는 것처럼 보였습니다. */
+@media (hover:hover) and (pointer:fine){
+  #seosin-landscape-guide .slg-chip:hover{ color:var(--slg-ink-2); }
+  #seosin-landscape-guide .slg-chip--play:hover{ color:var(--slg-play); }
+  #seosin-landscape-guide .slg-chip--relax:hover{ color:var(--slg-relax); }
+  #seosin-landscape-guide .slg-chip.is-on:hover{ color:var(--slg-ink); }
+  #seosin-landscape-guide .slg-chip--play.is-on:hover{ color:var(--slg-play); }
+  #seosin-landscape-guide .slg-chip--relax.is-on:hover{ color:var(--slg-relax); }
+
+  #seosin-landscape-guide .slg-video-hit:hover .slg-video-hit-ico{
+    background:var(--slg-gold); border-color:var(--slg-gold); color:#12180f;
+  }
+  #seosin-landscape-guide .slg-player:hover .slg-video-bar{
+    opacity:1; transform:none; pointer-events:auto;
+    transition:opacity .2s ease, transform .2s ease;   /* 나타날 때만 부드럽게 */
+  }
+  #seosin-landscape-guide .slg-vbtn:hover{ color:var(--slg-gold); }
+  #seosin-landscape-guide .slg-audio-btn:not([disabled]):hover{ background:var(--slg-gold); color:#12180f; }
+  #seosin-landscape-guide .slg-shot:hover img{ transform:scale(1.05); }
+
+  #seosin-landscape-guide .slg-card:hover .slg-thumb::after{ box-shadow:inset 0 0 0 1px var(--slg-c); }
+  #seosin-landscape-guide .slg-card:hover .slg-thumb img{ transform:scale(1.06); }
+  #seosin-landscape-guide .slg-card:hover .slg-more{ opacity:1; transform:none; color:var(--slg-c); }
+  #seosin-landscape-guide .slg-card:hover .slg-name{ color:var(--slg-c); }
+
+  #seosin-landscape-guide .slg-modal-x:hover{ color:var(--slg-ink); border-color:var(--slg-c); }
+  #seosin-landscape-guide .slg-modal-arrow:not([disabled]):hover{ color:var(--slg-ink); border-color:var(--slg-c); }
+}
+
 /* ── 시설 상세 팝업 ───────────────────────────────────────── */
 /* 팝업은 뷰포트 기준으로 뜨므로 cqw 대신 px/vw 단위를 씁니다 */
 #seosin-landscape-guide .slg-modal{
   display:none; position:fixed; inset:0;
   width:100%; max-width:100%; height:100%; max-height:100%;
-  margin:0; padding:clamp(16px,4vw,48px); border:0; overflow:auto;
+  margin:0; padding:clamp(16px,4vw,48px); border:0;
+  overflow-x:hidden; overflow-y:auto;
+  overscroll-behavior:contain;          /* 팝업 스크롤이 뒤 페이지로 새지 않게 */
+  -webkit-overflow-scrolling:touch;
   background:transparent; color:var(--slg-ink);
 }
 #seosin-landscape-guide .slg-modal[open]{ display:grid; place-items:center; }
@@ -2439,20 +2897,27 @@
 #seosin-landscape-guide .slg-modal.is-fallback[open]{ z-index:9999; background:rgba(5,9,8,.88); }
 
 #seosin-landscape-guide .slg-modal-inner{
+  --slg-c:var(--slg-ink-2);
   position:relative; width:100%; max-width:920px;
   display:grid; grid-template-columns:minmax(0,1fr);
   border:1px solid var(--slg-line-2); background:#0f1614;
   animation:slg-modal-in .32s cubic-bezier(.2,.7,.3,1) both;
 }
+#seosin-landscape-guide .slg-modal-inner[data-cat="play"]{ --slg-c:var(--slg-play); }
+#seosin-landscape-guide .slg-modal-inner[data-cat="relax"]{ --slg-c:var(--slg-relax); }
+#seosin-landscape-guide .slg-modal-inner::before{
+  content:""; position:absolute; left:0; right:0; top:0; height:3px; z-index:2;
+  background:var(--slg-c);
+}
 #seosin-landscape-guide .slg-modal-x{
-  position:absolute; top:12px; right:12px; z-index:2;
+  position:absolute; top:12px; right:12px; z-index:3;
   display:grid; place-items:center; width:40px; height:40px; padding:0;
   border:1px solid var(--slg-line-2); border-radius:50%;
   background:rgba(11,17,15,.72); color:var(--slg-ink-2); cursor:pointer;
+  touch-action:manipulation;
   transition:color .25s ease, border-color .25s ease;
 }
-#seosin-landscape-guide .slg-modal-x:hover{ color:var(--slg-ink); border-color:var(--slg-gold); }
-#seosin-landscape-guide .slg-modal-x:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:3px; }
+#seosin-landscape-guide .slg-modal-x:focus-visible{ outline:1px solid var(--slg-c); outline-offset:3px; }
 #seosin-landscape-guide .slg-modal-x svg{
   width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round;
 }
@@ -2462,19 +2927,21 @@
   display:grid; place-items:center;
 }
 #seosin-landscape-guide .slg-modal-fig img{ width:100%; height:100%; object-fit:cover; display:block; }
-#seosin-landscape-guide .slg-modal-fig .slg-thumb-fallback b{ font-size:34px; }
+#seosin-landscape-guide .slg-modal-fig .slg-thumb-fallback b{ font-size:34px; color:var(--slg-c); }
 
 #seosin-landscape-guide .slg-modal-body{ padding:clamp(24px,3.4vw,40px); }
 #seosin-landscape-guide .slg-modal-meta{
-  display:flex; align-items:center; gap:14px; margin:0;
+  display:flex; align-items:center; gap:12px; margin:0;
   font-size:12px; letter-spacing:.14em;
 }
 #seosin-landscape-guide .slg-modal-code{
-  padding-right:14px; border-right:1px solid var(--slg-line-2); color:var(--slg-ink-3);
+  display:grid; place-items:center; min-width:2.6em;
+  padding:.35em .6em; border-radius:6px;
+  font-size:14px; font-weight:700; letter-spacing:.01em; line-height:1.2;
+  color:#fff; background:var(--slg-c);
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.9);
 }
-#seosin-landscape-guide .slg-modal-cat{ color:var(--slg-ink-3); }
-#seosin-landscape-guide .slg-modal-inner[data-cat="play"] .slg-modal-cat{ color:var(--slg-water); }
-#seosin-landscape-guide .slg-modal-inner[data-cat="relax"] .slg-modal-cat{ color:var(--slg-gold); }
+#seosin-landscape-guide .slg-modal-cat{ color:var(--slg-c); }
 #seosin-landscape-guide .slg-modal-name{
   margin:18px 0 0; font-size:clamp(20px,2.6vw,28px); font-weight:400; letter-spacing:-.015em;
   color:var(--slg-ink);
@@ -2503,10 +2970,10 @@
 #seosin-landscape-guide .slg-modal-arrow{
   padding:.5em 0; border:0; border-bottom:1px solid transparent;
   background:none; color:var(--slg-ink-2); cursor:pointer; font:inherit; font-size:13px;
+  touch-action:manipulation;
   transition:color .25s ease, border-color .25s ease;
 }
-#seosin-landscape-guide .slg-modal-arrow:hover{ color:var(--slg-ink); border-color:var(--slg-gold); }
-#seosin-landscape-guide .slg-modal-arrow:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:4px; }
+#seosin-landscape-guide .slg-modal-arrow:focus-visible{ outline:1px solid var(--slg-c); outline-offset:4px; }
 #seosin-landscape-guide .slg-modal-arrow[disabled]{ color:var(--slg-ink-3); opacity:.45; cursor:default; }
 #seosin-landscape-guide .slg-modal-pos{
   font-size:12px; letter-spacing:.1em; color:var(--slg-ink-3); font-variant-numeric:tabular-nums;
@@ -2522,7 +2989,6 @@
   #seosin-landscape-guide .slg-zone-grid{ grid-template-columns:minmax(0,1fr); gap:3.4cqw; }
 }
 @container slg (max-width:640px){
-  #seosin-landscape-guide{ padding:10cqw 6cqw 12cqw; }
   #seosin-landscape-guide .slg-filter{ flex-direction:column; align-items:stretch; gap:1.4cqw; }
   #seosin-landscape-guide .slg-chips{ gap:.4cqw 4cqw; }
   #seosin-landscape-guide .slg-zone{ padding:7cqw 5cqw; }
@@ -2532,7 +2998,12 @@
   #seosin-landscape-guide .slg-video-tools{ margin-top:2.4cqw; }
   #seosin-landscape-guide .slg-audio{ gap:3cqw; padding:4cqw; margin-top:5cqw; }
   #seosin-landscape-guide .slg-grid{ grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr)); gap:5cqw 3cqw; }
+  #seosin-landscape-guide .slg-badge{ top:7px; left:7px; }
   #seosin-landscape-guide .slg-more{ opacity:1; transform:none; }
+}
+/* 루트 패딩은 컨테이너 쿼리로 자기 자신을 못 바꾸므로 뷰포트 기준 */
+@media (max-width:640px){
+  #seosin-landscape-guide{ padding:10cqw 6cqw 12cqw; }
 }
 
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
@@ -2558,6 +3029,13 @@
   if(!root || root.dataset.ready) return;
   root.dataset.ready = '1';
 
+  /* ── 모바일 고무줄 바운스 차단 ──────────────────────────────
+     html(실제 페이지 스크롤러)에만 겁니다.
+     ※ html·body 둘 다에 overflow 를 주면 body 가 별도 스크롤 영역이 되어
+       드래그를 왕복할 때 화면이 튕기고 주소창이 접히지 않습니다. 절대 넣지 마세요.
+     당겨서 새로고침이 필요하면 이 블록만 지우면 됩니다. */
+  try{ document.documentElement.style.overscrollBehavior = 'none'; }catch(e){}
+
   /* ==========================================================
      ▼ 여기만 고치면 됩니다 — 구역 / 시설 / 링크 / 이미지
 
@@ -2573,6 +3051,7 @@
      audio : AI 음성 가이드 mp3 경로 (비우면 음성 영역 숨김)
 
      [시설]  카드를 누르면 팝업으로 설명이 열립니다
+     cat   : 'play' = P(파랑) · 'relax' = R(주황) — 색이 자동으로 따라갑니다
      desc  : 팝업에 들어갈 시설 설명 ★ 임시 문구이니 실제 카피로 교체하세요
      img   : 썸네일 · 팝업 이미지 경로 (비우면 코드 배지만 표시)
      zones : 해당 시설이 속한 구역 (복수 가능, 'etc' = 구역 외)
@@ -2606,7 +3085,7 @@
   };
 
   var ITEMS = [
-    /* 플레이 랜드 */
+    /* 플레이 랜드 — P (파랑) */
     { code:'P1', cat:'play',  name:'클라우드워크',   sub:'어린이놀이터 1', where:'101·102동 앞', zones:['A'],
       desc:'구름을 밟고 오르듯 높낮이가 이어지는 네트 놀이대입니다. 오르내리는 동선이 길어 활동량이 큰 아이들에게 어울리고, 물담정원의 수경시설을 내려다보는 자리에 있습니다.',
       img:'./img/p1.png' },
@@ -2634,7 +3113,7 @@
     { code:'P9', cat:'play',  name:'클라이밍',       sub:'실내 클라이밍',  where:'108동',          zones:['etc'],
       desc:'단지 내 실내 클라이밍 월입니다. 날씨와 관계없이 이용할 수 있어 장마철과 한겨울 놀이 공간으로 활용됩니다.',
       img:'./img/P9.png' },
-    /* 릴렉스 스팟 */
+    /* 릴렉스 스팟 — R (주황) */
     { code:'R1', cat:'relax', name:'복층 티하우스',  sub:'복층형 휴게시설', where:'104·109동 일원', zones:['A'],
       desc:'물담정원을 내려다보는 2층 구조의 휴게시설입니다. 1층은 그늘 벤치, 2층은 전망 데크로 나뉘어 있습니다.',
       img:'./img/R1.png' },
@@ -2687,6 +3166,12 @@
     return String(s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
+  }
+
+  /* 포커스 이동 시 브라우저가 화면을 끌고 가지 않게 합니다 */
+  function focusNoScroll(el){
+    if(!el || !el.focus) return;
+    try{ el.focus({ preventScroll:true }); }catch(e){ el.focus(); }
   }
 
   /* ── 투어 가이드 영상 — 유튜브 / 비메오 공용 최소 플레이어 ──
@@ -2779,6 +3264,7 @@
   }
 
   function clearVideo(){
+    if(fsMode) exitFS();   /* 구역이 바뀌면 전체화면부터 해제 */
     vToken++;
     vStopTick();
     if(vFallbackT){ clearTimeout(vFallbackT); vFallbackT = null; }
@@ -2822,6 +3308,7 @@
         new window.YT.Player(holder, {
           host: 'https://www.youtube-nocookie.com',
           videoId: info.id,
+          width: '100%', height: '100%',
           playerVars: {
             controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1,
             fs: 0, iv_load_policy: 3, cc_load_policy: 0, start: info.start || 0
@@ -2870,10 +3357,11 @@
       videoFrame.innerHTML = '';
       videoFrame.appendChild(holder);
       try{
+        /* width 고정값(1280)은 좁은 화면에서 가로 밀림을 만들 수 있어 제거했습니다 */
         var vp = new window.Vimeo.Player(holder, {
           id: Number(info.id),
           controls: false, title: false, byline: false, portrait: false,
-          playsinline: true, dnt: true, responsive: false, width: 1280,
+          playsinline: true, dnt: true, responsive: false,
           pip: false, watch_full_video: false
         });
         media.api = vp;
@@ -2965,17 +3453,133 @@
   vFull.addEventListener('click', vBlur);
   vSeek.addEventListener('pointerup', function(){ if(this.blur) this.blur(); });
 
-  vFull.addEventListener('click', function(){
-    var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    if(fsEl){
-      var exit = document.exitFullscreen || document.webkitExitFullscreen;
-      if(exit) exit.call(document);
-      return;
-    }
+  /* ── 전체화면 ────────────────────────────────────────────────
+     · 안드로이드 · PC · 아이패드 : 브라우저 전체화면 + (모바일) 가로 고정
+     · 아이폰 : 사파리가 영상 외 요소의 전체화면을 막아 두어,
+                화면 전체를 덮는 가상 전체화면으로 처리합니다
+     · 모바일에서 영상이 보이는 상태로 가로로 돌리면 자동 전체화면,
+       다시 세로로 돌리면 자동 해제 */
+  var fsMode = '';      /* '' | 'native' | 'pseudo' */
+  var fsAuto = false;   /* 가로 회전으로 자동 진입했는지 */
+
+  function mq(q){ return !!(window.matchMedia && window.matchMedia(q).matches); }
+  function isTouch(){ return mq('(hover:none) and (pointer:coarse)'); }
+  function fsElement(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  function canNativeFS(el){
+    var enabled = document.fullscreenEnabled || document.webkitFullscreenEnabled;
+    return !!(enabled && (el.requestFullscreen || el.webkitRequestFullscreen));
+  }
+  function setFsUI(on){
+    vPlayerEl.classList.toggle('is-fs', !!on);
+    vFull.setAttribute('aria-label', on ? '전체화면 종료' : '전체화면');
+  }
+  function lockLandscape(){
+    if(!isTouch()) return;
+    try{
+      if(screen.orientation && screen.orientation.lock){
+        screen.orientation.lock('landscape').catch(function(){});
+      }
+    }catch(e){}
+  }
+  function unlockOrientation(){
+    try{ if(screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); }catch(e){}
+  }
+
+  function enterPseudo(auto){
+    if(fsMode) return;
+    fsMode = 'pseudo';
+    fsAuto = !!auto;
+    lockScroll();
+    root.classList.add('slg-fs-lock');
+    vPlayerEl.classList.add('is-pseudo-fs');
+    setFsUI(true);
+  }
+  function exitPseudo(){
+    if(fsMode !== 'pseudo') return;
+    vPlayerEl.classList.remove('is-pseudo-fs');
+    root.classList.remove('slg-fs-lock');
+    fsMode = '';
+    fsAuto = false;
+    setFsUI(false);
+    unlockScroll();
+  }
+
+  function enterFS(){
     var el = vPlayerEl;
-    var req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-    if(req) req.call(el);
+    if(!canNativeFS(el)){ enterPseudo(false); return; }
+    try{
+      var p = el.requestFullscreen
+        ? el.requestFullscreen({ navigationUI:'hide' })
+        : el.webkitRequestFullscreen();
+      if(p && p.then){
+        p.then(lockLandscape).catch(function(){ enterPseudo(false); });
+      } else {
+        setTimeout(function(){
+          if(fsElement() === el) lockLandscape();
+          else enterPseudo(false);   /* 요청이 조용히 무시된 경우 */
+        }, 300);
+      }
+    }catch(e){ enterPseudo(false); }
+  }
+  function exitFS(){
+    if(fsMode === 'pseudo'){ exitPseudo(); return; }
+    if(fsElement()){
+      var exit = document.exitFullscreen || document.webkitExitFullscreen;
+      try{
+        var p = exit && exit.call(document);
+        if(p && p.catch) p.catch(function(){});
+      }catch(e){}
+    }
+  }
+
+  function onFsChange(){
+    if(fsElement() === vPlayerEl){
+      fsMode = 'native';
+      setFsUI(true);
+    } else if(fsMode === 'native'){
+      fsMode = '';
+      setFsUI(false);
+      unlockOrientation();
+    }
+  }
+  document.addEventListener('fullscreenchange', onFsChange);
+  document.addEventListener('webkitfullscreenchange', onFsChange);
+
+  vFull.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(fsMode) exitFS();
+    else enterFS();
   });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && fsMode === 'pseudo') exitPseudo();
+  });
+
+  /* 세로 상태에서 영상이 절반 이상 보였는지 기록해 두었다가,
+     가로로 돌리는 순간 그 값으로 자동 전체화면 여부를 판단합니다 */
+  var mqLand = window.matchMedia ? window.matchMedia('(orientation: landscape)') : null;
+  var vSeen = false;
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      if(mqLand && mqLand.matches) return;
+      entries.forEach(function(en){ vSeen = en.intersectionRatio >= 0.5; });
+    }, { threshold:[0, 0.5, 1] }).observe(vPlayerEl);
+  }
+
+  function onOrient(){
+    if(!mqLand || !isTouch()) return;
+    if(mqLand.matches){
+      if(fsMode) return;
+      if(panel.hidden || videoBox.hidden || vPlayerEl.classList.contains('is-native')) return;
+      if(vSeen || (media && media.state.playing)) enterPseudo(true);
+    } else if(fsMode === 'pseudo' && fsAuto){
+      exitPseudo();
+    }
+  }
+  if(mqLand){
+    if(mqLand.addEventListener) mqLand.addEventListener('change', onOrient);
+    else if(mqLand.addListener) mqLand.addListener(onOrient);
+  }
 
   /* ── 구역 사진 ───────────────────────────────────────────── */
   function setShots(list, title){
@@ -3085,7 +3689,8 @@
       +   '</figure>'
       +   '<div class="slg-info">'
       +     '<p class="slg-cat">' + esc(CAT_LABEL[it.cat]) + '</p>'
-      +     '<h3 class="slg-name">' + esc(it.name) + '</h3>'
+      +     '<h3 class="slg-name"><span class="slg-name-code" aria-hidden="true">' + esc(it.code) + '</span>'
+      +       '<span class="slg-name-text">' + esc(it.name) + '</span></h3>'
       +     '<p class="slg-sub">' + esc(it.sub) + '</p>'
       +     '<p class="slg-where">' + esc(it.where) + '</p>'
       +   '</div>'
@@ -3113,6 +3718,35 @@
   var canDialog = typeof modal.showModal === 'function';
   var lastFocus = null;
   var openIdx   = -1;
+
+  /* ── 팝업 동안 뒤 페이지 고정 ──────────────────────────────
+     iOS는 body overflow:hidden 만으로는 뒤 페이지가 계속 스크롤되고,
+     닫을 때 맨 위로 튀는 문제가 있어 position:fixed 방식으로 고정 후
+     닫을 때 원래 위치로 되돌립니다. */
+  var lockY = 0, locked = false;
+  function lockScroll(){
+    if(locked) return;
+    locked = true;
+    lockY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var b = document.body.style;
+    b.position = 'fixed';
+    b.top = (-lockY) + 'px';
+    b.left = '0';
+    b.right = '0';
+    b.width = '100%';
+    b.overflow = 'hidden';
+  }
+  function unlockScroll(){
+    if(!locked) return;
+    locked = false;
+    var b = document.body.style;
+    b.position = ''; b.top = ''; b.left = ''; b.right = ''; b.width = ''; b.overflow = '';
+    var html = document.documentElement;
+    var prevSB = html.style.scrollBehavior;
+    html.style.scrollBehavior = 'auto';   /* 부드러운 스크롤 설정이 있어도 즉시 복귀 */
+    window.scrollTo(0, lockY);
+    html.style.scrollBehavior = prevSB;
+  }
 
   function visibleIndexes(){
     var out = [];
@@ -3159,10 +3793,11 @@
   function openModal(idx){
     lastFocus = document.activeElement;
     fillModal(idx);
+    lockScroll();
     if(canDialog){ modal.showModal(); }
     else { modal.classList.add('is-fallback'); modal.setAttribute('open', ''); }
-    document.body.style.overflow = 'hidden';
-    modal.querySelector('[data-modal-close]').focus();
+    modal.scrollTop = 0;
+    focusNoScroll(modal.querySelector('[data-modal-close]'));
   }
 
   function closeModal(){
@@ -3171,9 +3806,9 @@
   }
 
   function afterClose(){
-    document.body.style.overflow = '';
+    unlockScroll();
     openIdx = -1;
-    if(lastFocus && lastFocus.focus) lastFocus.focus();
+    focusNoScroll(lastFocus);   /* 카드로 포커스를 돌려도 화면은 움직이지 않습니다 */
     lastFocus = null;
   }
 
@@ -3184,6 +3819,7 @@
     if(at < 0) at = 0;
     var next = (at + dir + list.length) % list.length;
     fillModal(list[next]);
+    modal.scrollTop = 0;
   }
 
   modal.addEventListener('close', afterClose);
