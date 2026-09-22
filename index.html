@@ -488,7 +488,14 @@
          data-theme="dark"
          data-video="https://player.vimeo.com/video/1228639478?quality=1080p&amp;muted=1&amp;autoplay=1&amp;autopause=0&amp;loop=1&amp;background=1&amp;dnt=1"
          data-video-full="https://player.vimeo.com/video/1228639478?autoplay=1&amp;playsinline=1&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1"
+         data-video-file=""
          data-video-min-width="0">
+  <!--
+    data-video-file : 아이폰 '진짜' 전체 화면용 원본 영상 주소 (선택)
+      Vimeo 관리 화면 → 영상 → 배포(Distribution) → 동영상 파일 링크 에서 복사.
+      HLS(.m3u8) 링크 권장, MP4 링크도 가능. (Vimeo Standard 이상 요금제)
+      비워 두면 아이폰은 Vimeo 플레이어 전체 화면 → 안 되면 화면 채우기로 대체된다.
+  -->
   <style>
     /* 폰트가 이미 로드돼 있으면 아래 @import 한 줄 삭제 */
     @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700;900&family=Noto+Serif+KR:wght@400;600;700&display=swap");
@@ -1264,6 +1271,19 @@
     }
     #dsharp-lightbox[data-loaded="true"] .dsharp-lightbox__frame iframe{ opacity: 1; }
 
+    /* 아이폰 네이티브 플레이어(data-video-file 사용 시) */
+    #dsharp-lightbox .dsharp-lightbox__video{
+      position: absolute; inset: 0;
+      z-index: 1;
+      display: block;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      background: #000;
+      opacity: 0;
+      transition: opacity .7s ease .1s;
+    }
+    #dsharp-lightbox[data-loaded="true"] .dsharp-lightbox__video{ opacity: 1; }
+
     /* 로딩 링 */
     #dsharp-lightbox .dsharp-lightbox__spinner{
       position: absolute; top: 50%; left: 50%;
@@ -1854,6 +1874,8 @@
         var fsBtn = box.querySelector('.dsharp-lightbox__fs');
         var modalFrame = null;
         var modalPlayer = null;
+        var modalVideo = null;     /* 아이폰 네이티브 <video> */
+        var vimeoFs = false;       /* Vimeo 플레이어 자체 전체 화면 상태 */
         var lastFocus = null;
 
         /* 종료 몇 초 전에 가로챌지 (초).
@@ -1881,6 +1903,14 @@
         }
 
         function replay(){
+          if(modalVideo){
+            reachedEnd = false;
+            delete box.dataset.ended;
+            try{ modalVideo.currentTime = 0; }catch(e){}
+            var rp = modalVideo.play();
+            if(rp && rp.catch) rp.catch(noop);
+            return;
+          }
           if(!modalPlayer) return;
           reachedEnd = false;
           delete box.dataset.ended;
@@ -1909,6 +1939,29 @@
         var fsApi = !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
         var pseudoFs = false;
         var orientLocked = false;
+
+        /* 모바일(안드로이드 · 아이패드)에서 영상을 열 때 곧바로 기기 전체 화면으로 연다.
+           전체 화면 안에서는 폰을 가로로 돌리는 것만으로 '기기 전체 화면 가로'가 된다.
+           세로에서 브라우저 화면으로 보고 싶으면 false 로 바꾼다. */
+        var OPEN_FS_MOBILE = true;
+
+        /* 아이폰은 요소 전체 화면 API 가 없어 네이티브 <video> 만 진짜 전체 화면이 가능하다 */
+        var fileSrc = el.dataset.videoFile || '';
+        var useNative = !!fileSrc && coarse && !fsApi;
+
+        function nativeFsOn(){ return !!(modalVideo && modalVideo.webkitDisplayingFullscreen); }
+        function nativeEnter(){
+          try{
+            if(modalVideo && typeof modalVideo.webkitEnterFullscreen === 'function'){
+              modalVideo.webkitEnterFullscreen();
+              return true;
+            }
+          }catch(e){}
+          return false;
+        }
+        function nativeExit(){
+          try{ if(nativeFsOn()) modalVideo.webkitExitFullscreen(); }catch(e){}
+        }
         var viewTimer = 0;
 
         function fsEl(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
@@ -1960,7 +2013,7 @@
 
         function syncView(){
           if(!boxOpen) return;
-          var real = !!fsEl();
+          var real = !!fsEl() || nativeFsOn() || vimeoFs;
           var land = isLand();
           if(land && pseudoFs) pseudoFs = false;   /* 폰을 직접 가로로 돌리면 90° 회전 연출은 해제 */
           var on = real || pseudoFs;
@@ -1974,7 +2027,7 @@
           box.dataset.fsHide = (!fsApi && coarse && land) ? 'true' : 'false';
           fsBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
           fsBtn.setAttribute('aria-label', on ? '전체 화면 종료' : '전체 화면');
-          if(!real) unlockOrient();
+          if(!fsEl()) unlockOrient();
         }
 
         function pseudoOn(){
@@ -1985,15 +2038,37 @@
 
         /* 버튼 탭 안에서 동기적으로 호출해야 전체 화면이 허용된다 */
         function toggleFs(){
+          /* ── 끄기 ── */
           if(fsEl()){ exitFs(); return; }
+          if(nativeFsOn()){ nativeExit(); return; }
+          if(vimeoFs && modalPlayer){ modalPlayer.exitFullscreen().catch(noop); return; }
           if(pseudoFs){ pseudoFs = false; syncView(); return; }
+
+          /* ── 켜기 ── */
+          /* 1) 안드로이드 · PC · 아이패드: 기기 전체 화면 + (모바일) 가로 고정 */
           if(fsApi){
             reqFs()
               .then(function(){ if(coarse) lockLand(); syncView(); })
               .catch(pseudoOn);
-          }else{
-            pseudoOn();
+            return;
           }
+          /* 2) 아이폰 + 네이티브 영상: iOS 기본 전체 화면 플레이어 */
+          if(modalVideo){
+            if(!nativeEnter()) pseudoOn();
+            return;
+          }
+          /* 3) 아이폰 + Vimeo: 플레이어 자체 전체 화면 요청 → 실패하면 화면 채우기 */
+          if(modalPlayer && typeof modalPlayer.requestFullscreen === 'function'){
+            modalPlayer.requestFullscreen().catch(noop);
+            setTimeout(function(){
+              if(!boxOpen || !modalPlayer || vimeoFs) return;
+              modalPlayer.getFullscreen()
+                .then(function(on){ if(!on && !vimeoFs) pseudoOn(); })
+                .catch(pseudoOn);
+            }, 900);
+            return;
+          }
+          pseudoOn();
         }
 
         function onViewport(){
@@ -2005,6 +2080,10 @@
             if(boxOpen && coarse && fsApi && isLand() && !fsEl()){
               var ua = navigator.userActivation;
               if(ua && ua.isActive) reqFs().then(syncView).catch(noop);
+            }
+            /* 아이폰 네이티브 영상: 가로 전환 시 iOS 전체 화면 시도 (허용 안 되면 화면 채우기 유지) */
+            if(boxOpen && modalVideo && isLand() && !modalVideo.paused && !nativeFsOn()){
+              nativeEnter();
             }
           }, 160);
         }
@@ -2021,13 +2100,47 @@
         document.addEventListener('fullscreenchange', onFsChange);
         document.addEventListener('webkitfullscreenchange', onFsChange);
 
+        /* 아이폰 네이티브 플레이어 — 탭 안에서 play() 해야 소리와 함께 재생된다 */
+        function mountNative(){
+          var v = document.createElement('video');
+          v.className = 'dsharp-lightbox__video';
+          v.controls = true;
+          v.playsInline = true;
+          v.setAttribute('playsinline', '');
+          v.setAttribute('webkit-playsinline', '');
+          v.setAttribute('preload', 'auto');
+          v.setAttribute('controlslist', 'nodownload');
+          v.setAttribute('title', '서신 더샵 에피트 AI 조경 가이드 전체 영상');
+          v.addEventListener('loadeddata', function(){ box.dataset.loaded = 'true'; });
+          v.addEventListener('ended', function(){
+            nativeExit();
+            reachedEnd = true;
+            box.dataset.ended = 'true';
+          });
+          v.addEventListener('webkitbeginfullscreen', syncView);
+          v.addEventListener('webkitendfullscreen', function(){ setTimeout(syncView, 60); });
+          v.src = fileSrc;
+          boxFrame.appendChild(v);
+          modalVideo = v;
+          var pr = v.play();
+          if(pr && pr.catch) pr.catch(noop);
+        }
+
         function openBox(){
           if(boxOpen) return;
           var src = fullSrc();
-          if(!src) return;
+          if(!src && !useNative) return;
+
+          /* 탭(제스처) 안에서 동기적으로 요청해야 기기 전체 화면이 허용된다 */
+          var wantFs = OPEN_FS_MOBILE && coarse && fsApi;
 
           boxOpen = true;
           pseudoFs = false;
+          vimeoFs = false;
+          if(wantFs){
+            box.dataset.open = 'true';
+            reqFs().then(syncView).catch(syncView);   /* 거부돼도(인앱 등) 화면 채우기로 진행 */
+          }
           reachedEnd = false;
           delete box.dataset.ended;
           lastFocus = document.activeElement;
@@ -2036,31 +2149,39 @@
 
           if(bgPlayer) bgPlayer.pause().catch(noop);
 
-          modalFrame = document.createElement('iframe');
-          modalFrame.src = src;
-          modalFrame.title = '서신 더샵 에피트 AI 조경 가이드 전체 영상';
-          modalFrame.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media';
-          modalFrame.setAttribute('frameborder', '0');
-          modalFrame.setAttribute('allowfullscreen', '');
-          modalFrame.setAttribute('webkitallowfullscreen', '');
-          modalFrame.setAttribute('mozallowfullscreen', '');
-          modalFrame.setAttribute('playsinline', '');
-          modalFrame.addEventListener('load', function(){ box.dataset.loaded = 'true'; });
-          boxFrame.appendChild(modalFrame);
+          if(useNative){
+            mountNative();
+          }else{
+            modalFrame = document.createElement('iframe');
+            modalFrame.src = src;
+            modalFrame.title = '서신 더샵 에피트 AI 조경 가이드 전체 영상';
+            modalFrame.allow = 'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media';
+            modalFrame.setAttribute('frameborder', '0');
+            modalFrame.setAttribute('allowfullscreen', '');
+            modalFrame.setAttribute('webkitallowfullscreen', '');
+            modalFrame.setAttribute('mozallowfullscreen', '');
+            modalFrame.setAttribute('playsinline', '');
+            modalFrame.addEventListener('load', function(){ box.dataset.loaded = 'true'; });
+            boxFrame.appendChild(modalFrame);
+
+            loadSdk(function(ok){
+              if(!ok || !boxOpen || !modalFrame) return;
+              try{
+                modalPlayer = new window.Vimeo.Player(modalFrame);
+                bindEndGuard(modalPlayer);
+                modalPlayer.on('fullscreenchange', function(d){
+                  vimeoFs = !!(d && d.fullscreen);
+                  syncView();
+                });
+                modalPlayer.play().catch(noop);
+              }catch(e){}
+            });
+          }
 
           /* 안전망: load 이벤트가 늦어도 스피너를 오래 남기지 않는다 */
           setTimeout(function(){ if(boxOpen) box.dataset.loaded = 'true'; }, 4500);
 
-          requestAnimationFrame(function(){ box.dataset.open = 'true'; });
-
-          loadSdk(function(ok){
-            if(!ok || !boxOpen || !modalFrame) return;
-            try{
-              modalPlayer = new window.Vimeo.Player(modalFrame);
-              bindEndGuard(modalPlayer);
-              modalPlayer.play().catch(noop);
-            }catch(e){}
-          });
+          if(!wantFs) requestAnimationFrame(function(){ box.dataset.open = 'true'; });
 
           setTimeout(function(){ closeBtn.focus({ preventScroll: true }); }, 60);
           document.addEventListener('keydown', onKey, true);
@@ -2078,7 +2199,17 @@
           clearTimeout(viewTimer);
           pseudoFs = false;
           exitFs();
+          nativeExit();
+          if(vimeoFs && modalPlayer){ try{ modalPlayer.exitFullscreen().catch(noop); }catch(e){} }
+          vimeoFs = false;
           unlockOrient();
+
+          var v = modalVideo;
+          modalVideo = null;
+          if(v){
+            try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){}
+            setTimeout(function(){ if(v.parentNode) v.parentNode.removeChild(v); }, 520);
+          }
 
           if(modalPlayer){ try{ modalPlayer.unload().catch(noop); }catch(e){} }
           modalPlayer = null;
@@ -2110,6 +2241,7 @@
             focusables.push(closeBtn);
             if(box.dataset.ended === 'true') focusables.push(replayBtn);
             else if(modalFrame) focusables.push(modalFrame);
+            else if(modalVideo) focusables.push(modalVideo);
             var first = focusables[0], last = focusables[focusables.length - 1];
             if(e.shiftKey && document.activeElement === first){
               e.preventDefault(); last.focus();
@@ -2168,6 +2300,7 @@
     #guide-section .guide-section__inner {
       width: 100%;
       margin: 0 auto;
+      text-align: -webkit-center;
       line-height: 0;
       background: #000;
     }
@@ -2175,6 +2308,7 @@
       display: block;
       width: 100%;
       height: auto;
+      max-width:1000px;
       opacity: 0;
       transform: translateY(4cqw);
       transition: opacity 1s ease, transform 1s ease;
@@ -2225,7 +2359,7 @@
     <h2 id="slg-title">산지와 정원의 품에서,<br>일상을 만나다</h2>
     <p class="slg-lead">
       서신 더샵 에피트 3단지의 정원 네 구역과 그 안에 놓인 놀이·휴게 시설입니다.
-      구역을 고르면 투어 가이드 영상과 음성 안내가 함께 열립니다.
+      구역을 고르면 투어 가이드 영상이 함께 열립니다.
     </p>
   </header>
 
@@ -2301,23 +2435,9 @@
         <div class="slg-shots" data-shots hidden></div>
       </div>
 
-      <!-- 설명 · 음성 -->
+      <!-- 설명 -->
       <div class="slg-zone-text">
         <p class="slg-zone-desc" data-zone-desc></p>
-
-        <div class="slg-audio" data-audio hidden>
-          <button type="button" class="slg-audio-btn" data-audio-toggle aria-label="음성 가이드 재생">
-            <svg class="slg-ico slg-ico--play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-            <svg class="slg-ico slg-ico--pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>
-          </button>
-          <div class="slg-audio-body">
-            <p class="slg-audio-name">AI 음성 가이드 <span class="slg-audio-state" data-audio-state></span></p>
-            <input class="slg-seek" type="range" min="0" max="1000" value="0" step="1"
-                   data-audio-seek aria-label="음성 가이드 재생 위치">
-          </div>
-          <p class="slg-audio-time"><span data-audio-cur>0:00</span> / <span data-audio-dur>0:00</span></p>
-        </div>
-
       </div>
 
     </div>
@@ -2543,6 +2663,9 @@
   border:0; display:block;
   pointer-events:none;   /* 유튜브·비메오 자체 UI가 뜨지 않게 막습니다 */
 }
+/* 영상 자체가 전체화면일 때 — 화면 탭으로 재생/정지 할 수 있게 터치를 열어 둡니다 */
+#seosin-landscape-guide .slg-video-frame iframe:fullscreen{ pointer-events:auto; background:#000; }
+#seosin-landscape-guide .slg-video-frame iframe:-webkit-full-screen{ pointer-events:auto; background:#000; }
 /* SDK를 못 불러온 경우에만 원래 플레이어로 되돌립니다 */
 #seosin-landscape-guide .slg-player.is-native .slg-video-frame iframe{ pointer-events:auto; }
 #seosin-landscape-guide .slg-player.is-native .slg-video-hit,
@@ -2618,15 +2741,7 @@
 }
 #seosin-landscape-guide .slg-vseek{ flex:1 1 auto; min-width:0; height:14px; }
 
-/* 전체화면 */
-#seosin-landscape-guide .slg-player:fullscreen{
-  width:100%; height:100%; border:0; display:grid; place-items:center; background:#000;
-}
-#seosin-landscape-guide .slg-player:fullscreen .slg-video-frame{ width:100%; height:100%; aspect-ratio:auto; }
-#seosin-landscape-guide .slg-player:-webkit-full-screen{ width:100%; height:100%; border:0; background:#000; }
-#seosin-landscape-guide .slg-player:-webkit-full-screen .slg-video-frame{ width:100%; height:100%; aspect-ratio:auto; }
-
-/* 가상 전체화면 — 아이폰(요소 전체화면 미지원) · 가로 회전 자동 전환용 */
+/* 가상 전체화면 — 기기 전체화면이 전혀 불가능할 때만 쓰는 마지막 대안 */
 #seosin-landscape-guide.slg-fs-lock{
   container-type:normal;   /* 일부 브라우저에서 fixed 기준점이 섹션으로 잡히는 것 방지 */
   overflow:visible;
@@ -2644,13 +2759,13 @@
   width:min(100vw, calc(100dvh * 16 / 9));
   height:auto; aspect-ratio:16/9;
 }
-/* 전체화면 컨트롤 — 노치·홈 인디케이터 피하기 */
-#seosin-landscape-guide .slg-player.is-fs .slg-video-bar{
+/* 가상 전체화면 컨트롤 — 노치·홈 인디케이터 피하기 */
+#seosin-landscape-guide .slg-player.is-pseudo-fs .slg-video-bar{
   padding-left:max(12px, env(safe-area-inset-left));
   padding-right:max(12px, env(safe-area-inset-right));
   padding-bottom:max(8px, env(safe-area-inset-bottom));
 }
-#seosin-landscape-guide .slg-player.is-fs .slg-vtime{ font-size:13px; }
+#seosin-landscape-guide .slg-player.is-pseudo-fs .slg-vtime{ font-size:13px; }
 
 #seosin-landscape-guide .slg-video-tools{
   display:flex; align-items:center; justify-content:space-between; gap:2cqw;
@@ -2674,44 +2789,11 @@
   transition:transform .8s cubic-bezier(.2,.7,.3,1);
 }
 
-/* 설명 · 음성 */
+/* 설명 */
 #seosin-landscape-guide .slg-zone-text{ display:block; }
 #seosin-landscape-guide .slg-zone-desc{
   margin:0; font-size:clamp(13px,1.28cqw,15px); line-height:1.95; color:var(--slg-ink-2);
   word-break:keep-all;
-}
-#seosin-landscape-guide .slg-audio{
-  display:flex; align-items:center; gap:1.6cqw;
-  margin-top:2.6cqw; padding:1.8cqw 2cqw;
-  border:1px solid var(--slg-line); background:rgba(242,239,233,.03);
-}
-#seosin-landscape-guide .slg-audio[hidden]{ display:none; }
-#seosin-landscape-guide .slg-audio-btn{
-  flex:0 0 auto; display:grid; place-items:center;
-  width:clamp(38px,3.8cqw,48px); height:clamp(38px,3.8cqw,48px);
-  border:1px solid var(--slg-gold); border-radius:50%;
-  background:none; color:var(--slg-gold); cursor:pointer; padding:0;
-  touch-action:manipulation;
-  transition:background-color .25s ease, color .25s ease;
-}
-#seosin-landscape-guide .slg-audio-btn:focus-visible{ outline:1px solid var(--slg-gold); outline-offset:4px; }
-#seosin-landscape-guide .slg-audio-btn[disabled]{
-  border-color:var(--slg-line-2); color:var(--slg-ink-3); cursor:not-allowed; background:none;
-}
-#seosin-landscape-guide .slg-ico{ width:42%; height:42%; fill:currentColor; grid-area:1/1; }
-#seosin-landscape-guide .slg-ico--play{ margin-left:8%; }
-#seosin-landscape-guide .slg-ico--pause{ display:none; }
-#seosin-landscape-guide .slg-audio.is-playing .slg-ico--play{ display:none; }
-#seosin-landscape-guide .slg-audio.is-playing .slg-ico--pause{ display:block; }
-
-#seosin-landscape-guide .slg-audio-body{ flex:1 1 auto; min-width:0; }
-#seosin-landscape-guide .slg-audio-name{
-  margin:0 0 .9em; font-size:clamp(11px,1.12cqw,13px); letter-spacing:.1em; color:var(--slg-ink-2);
-}
-#seosin-landscape-guide .slg-audio-state{ color:var(--slg-ink-3); letter-spacing:0; }
-#seosin-landscape-guide .slg-audio-time{
-  flex:0 0 auto; margin:0; font-size:clamp(10px,1.05cqw,12px);
-  font-variant-numeric:tabular-nums; color:var(--slg-ink-3);
 }
 
 /* 재생 바 */
@@ -2869,7 +2951,6 @@
     transition:opacity .2s ease, transform .2s ease;   /* 나타날 때만 부드럽게 */
   }
   #seosin-landscape-guide .slg-vbtn:hover{ color:var(--slg-gold); }
-  #seosin-landscape-guide .slg-audio-btn:not([disabled]):hover{ background:var(--slg-gold); color:#12180f; }
   #seosin-landscape-guide .slg-shot:hover img{ transform:scale(1.05); }
 
   #seosin-landscape-guide .slg-card:hover .slg-thumb::after{ box-shadow:inset 0 0 0 1px var(--slg-c); }
@@ -2996,7 +3077,6 @@
   #seosin-landscape-guide .slg-zone-grid{ margin-top:5cqw; gap:6cqw; }
   #seosin-landscape-guide .slg-shots{ gap:2.4cqw; margin-top:3cqw; }
   #seosin-landscape-guide .slg-video-tools{ margin-top:2.4cqw; }
-  #seosin-landscape-guide .slg-audio{ gap:3cqw; padding:4cqw; margin-top:5cqw; }
   #seosin-landscape-guide .slg-grid{ grid-template-columns:repeat(auto-fill,minmax(min(100%,150px),1fr)); gap:5cqw 3cqw; }
   #seosin-landscape-guide .slg-badge{ top:7px; left:7px; }
   #seosin-landscape-guide .slg-more{ opacity:1; transform:none; }
@@ -3048,7 +3128,6 @@
              'https://vimeo.com/123456789'
              '123456789'              (비메오 ID만)
              ''                       (비우면 영상 영역 숨김)
-     audio : AI 음성 가이드 mp3 경로 (비우면 음성 영역 숨김)
 
      [시설]  카드를 누르면 팝업으로 설명이 열립니다
      cat   : 'play' = P(파랑) · 'relax' = R(주황) — 색이 자동으로 따라갑니다
@@ -3060,28 +3139,23 @@
     A:{ title:'물담정원', sub:'폰드 · 복층형 티 하우스 · 미디어 파사드',
         desc:'물과 풍경을 담아 마음까지 쉬어가는 사색의 공간. 제주팽나무, 배롱나무, 참빗살나무, 후박나무와 수경시설, 복층형 티 하우스가 어우러집니다.',
         shots:['./img/A-1.png','./img/A-2.png'],
-        video:'https://vimeo.com/1228646338',
-        audio:'https://thesharp-landscape.co.kr/audio/ss-1.mp3' },
+        video:'https://vimeo.com/1228646338' },
     B:{ title:'첨벙정원', sub:'어린이물놀이터 · 중형파고라',
         desc:'아이들의 웃음이 물장구처럼 첨벙대는 놀이의 공간. 이팝나무 가로수와 참빗살나무, 감나무, 공작단풍, 홍단풍, 대왕참나무가 어우러집니다.',
         shots:['./img/B-1.png','./img/B-2.png'],
-        video:'https://vimeo.com/1228647661',
-        audio:'https://thesharp-landscape.co.kr/audio/ss-2.mp3' },
+        video:'https://vimeo.com/1228647661' },
     C:{ title:'청류마루', sub:'워터테라스 · 주민운동시설',
         desc:'팽나무 그늘 아래 맑은 물과 함께 머무는 공간. 팽나무 가로수와 제주팽나무가 짙은 녹음을 드리웁니다.',
         shots:['./img/C-1.png','./img/C-2.png'],
-        video:'https://vimeo.com/1228648340',
-        audio:'https://thesharp-landscape.co.kr/audio/ss-3.mp3' },
+        video:'https://vimeo.com/1228648340' },
     D:{ title:'쉼결숲길', sub:'페르마타가든 · 어린이놀이터 · 주민운동시설',
         desc:'숲의 향기와 바람을 따라 걷는 치유의 공간. 왕벚나무 가로수와 배롱나무, 단풍나무, 느티나무, 은목서, 동백나무가 어우러집니다.',
         shots:['./img/D-1.png','./img/D-2.png'],
-        video:'https://vimeo.com/1228647376',
-        audio:'https://thesharp-landscape.co.kr/audio/ss-4.mp3' },
+        video:'https://vimeo.com/1228647376' },
     etc:{ title:'그 외 단지 내 시설', sub:'정원 구역 외 놀이 · 휴게 시설',
         desc:'107~108동, 301~303동 일대에 배치된 놀이터와 휴게 시설입니다.',
         shots:[],
-        video:'',
-        audio:'' }
+        video:'' }
   };
 
   var ITEMS = [
@@ -3155,17 +3229,16 @@
   var vFull      = panel.querySelector('[data-v-full]');
   var shotsBox   = panel.querySelector('[data-shots]');
 
-  var audioBox   = panel.querySelector('[data-audio]');
-  var audioBtn   = panel.querySelector('[data-audio-toggle]');
-  var audioSeek  = panel.querySelector('[data-audio-seek]');
-  var audioCur   = panel.querySelector('[data-audio-cur]');
-  var audioDur   = panel.querySelector('[data-audio-dur]');
-  var audioState = panel.querySelector('[data-audio-state]');
-
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
       return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
     });
+  }
+
+  function mmss(sec){
+    if(!isFinite(sec) || sec < 0) sec = 0;
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' + s : s);
   }
 
   /* 포커스 이동 시 브라우저가 화면을 끌고 가지 않게 합니다 */
@@ -3177,6 +3250,7 @@
   /* ── 투어 가이드 영상 — 유튜브 / 비메오 공용 최소 플레이어 ──
      기본 플레이어 UI(제목·공유·설정·자막 버튼 등)를 controls=0 으로 끄고,
      재생 / 시간바 / 전체화면만 직접 그립니다. 자막은 기본 꺼짐.
+     재생 버튼을 누르면 음소거를 풀고 볼륨을 최대로 맞춘 뒤 재생합니다.
      영상이 끝나면 곧바로 처음으로 되감아 종료 화면(추천 영상)을 막습니다. */
   var media = null;       /* 현재 영상 어댑터 */
   var vToken = 0;         /* 구역 전환 시 지난 콜백을 무시하기 위한 토큰 */
@@ -3285,10 +3359,10 @@
     if(media){ try{ media.destroy(); }catch(e){} media = null; }
     var url = info.kind === 'yt'
       ? 'https://www.youtube-nocookie.com/embed/' + info.id +
-        '?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&cc_load_policy=0' +
+        '?rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&cc_load_policy=0&mute=0' +
         (info.start ? '&start=' + info.start : '')
       : 'https://player.vimeo.com/video/' + info.id +
-        '?dnt=1&title=0&byline=0&portrait=0&pip=0&watch_full_video=0' +
+        '?dnt=1&title=0&byline=0&portrait=0&pip=0&watch_full_video=0&muted=0' +
         (info.start ? '#t=' + info.start + 's' : '');
     videoFrame.innerHTML =
       '<iframe src="' + esc(url) + '" title="' + esc(title + ' 투어 가이드 영상') + '"' +
@@ -3311,7 +3385,7 @@
           width: '100%', height: '100%',
           playerVars: {
             controls: 0, rel: 0, modestbranding: 1, playsinline: 1, disablekb: 1,
-            fs: 0, iv_load_policy: 3, cc_load_policy: 0, start: info.start || 0
+            fs: 1, mute: 0, iv_load_policy: 3, cc_load_policy: 0, start: info.start || 0
           },
           events: {
             onReady: function(e){
@@ -3320,6 +3394,7 @@
               if(vFallbackT){ clearTimeout(vFallbackT); vFallbackT = null; }
               try{ e.target.unloadModule('captions'); }catch(x){}
               try{ e.target.unloadModule('cc'); }catch(x){}
+              try{ e.target.unMute(); e.target.setVolume(100); }catch(x){}
               media.state.dur = e.target.getDuration() || 0;
               vUI();
               vStartTick();
@@ -3341,7 +3416,15 @@
           }
         });
 
-        media.play    = function(){ try{ if(this.api) this.api.playVideo(); }catch(e){} };
+        media.play = function(){
+          try{
+            if(!this.api) return;
+            /* 사용자 클릭 안에서 음소거 해제 → 재생 */
+            this.api.unMute();
+            this.api.setVolume(100);
+            this.api.playVideo();
+          }catch(e){}
+        };
         media.pause   = function(){ try{ if(this.api) this.api.pauseVideo(); }catch(e){} };
         media.seek    = function(t){ try{ if(this.api){ this.api.seekTo(t, true); this.state.cur = t; } }catch(e){} };
         media.destroy = function(){ try{ if(this.api) this.api.destroy(); }catch(e){} };
@@ -3362,7 +3445,8 @@
           id: Number(info.id),
           controls: false, title: false, byline: false, portrait: false,
           playsinline: true, dnt: true, responsive: false,
-          pip: false, watch_full_video: false
+          pip: false, watch_full_video: false,
+          muted: false, background: false, autopause: true
         });
         media.api = vp;
         if(vFallbackT){ clearTimeout(vFallbackT); vFallbackT = null; }
@@ -3370,6 +3454,8 @@
         vp.ready().then(function(){
           if(token !== vToken || !media) return;
           try{ vp.disableTextTrack(); }catch(e){}
+          vp.setMuted(false).catch(function(){});
+          vp.setVolume(1).catch(function(){});
           if(info.start) vp.setCurrentTime(info.start).catch(function(){});
           vp.getDuration().then(function(d){
             if(token !== vToken || !media) return;
@@ -3397,8 +3483,23 @@
           media.state.cur = 0;
           vUI();
         });
+        /* 비메오 자체 전체화면(아이폰 네이티브 영상 전체화면 포함) 상태 동기화 */
+        vp.on('fullscreenchange', function(d){
+          if(token !== vToken || fsMode === 'native') return;
+          var on = !!(d && d.fullscreen);
+          if(on){ fsMode = 'vimeo'; setFsUI(true); }
+          else if(fsMode === 'vimeo'){ fsMode = ''; setFsUI(false); unlockOrientation(); }
+        });
 
-        media.play    = function(){ try{ this.api.play().catch(function(){}); }catch(e){} };
+        media.play = function(){
+          var api = this.api;
+          try{
+            /* 사용자 클릭 안에서 음소거 해제 · 볼륨 최대 → 재생 */
+            api.setMuted(false).catch(function(){});
+            api.setVolume(1).catch(function(){});
+            api.play().catch(function(){});
+          }catch(e){}
+        };
         media.pause   = function(){ try{ this.api.pause().catch(function(){}); }catch(e){} };
         media.seek    = function(t){ try{ this.api.setCurrentTime(t).catch(function(){}); this.state.cur = t; }catch(e){} };
         media.destroy = function(){ try{ this.api.destroy(); }catch(e){} };
@@ -3454,20 +3555,23 @@
   vSeek.addEventListener('pointerup', function(){ if(this.blur) this.blur(); });
 
   /* ── 전체화면 ────────────────────────────────────────────────
-     · 안드로이드 · PC · 아이패드 : 브라우저 전체화면 + (모바일) 가로 고정
-     · 아이폰 : 사파리가 영상 외 요소의 전체화면을 막아 두어,
-                화면 전체를 덮는 가상 전체화면으로 처리합니다
-     · 모바일에서 영상이 보이는 상태로 가로로 돌리면 자동 전체화면,
-       다시 세로로 돌리면 자동 해제 */
-  var fsMode = '';      /* '' | 'native' | 'pseudo' */
+     유튜브·비메오 자체 전체화면 버튼과 같은 방식으로 '영상 자체'를
+     기기 화면 전체로 띄웁니다 (브라우저 창 안에서 늘리는 방식 X).
+     · PC · 안드로이드 · 아이패드 : 영상 iframe 을 기기 전체화면으로 + (모바일) 가로 고정
+     · 아이폰 : 비메오 플레이어의 전체화면 API → iOS 네이티브 영상 전체화면
+     · 위 방법이 모두 막힌 경우에만 화면을 덮는 가상 전체화면으로 대체
+     · 모바일에서 영상이 보이는 상태로 가로로 돌리면 가상 전체화면 자동 진입,
+       다시 세로로 돌리면 자동 해제 (회전은 사용자 클릭이 아니라 기기 전체화면 요청 불가) */
+  var fsMode = '';      /* '' | 'native' | 'vimeo' | 'pseudo' */
   var fsAuto = false;   /* 가로 회전으로 자동 진입했는지 */
 
   function mq(q){ return !!(window.matchMedia && window.matchMedia(q).matches); }
   function isTouch(){ return mq('(hover:none) and (pointer:coarse)'); }
   function fsElement(){ return document.fullscreenElement || document.webkitFullscreenElement || null; }
+  function frameIframe(){ return videoFrame.querySelector('iframe'); }
   function canNativeFS(el){
     var enabled = document.fullscreenEnabled || document.webkitFullscreenEnabled;
-    return !!(enabled && (el.requestFullscreen || el.webkitRequestFullscreen));
+    return !!(el && enabled && (el.requestFullscreen || el.webkitRequestFullscreen));
   }
   function setFsUI(on){
     vPlayerEl.classList.toggle('is-fs', !!on);
@@ -3504,25 +3608,48 @@
     unlockScroll();
   }
 
+  /* 아이폰 등 요소 전체화면이 없는 환경 — 비메오 플레이어에 직접 요청 */
+  function enterPlayerFS(){
+    if(media && media.kind === 'vimeo' && media.api && media.api.requestFullscreen){
+      var tok = vToken, api = media.api;
+      try{ api.requestFullscreen().catch(function(){}); }catch(e){}
+      setTimeout(function(){
+        if(tok !== vToken || fsMode) return;
+        try{
+          api.getFullscreen().then(function(on){
+            if(!on && !fsMode && tok === vToken) enterPseudo(false);
+          }).catch(function(){ if(!fsMode && tok === vToken) enterPseudo(false); });
+        }catch(e){ enterPseudo(false); }
+      }, 800);
+      return;
+    }
+    enterPseudo(false);
+  }
+
   function enterFS(){
-    var el = vPlayerEl;
-    if(!canNativeFS(el)){ enterPseudo(false); return; }
+    var ifr = frameIframe();
+    if(!canNativeFS(ifr)){ enterPlayerFS(); return; }
     try{
-      var p = el.requestFullscreen
-        ? el.requestFullscreen({ navigationUI:'hide' })
-        : el.webkitRequestFullscreen();
+      var p = ifr.requestFullscreen
+        ? ifr.requestFullscreen({ navigationUI:'hide' })
+        : ifr.webkitRequestFullscreen();
       if(p && p.then){
-        p.then(lockLandscape).catch(function(){ enterPseudo(false); });
+        p.then(lockLandscape).catch(function(){ enterPlayerFS(); });
       } else {
         setTimeout(function(){
-          if(fsElement() === el) lockLandscape();
-          else enterPseudo(false);   /* 요청이 조용히 무시된 경우 */
+          if(fsElement() === ifr) lockLandscape();
+          else enterPlayerFS();   /* 요청이 조용히 무시된 경우 */
         }, 300);
       }
-    }catch(e){ enterPseudo(false); }
+    }catch(e){ enterPlayerFS(); }
   }
   function exitFS(){
     if(fsMode === 'pseudo'){ exitPseudo(); return; }
+    if(fsMode === 'vimeo'){
+      try{ if(media && media.api) media.api.exitFullscreen().catch(function(){}); }catch(e){}
+      fsMode = ''; setFsUI(false); unlockOrientation();
+      return;
+    }
     if(fsElement()){
       var exit = document.exitFullscreen || document.webkitExitFullscreen;
       try{
@@ -3533,7 +3660,8 @@
   }
 
   function onFsChange(){
-    if(fsElement() === vPlayerEl){
+    var el = fsElement();
+    if(el && (el === vPlayerEl || vPlayerEl.contains(el))){
       fsMode = 'native';
       setFsUI(true);
     } else if(fsMode === 'native'){
@@ -3591,86 +3719,6 @@
     }).join('');
     shotsBox.hidden = false;
   }
-
-  /* ── AI 음성 가이드 ──────────────────────────────────────── */
-  var sound = new Audio();
-  sound.preload = 'metadata';
-
-  function mmss(sec){
-    if(!isFinite(sec) || sec < 0) sec = 0;
-    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
-    return m + ':' + (s < 10 ? '0' + s : s);
-  }
-  function progress(){
-    var d = sound.duration;
-    var p = (isFinite(d) && d > 0) ? (sound.currentTime / d) : 0;
-    audioSeek.value = String(Math.round(p * 1000));
-    audioSeek.style.setProperty('--slg-p', (p * 100) + '%');
-    audioCur.textContent = mmss(sound.currentTime);
-  }
-  function stopSound(){
-    sound.pause();
-    try{ sound.currentTime = 0; }catch(e){}
-    audioBox.classList.remove('is-playing');
-    audioBtn.setAttribute('aria-label', '음성 가이드 재생');
-    progress();
-  }
-  function setAudio(src){
-    stopSound();
-    audioState.textContent = '';
-    audioBtn.disabled = false;
-    audioDur.textContent = '0:00';
-    if(!src){ audioBox.hidden = true; sound.removeAttribute('src'); sound.load(); return; }
-    sound.src = src;
-    sound.load();
-    audioBox.hidden = false;
-  }
-
-  sound.addEventListener('loadedmetadata', function(){ audioDur.textContent = mmss(sound.duration); progress(); });
-  sound.addEventListener('timeupdate', progress);
-  sound.addEventListener('ended', function(){
-    audioBox.classList.remove('is-playing');
-    audioBtn.setAttribute('aria-label', '음성 가이드 재생');
-    try{ sound.currentTime = 0; }catch(e){}
-    progress();
-  });
-  sound.addEventListener('error', function(){
-    if(!sound.getAttribute('src')) return;
-    audioBox.classList.remove('is-playing');
-    audioBtn.disabled = true;
-    audioState.textContent = '· 음성 파일을 불러오지 못했습니다';
-  });
-
-  audioBtn.addEventListener('click', function(){
-    if(audioBtn.disabled) return;
-    if(sound.paused){
-      var p = sound.play();
-      if(p && p.catch){
-        p.then(function(){
-          audioBox.classList.add('is-playing');
-          audioBtn.setAttribute('aria-label', '음성 가이드 일시정지');
-        }).catch(function(){
-          audioState.textContent = '· 재생할 수 없습니다';
-        });
-      } else {
-        audioBox.classList.add('is-playing');
-        audioBtn.setAttribute('aria-label', '음성 가이드 일시정지');
-      }
-    } else {
-      sound.pause();
-      audioBox.classList.remove('is-playing');
-      audioBtn.setAttribute('aria-label', '음성 가이드 재생');
-    }
-  });
-
-  audioSeek.addEventListener('input', function(){
-    var d = sound.duration;
-    if(!isFinite(d) || d <= 0) return;
-    var p = Number(audioSeek.value) / 1000;
-    sound.currentTime = p * d;
-    audioSeek.style.setProperty('--slg-p', (p * 100) + '%');
-    audioCur.textContent = mmss(sound.currentTime);
-  });
 
   /* ── 카드 렌더 ───────────────────────────────────────────── */
   grid.innerHTML = ITEMS.map(function(it, i){
@@ -3881,7 +3929,6 @@
       panel.hidden = true;
       setVideo('', '');       /* 영상 정지 */
       setShots([], '');
-      setAudio('');           /* 음성 정지 */
       return;
     }
 
@@ -3892,7 +3939,6 @@
 
     setVideo(z.video, z.title);
     setShots(z.shots, z.title);
-    setAudio(z.audio);
 
     panel.hidden = false;
   }
