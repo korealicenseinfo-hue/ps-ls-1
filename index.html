@@ -2457,6 +2457,30 @@
       50%    { border-color:var(--gs-c); background:var(--gs-bg); }
     }
 
+    /* ── 위치 확인 깜빡임 (조경 가이드의 '위치 확인' 버튼) ──── */
+    #guide-section .guide-section__hs{ --gs-ring:rgba(195,34,44,.55); }
+    #guide-section .guide-section__hs[data-cat="play"]{ --gs-ring:rgba(26,159,217,.6); }
+    #guide-section .guide-section__hs[data-cat="relax"]{ --gs-ring:rgba(232,115,47,.6); }
+    #guide-section .guide-section__hs.is-locate{ z-index:5; }
+    #guide-section .guide-section__hs.is-locate::before{
+      border-width:3px;
+      animation:gs-locate .75s ease-in-out 5;
+    }
+    #guide-section .guide-section__hs.is-locate .guide-section__tip{
+      display:block; opacity:1; visibility:visible; transform:translate(-50%,0);
+      transition:none;
+    }
+    #guide-section .guide-section__hs--zone.is-locate .guide-section__tip{ transform:translate(-50%,-50%); }
+    @keyframes gs-locate{
+      0%,100%{ border-color:var(--gs-c); background:var(--gs-bg); box-shadow:0 0 0 0 var(--gs-ring); transform:scale(1); }
+      50%    { border-color:#fff; background:var(--gs-c); box-shadow:0 0 0 14px rgba(0,0,0,0); transform:scale(1.12); }
+    }
+    #guide-section .guide-section__hs--zone.is-locate::before{ animation-name:gs-locate-zone; }
+    @keyframes gs-locate-zone{
+      0%,100%{ border-color:var(--gs-c); background:var(--gs-bg); box-shadow:0 0 0 0 var(--gs-ring); }
+      50%    { border-color:#fff; background:rgba(195,34,44,.38); box-shadow:0 0 0 12px rgba(0,0,0,0); }
+    }
+
     /* ── 편집 모드 (주소 뒤 ?hs=edit) ──────────────────────── */
     #guide-section.is-edit{
       container-type:normal;     /* 편집 패널(fixed)이 화면 기준으로 뜨도록 */
@@ -2556,6 +2580,10 @@
       #guide-section .guide-section__tip{ transition:none; }
       #guide-section .guide-section__hs.is-tap::before,
       #guide-section.is-hint .guide-section__hs::before{ animation:none; }
+      #guide-section .guide-section__hs.is-locate::before{
+        animation:none; border-color:#fff; background:var(--gs-bg);
+        box-shadow:0 0 0 3px var(--gs-c);
+      }
       #guide-section.is-zoom-anim .guide-section__img,
       #guide-section.is-zoom-anim .guide-section__layer{ transition:none; }
     }
@@ -2774,19 +2802,29 @@
         return head + gap;
       }
 
-      function scrollToEl(el){
+      /* opt.center : 대상이 화면 가운데 오도록 · opt.done : 스크롤이 끝나면 실행 */
+      function scrollToEl(el, opt){
+        opt = opt || {};
         if (scrollStop) scrollStop();
         var html = document.documentElement;
         var sc = document.scrollingElement || html;
 
         function dest(){
-          var y = el.getBoundingClientRect().top + window.pageYOffset - offsetTop();
+          var r = el.getBoundingClientRect(), top = offsetTop(), y;
+          if (opt.center){
+            var room = window.innerHeight - top;
+            y = r.top + window.pageYOffset - top - Math.max(0, (room - r.height) / 2);
+          } else {
+            y = r.top + window.pageYOffset - top;
+          }
           return clamp(y, 0, Math.max(0, sc.scrollHeight - window.innerHeight));
         }
+        var done = opt.done || null;
+        function fin(){ if (done){ var d = done; done = null; d(); } }
 
         var from = window.pageYOffset;
         var dist = Math.abs(dest() - from);
-        if (mq('(prefers-reduced-motion: reduce)') || dist < 2){ window.scrollTo(0, dest()); return; }
+        if (mq('(prefers-reduced-motion: reduce)') || dist < 2){ window.scrollTo(0, dest()); fin(); return; }
 
         var dur = clamp(dist * 0.45, SCROLL.minMs, SCROLL.maxMs);
         var prevSB = html.style.scrollBehavior;
@@ -2808,6 +2846,7 @@
           window.removeEventListener('wheel', stop);
           window.removeEventListener('touchstart', stop);
           window.removeEventListener('keydown', stop);
+          fin();
         }
         scrollStop = stop;
         window.addEventListener('wheel', stop, { passive:true });
@@ -3022,6 +3061,60 @@
         /* 확대 상태면 먼저 부드럽게 축소 → 거의 끝날 즈음 팝업 · 스크롤 */
         var wait = resetZoom();
         if (wait) setTimeout(act, Math.round(wait * 0.7)); else act();
+      });
+
+      /* ── 위치 확인 — 조경 가이드의 '위치 확인' 버튼 ─────────────
+         'slg:locate' 신호를 받으면 (팝업 닫기 → 확대 해제 →) 배치도로 스크롤한 뒤
+         해당 코드의 구역 · 시설을 깜빡여 보여 줍니다. 같은 코드가 여러 곳이면 모두 깜빡입니다. */
+      var LOCATE_MS = 3900;     /* 깜빡임 유지 시간 — CSS gs-locate(.75s × 5) 와 맞춤 */
+      var locT = null;
+
+      function hsOf(code){
+        var out = [];
+        each(layer.querySelectorAll('.guide-section__hs'), function(b){
+          if (up(b.getAttribute('data-code')) === up(code)) out.push(b);
+        });
+        return out;
+      }
+      /* 여러 위치를 감싸는 영역 — 모두 한 화면에 들어오도록 가운데 맞춤 */
+      function unionBox(list){
+        return { getBoundingClientRect: function(){
+          var t = Infinity, b = -Infinity;
+          list.forEach(function(el){
+            var r = el.getBoundingClientRect();
+            t = Math.min(t, r.top); b = Math.max(b, r.bottom);
+          });
+          return { top:t, bottom:b, height:b - t };
+        }};
+      }
+      function blink(list){
+        if (locT){ clearTimeout(locT); locT = null; }
+        each(layer.querySelectorAll('.guide-section__hs.is-locate'), function(b){ b.classList.remove('is-locate'); });
+        void layer.offsetWidth;   /* 연속으로 눌러도 처음부터 다시 깜빡이게 */
+        list.forEach(function(b){ b.classList.add('is-locate'); });
+        locT = setTimeout(function(){
+          list.forEach(function(b){ b.classList.remove('is-locate'); });
+          locT = null;
+        }, LOCATE_MS);
+      }
+
+      function locate(code){
+        var list = hsOf(code);
+        root.classList.add('is-visible');     /* 아직 등장 전이어도 바로 보이게 */
+        root.classList.remove('is-hint');
+        var g = guide();
+        var wait = (g && closeGuideModal(g)) ? 320 : 0;   /* 팝업 닫힘이 끝난 뒤 이동 */
+        wait = Math.max(wait, resetZoom());
+        setTimeout(function(){
+          if (!list.length){ scrollToEl(map, { center:true }); return; }
+          scrollToEl(unionBox(list), { center:true, done:function(){ blink(list); } });
+        }, wait);
+      }
+
+      document.addEventListener('slg:locate', function(e){
+        if (EDIT && !TEST) return;
+        var code = e.detail && e.detail.code;
+        if (code) locate(code);
       });
 
       /* ── 등장 + 1회 힌트 ─────────────────────────────────── */
@@ -3566,7 +3659,7 @@
     <h2 id="slg-title">산지와 정원의 품에서,<br>일상을 만나다</h2>
     <p class="slg-lead">
       서신 더샵 에피트 3단지의 정원 네 구역과 그 안에 놓인 놀이·휴게 시설입니다.
-      구역을 고르면 투어 가이드 영상이 함께 열립니다.
+      구역을 고르면 투어 가이드 영상과 대표 시설이 함께 열립니다.
     </p>
   </header>
 
@@ -3583,15 +3676,6 @@
         <button type="button" class="slg-chip" data-value="etc" aria-pressed="false">그 외 단지 내</button>
       </div>
     </div>
-
-    <div class="slg-filter" role="group" aria-label="시설 종류 선택">
-      <span class="slg-filter-name">종류</span>
-      <div class="slg-chips" data-filter="cat">
-        <button type="button" class="slg-chip is-on" data-value="all" aria-pressed="true">전체</button>
-        <button type="button" class="slg-chip slg-chip--play" data-value="play" aria-pressed="false"><i class="slg-key">P</i>플레이 랜드</button>
-        <button type="button" class="slg-chip slg-chip--relax" data-value="relax" aria-pressed="false"><i class="slg-key">R</i>릴렉스 스팟</button>
-      </div>
-    </div>
   </div>
 
   <!-- 선택한 구역의 가이드 -->
@@ -3603,6 +3687,9 @@
         <strong class="slg-zone-title" data-zone-title></strong>
         <span class="slg-zone-sub" data-zone-sub></span>
       </div>
+      <button type="button" class="slg-locate slg-locate--zone" data-locate-zone hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span>위치 확인</span>
+      </button>
     </div>
 
     <div class="slg-zone-grid">
@@ -3650,12 +3737,24 @@
     </div>
   </article>
 
+  <!-- 시설 종류 필터 — 구역 내용 아래, 시설 목록 바로 위 -->
+  <div class="slg-filters slg-filters--cat">
+    <div class="slg-filter" role="group" aria-label="시설 종류 선택">
+      <span class="slg-filter-name">종류</span>
+      <div class="slg-chips" data-filter="cat">
+        <button type="button" class="slg-chip is-on" data-value="all" aria-pressed="true">전체</button>
+        <button type="button" class="slg-chip slg-chip--play" data-value="play" aria-pressed="false"><i class="slg-key">P</i>플레이 랜드</button>
+        <button type="button" class="slg-chip slg-chip--relax" data-value="relax" aria-pressed="false"><i class="slg-key">R</i>릴렉스 스팟</button>
+      </div>
+    </div>
+  </div>
+
   <p class="slg-count"><span data-count>0</span>개 시설</p>
 
   <!-- 시설 카드 -->
   <div class="slg-grid" id="slg-grid" aria-live="polite"></div>
 
-  <p class="slg-empty" id="slg-empty" hidden>고른 조건에 맞는 시설이 없습니다. 구역이나 종류를 다시 골라 보세요.</p>
+  <p class="slg-empty" id="slg-empty" hidden>고른 종류에 맞는 시설이 없습니다. 종류를 다시 골라 보세요.</p>
 
   <!-- 시설 상세 팝업 -->
   <dialog class="slg-modal" id="slg-modal" aria-labelledby="slg-modal-name">
@@ -3680,6 +3779,10 @@
           <div><dt>위치</dt><dd data-modal-where></dd></div>
           <div><dt>구역</dt><dd data-modal-zone></dd></div>
         </dl>
+
+        <button type="button" class="slg-locate slg-locate--modal" data-modal-locate hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span>배치도에서 위치 확인</span>
+        </button>
 
         <div class="slg-modal-nav">
           <button type="button" class="slg-modal-arrow" data-modal-prev>이전 시설</button>
@@ -3766,6 +3869,8 @@
   display:flex; flex-direction:column; gap:2.2cqw;
   padding:3cqw 0; border-top:1px solid var(--slg-line);
 }
+#seosin-landscape-guide .slg-filters--cat{ margin-top:4.4cqw; padding-bottom:0; }
+#seosin-landscape-guide .slg-filters--cat + .slg-count{ margin-top:2.4cqw; }
 #seosin-landscape-guide .slg-filter{ display:flex; align-items:baseline; gap:2.4cqw; }
 #seosin-landscape-guide .slg-filter-name{
   flex:0 0 auto; min-width:3.6em;
@@ -3830,6 +3935,37 @@
   display:flex; align-items:center; gap:2.6cqw;
   padding-bottom:3cqw; border-bottom:1px solid var(--slg-line);
 }
+/* 위치 확인 버튼 (구역 · 시설 카드 · 팝업) — 누르면 위 배치도에서 해당 위치가 깜빡입니다 */
+#seosin-landscape-guide .slg-locate{
+  --slg-lc:var(--slg-gold);
+  display:inline-flex; align-items:center; gap:.45em;
+  margin:0; padding:.55em .95em .55em .8em;
+  border:1px solid var(--slg-line-2); border-radius:999px;
+  background:transparent; color:var(--slg-ink-2);
+  font:inherit; font-size:clamp(11px,1.1cqw,13px); line-height:1.2; letter-spacing:.04em;
+  white-space:nowrap; cursor:pointer;
+  -webkit-appearance:none; appearance:none; touch-action:manipulation;
+  transition:color .25s ease, border-color .25s ease, background-color .25s ease;
+}
+#seosin-landscape-guide .slg-locate[hidden]{ display:none; }
+#seosin-landscape-guide .slg-locate svg{
+  width:1.25em; height:1.25em; flex:0 0 auto;
+  fill:none; stroke:currentColor; stroke-width:1.8; stroke-linejoin:round;
+}
+#seosin-landscape-guide .slg-locate:focus-visible{ outline:1px solid var(--slg-lc); outline-offset:3px; }
+#seosin-landscape-guide .slg-locate--zone{ --slg-lc:var(--slg-zone-ink); flex:0 0 auto; margin-left:auto; }
+#seosin-landscape-guide .slg-locate--card{ align-self:flex-start; margin-top:1em; }
+#seosin-landscape-guide .slg-locate--modal{ margin-top:22px; }
+#seosin-landscape-guide .slg-item[data-cat="play"] .slg-locate,
+#seosin-landscape-guide .slg-modal-inner[data-cat="play"] .slg-locate{ --slg-lc:var(--slg-play); }
+#seosin-landscape-guide .slg-item[data-cat="relax"] .slg-locate,
+#seosin-landscape-guide .slg-modal-inner[data-cat="relax"] .slg-locate{ --slg-lc:var(--slg-relax); }
+#seosin-landscape-guide .slg-locate:active{ color:var(--slg-lc); border-color:var(--slg-lc); }
+
+/* 카드 + 위치 확인 버튼 묶음 */
+#seosin-landscape-guide .slg-item{ display:flex; flex-direction:column; min-width:0; }
+#seosin-landscape-guide .slg-item[hidden]{ display:none; }
+
 #seosin-landscape-guide .slg-zone-mark{
   flex:0 0 auto; display:grid; place-items:center;
   width:clamp(46px,5.4cqw,68px); height:clamp(46px,5.4cqw,68px);
@@ -3982,19 +4118,49 @@
   font-size:clamp(10px,1.05cqw,12px); letter-spacing:.16em; color:var(--slg-ink-3);
 }
 
-/* 구역 사진 */
+/* 구역 대표 시설 (누르면 시설 팝업) */
 #seosin-landscape-guide .slg-shots{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.4cqw; margin-top:1.8cqw;
 }
 #seosin-landscape-guide .slg-shots[hidden]{ display:none; }
-#seosin-landscape-guide .slg-shot{
-  position:relative; margin:0; aspect-ratio:4/3; overflow:hidden;
-  background:var(--slg-bg-2); border:1px solid var(--slg-line);
+#seosin-landscape-guide .slg-spot{
+  --slg-c:var(--slg-ink-2);
+  position:relative; display:block; width:100%; margin:0; padding:0;
+  aspect-ratio:4/3; overflow:hidden; cursor:pointer;
+  border:0; background:var(--slg-bg-2); color:inherit; font:inherit; text-align:left;
+  -webkit-appearance:none; appearance:none; touch-action:manipulation;
 }
-#seosin-landscape-guide .slg-shot img{
+#seosin-landscape-guide .slg-spot[data-cat="play"]{ --slg-c:var(--slg-play); }
+#seosin-landscape-guide .slg-spot[data-cat="relax"]{ --slg-c:var(--slg-relax); }
+#seosin-landscape-guide .slg-spot::before{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:3px; z-index:2;
+  background:var(--slg-c);
+}
+#seosin-landscape-guide .slg-spot::after{
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  box-shadow:inset 0 0 0 1px var(--slg-line); transition:box-shadow .3s ease;
+}
+#seosin-landscape-guide .slg-spot:focus-visible{ outline:1px solid var(--slg-c); outline-offset:4px; }
+#seosin-landscape-guide .slg-spot img{
+  position:absolute; inset:0;
   width:100%; height:100%; object-fit:cover; display:block;
   transition:transform .8s cubic-bezier(.2,.7,.3,1);
 }
+#seosin-landscape-guide .slg-spot .slg-thumb-fallback{ position:absolute; inset:0; }
+#seosin-landscape-guide .slg-spot-cap{
+  position:absolute; left:0; right:0; bottom:3px; z-index:1;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:8px;
+  padding:2.4em 1em .85em;
+  background:linear-gradient(to top, rgba(11,17,15,.85), rgba(11,17,15,0));
+}
+#seosin-landscape-guide .slg-spot-name{
+  min-width:0; font-size:clamp(12px,1.3cqw,15px); line-height:1.35; color:#fff; word-break:keep-all;
+}
+#seosin-landscape-guide .slg-spot-more{
+  flex:0 0 auto; font-size:clamp(10px,1.02cqw,12px); letter-spacing:.12em; color:var(--slg-ink-3);
+  transition:color .25s ease;
+}
+#seosin-landscape-guide .slg-spot:focus-visible .slg-spot-more{ color:var(--slg-c); }
 
 /* 설명 */
 #seosin-landscape-guide .slg-zone-text{ display:block; }
@@ -4158,7 +4324,10 @@
     transition:opacity .2s ease, transform .2s ease;   /* 나타날 때만 부드럽게 */
   }
   #seosin-landscape-guide .slg-vbtn:hover{ color:var(--slg-gold); }
-  #seosin-landscape-guide .slg-shot:hover img{ transform:scale(1.05); }
+  #seosin-landscape-guide .slg-locate:hover{ color:var(--slg-lc); border-color:var(--slg-lc); }
+  #seosin-landscape-guide .slg-spot:hover img{ transform:scale(1.05); }
+  #seosin-landscape-guide .slg-spot:hover::after{ box-shadow:inset 0 0 0 1px var(--slg-c); }
+  #seosin-landscape-guide .slg-spot:hover .slg-spot-more{ color:var(--slg-c); }
 
   #seosin-landscape-guide .slg-card:hover .slg-thumb::after{ box-shadow:inset 0 0 0 1px var(--slg-c); }
   #seosin-landscape-guide .slg-card:hover .slg-thumb img{ transform:scale(1.06); }
@@ -4289,7 +4458,13 @@
   #seosin-landscape-guide .slg-filter{ flex-direction:column; align-items:stretch; gap:1.4cqw; }
   #seosin-landscape-guide .slg-chips{ gap:.4cqw 4cqw; }
   #seosin-landscape-guide .slg-zone{ padding:7cqw 5cqw; }
-  #seosin-landscape-guide .slg-zone-head{ gap:4cqw; padding-bottom:5cqw; }
+  #seosin-landscape-guide .slg-filters--cat{ margin-top:8cqw; padding-top:5cqw; }
+  #seosin-landscape-guide .slg-filters--cat + .slg-count{ margin-top:4cqw; }
+  #seosin-landscape-guide .slg-spot-cap{ padding:2em .8em .7em; }
+  #seosin-landscape-guide .slg-spot-more{ display:none; }
+  #seosin-landscape-guide .slg-zone-head{ gap:4cqw; padding-bottom:5cqw; flex-wrap:wrap; }
+  #seosin-landscape-guide .slg-locate--zone{ margin-left:0; width:100%; justify-content:center; }
+  #seosin-landscape-guide .slg-locate--card{ align-self:stretch; justify-content:center; }
   #seosin-landscape-guide .slg-zone-grid{ margin-top:5cqw; gap:6cqw; }
   #seosin-landscape-guide .slg-shots{ gap:2.4cqw; margin-top:3cqw; }
   #seosin-landscape-guide .slg-video-tools{ margin-top:2.4cqw; }
@@ -4319,11 +4494,11 @@
   #seosin-landscape-guide .slg-modal.is-closing::backdrop,
   #seosin-landscape-guide .slg-modal.is-closing .slg-modal-inner{ animation:none; }
   #seosin-landscape-guide .slg-thumb img,
-  #seosin-landscape-guide .slg-shot img,
+  #seosin-landscape-guide .slg-spot img,
   #seosin-landscape-guide .slg-more,
   #seosin-landscape-guide .slg-chip::after{ transition:none; }
   #seosin-landscape-guide .slg-card:hover .slg-thumb img,
-  #seosin-landscape-guide .slg-shot:hover img{ transform:none; }
+  #seosin-landscape-guide .slg-spot:hover img{ transform:none; }
 }
 </style>
 
@@ -4344,7 +4519,9 @@
      ▼ 여기만 고치면 됩니다 — 구역 / 시설 / 링크 / 이미지
 
      [구역]
-     shots : 구역 사진 2장 (경로 배열, 비우면 사진 영역 숨김)
+     spots : 구역을 골랐을 때 영상 아래에 보일 대표 시설 (시설 코드 배열)
+             이미지는 아래 ITEMS 의 img 를 그대로 쓰고, 누르면 시설 팝업이 열립니다
+             비우면 [] 영역 자체가 숨겨집니다 (빈 칸 · '없음' 표시 없음)
      video : 투어 가이드 영상 — 아래 형식 모두 인식합니다
              'https://youtu.be/XXXXXXXXXXX'
              'https://www.youtube.com/watch?v=XXXXXXXXXXX'
@@ -4357,28 +4534,30 @@
      cat   : 'play' = P(파랑) · 'relax' = R(주황) — 색이 자동으로 따라갑니다
      desc  : 팝업에 들어갈 시설 설명 ★ 임시 문구이니 실제 카피로 교체하세요
      img   : 썸네일 · 팝업 이미지 경로 (비우면 코드 배지만 표시)
-     zones : 해당 시설이 속한 구역 (복수 가능, 'etc' = 구역 외)
+     zones : 팝업의 '구역' 항목에 표시할 이름 (복수 가능, 'etc' = 구역 외)
+             ※ 시설 목록은 구역 선택과 상관없이 항상 전체가 보이고,
+               '종류' 필터(플레이 랜드 / 릴렉스 스팟)로만 걸러집니다
      ========================================================== */
   var ZONES = {
     A:{ title:'물담정원', sub:'폰드 · 복층형 티 하우스 · 미디어 파사드',
         desc:'물과 풍경을 담아 마음까지 쉬어가는 사색의 공간. 제주팽나무, 배롱나무, 참빗살나무, 후박나무와 수경시설, 복층형 티 하우스가 어우러집니다.',
-        shots:['./img/A-1.png','./img/A-2.png'],
+        spots:['R1'],
         video:'https://vimeo.com/1228646338' },
     B:{ title:'첨벙정원', sub:'어린이물놀이터 · 중형파고라',
         desc:'아이들의 웃음이 물장구처럼 첨벙대는 놀이의 공간. 이팝나무 가로수와 참빗살나무, 감나무, 공작단풍, 홍단풍, 대왕참나무가 어우러집니다.',
-        shots:['./img/B-1.png','./img/B-2.png'],
+        spots:['P2','R3'],
         video:'https://vimeo.com/1228647661' },
     C:{ title:'청류마루', sub:'워터테라스 · 주민운동시설',
         desc:'팽나무 그늘 아래 맑은 물과 함께 머무는 공간. 팽나무 가로수와 제주팽나무가 짙은 녹음을 드리웁니다.',
-        shots:['./img/C-1.png','./img/C-2.png'],
+        spots:[],
         video:'https://vimeo.com/1228648340' },
     D:{ title:'쉼결숲길', sub:'페르마타가든 · 어린이놀이터 · 주민운동시설',
         desc:'숲의 향기와 바람을 따라 걷는 치유의 공간. 왕벚나무 가로수와 배롱나무, 단풍나무, 느티나무, 은목서, 동백나무가 어우러집니다.',
-        shots:['./img/D-1.png','./img/D-2.png'],
+        spots:[],
         video:'https://vimeo.com/1228647376' },
     etc:{ title:'그 외 단지 내 시설', sub:'정원 구역 외 놀이 · 휴게 시설',
         desc:'107~108동, 301~303동 일대에 배치된 놀이터와 휴게 시설입니다.',
-        shots:[],
+        spots:[],
         video:'' }
   };
 
@@ -4933,15 +5112,60 @@
     else if(mqLand.addListener) mqLand.addListener(onOrient);
   }
 
-  /* ── 구역 사진 ───────────────────────────────────────────── */
-  function setShots(list, title){
-    var arr = (list || []).filter(Boolean);
-    if(!arr.length){ shotsBox.hidden = true; shotsBox.innerHTML = ''; return; }
-    shotsBox.innerHTML = arr.map(function(src, i){
-      return '<figure class="slg-shot"><img src="' + esc(src) + '" alt="' + esc(title + ' 전경 ' + (i + 1)) +
-             '" loading="lazy" decoding="async"></figure>';
+  /* ── 구역 대표 시설 ─────────────────────────────────────────
+     ZONES[구역].spots 의 시설 코드로 이미지 카드를 만들고, 누르면 시설 팝업을 엽니다.
+     목록이 비어 있으면 영역 자체를 숨깁니다. */
+  function itemIndex(code){
+    var c = String(code || '').trim().toUpperCase();
+    for(var i = 0; i < ITEMS.length; i++){
+      if(ITEMS[i].code.toUpperCase() === c) return i;
+    }
+    return -1;
+  }
+
+  function setSpots(list){
+    var html = (list || []).map(function(code){
+      var i = itemIndex(code);
+      if(i < 0) return '';
+      var it = ITEMS[i];
+      var pic = it.img
+        ? '<img src="' + esc(it.img) + '" alt="" loading="lazy" decoding="async">'
+        : '<span class="slg-thumb-fallback"><b>' + esc(it.code) + '</b><span>' + esc(CAT_LABEL[it.cat]) + '</span></span>';
+      return ''
+        + '<button type="button" class="slg-spot" data-spot="' + i + '" data-cat="' + esc(it.cat) + '"'
+        +   ' aria-haspopup="dialog"'
+        +   ' aria-label="' + esc(it.code + ' ' + it.name + ' — ' + it.sub + ' 설명 보기') + '">'
+        +   pic
+        +   '<span class="slg-badge">' + esc(it.code) + '</span>'
+        +   '<span class="slg-spot-cap">'
+        +     '<span class="slg-spot-name">' + esc(it.name) + '</span>'
+        +     '<span class="slg-spot-more">설명 보기</span>'
+        +   '</span>'
+        + '</button>';
     }).join('');
-    shotsBox.hidden = false;
+    shotsBox.innerHTML = html;
+    shotsBox.hidden = !html;
+  }
+
+  /* ── 배치도 위치 확인 ──────────────────────────────────────
+     배치도 섹션(#guide-section)에 'slg:locate' 신호를 보내면
+     배치도로 스크롤한 뒤 해당 구역 · 시설 위치가 깜빡입니다.
+     배치도에 좌표가 없는 코드는 버튼을 자동으로 숨깁니다. */
+  var PIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></svg>';
+
+  function onMap(code){
+    var map = document.getElementById('guide-section');
+    if(!map) return false;
+    var c = String(code || '').toUpperCase(), hit = false;
+    Array.prototype.forEach.call(map.querySelectorAll('.guide-section__hs'), function(b){
+      if(String(b.getAttribute('data-code') || '').toUpperCase() === c) hit = true;
+    });
+    return hit;
+  }
+
+  function locate(code){
+    if(!code) return;
+    document.dispatchEvent(new CustomEvent('slg:locate', { detail:{ code:String(code) } }));
   }
 
   /* ── 카드 렌더 ───────────────────────────────────────────── */
@@ -4950,6 +5174,7 @@
       ? '<img src="' + esc(it.img) + '" alt="' + esc(it.name) + '" loading="lazy" decoding="async">'
       : '<span class="slg-thumb-fallback"><b>' + esc(it.code) + '</b><span>' + esc(CAT_LABEL[it.cat]) + '</span></span>';
     return ''
+      + '<div class="slg-item" data-cat="' + esc(it.cat) + '">'
       + '<button type="button" class="slg-card" data-index="' + i + '"'
       +   ' data-cat="' + esc(it.cat) + '"'
       +   ' data-zones="' + esc(it.zones.join(' ')) + '"'
@@ -4966,10 +5191,29 @@
       +     '<p class="slg-sub">' + esc(it.sub) + '</p>'
       +     '<p class="slg-where">' + esc(it.where) + '</p>'
       +   '</div>'
-      + '</button>';
+      + '</button>'
+      + '<button type="button" class="slg-locate slg-locate--card" data-locate="' + esc(it.code) + '"'
+      +   ' aria-label="' + esc(it.code + ' ' + it.name + ' — 배치도에서 위치 확인') + '" hidden>'
+      +   PIN_SVG + '<span>위치 확인</span>'
+      + '</button>'
+      + '</div>';
   }).join('');
 
   var cards = Array.prototype.slice.call(grid.querySelectorAll('.slg-card'));
+  var zoneLocate  = panel.querySelector('[data-locate-zone]');
+
+  /* 배치도에 있는 코드만 위치 확인 버튼을 보여 줍니다 */
+  function syncLocate(){
+    Array.prototype.forEach.call(grid.querySelectorAll('[data-locate]'), function(b){
+      b.hidden = !onMap(b.getAttribute('data-locate'));
+    });
+    zoneLocate.hidden = !(ZONES[state.zone] && onMap(state.zone));
+    if(typeof modalLocate !== 'undefined' && modalLocate && openIdx > -1){
+      modalLocate.hidden = !onMap(ITEMS[openIdx].code);
+    }
+  }
+
+  zoneLocate.addEventListener('click', function(){ locate(state.zone); });
 
   /* ── 시설 상세 팝업 ──────────────────────────────────────── */
   var modal     = root.querySelector('#slg-modal');
@@ -4986,6 +5230,7 @@
   var mNext     = modal.querySelector('[data-modal-next]');
   var mPos      = modal.querySelector('[data-modal-pos]');
   var mTotal    = modal.querySelector('[data-modal-total]');
+  var modalLocate = modal.querySelector('[data-modal-locate]');
 
   var canDialog = typeof modal.showModal === 'function';
   var lastFocus = null;
@@ -5032,6 +5277,14 @@
     return out;
   }
 
+  /* 이전/다음 넘김 순서 — 지금 보이는 카드 기준.
+     구역 대표 시설로 연 시설이 '종류' 필터에 가려져 있으면 전체 시설 기준 */
+  function navList(idx){
+    var list = visibleIndexes();
+    if(list.indexOf(idx) < 0) list = ITEMS.map(function(_, i){ return i; });
+    return list;
+  }
+
   function zoneNames(list){
     return (list || []).map(function(z){
       return ZONES[z] ? ZONES[z].title : z;
@@ -5054,8 +5307,9 @@
     mDesc.textContent  = it.desc || '';
     mWhere.textContent = it.where;
     mZone.textContent  = zoneNames(it.zones);
+    modalLocate.hidden = !onMap(it.code);
 
-    var list = visibleIndexes();
+    var list = navList(idx);
     var at = list.indexOf(idx);
     mTotal.textContent = String(list.length);
     mPos.textContent   = String(at < 0 ? 1 : at + 1);
@@ -5117,7 +5371,7 @@
   }
 
   function step(dir){
-    var list = visibleIndexes();
+    var list = navList(openIdx);
     if(list.length < 2) return;
     var at = list.indexOf(openIdx);
     if(at < 0) at = 0;
@@ -5140,6 +5394,9 @@
   });
 
   modal.querySelector('[data-modal-close]').addEventListener('click', closeModal);
+  modalLocate.addEventListener('click', function(){
+    if(openIdx > -1) locate(ITEMS[openIdx].code);   /* 팝업은 배치도 쪽에서 닫고 이동합니다 */
+  });
   mPrev.addEventListener('click', function(){ step(-1); });
   mNext.addEventListener('click', function(){ step(1); });
 
@@ -5152,9 +5409,18 @@
 
   /* 카드 클릭 → 팝업 */
   grid.addEventListener('click', function(e){
+    var lb = e.target.closest('[data-locate]');
+    if(lb && grid.contains(lb)){ locate(lb.getAttribute('data-locate')); return; }
     var card = e.target.closest('.slg-card');
     if(!card || !grid.contains(card)) return;
     openModal(Number(card.getAttribute('data-index')));
+  });
+
+  /* 구역 대표 시설 클릭 → 같은 팝업 */
+  shotsBox.addEventListener('click', function(e){
+    var sp = e.target.closest('.slg-spot');
+    if(!sp || !shotsBox.contains(sp)) return;
+    openModal(Number(sp.getAttribute('data-spot')));
   });
 
   /* ── 필터 적용 ───────────────────────────────────────────── */
@@ -5162,11 +5428,10 @@
     var shown = [];
 
     cards.forEach(function(card){
-      var zoneOk = state.zone === 'all' ||
-                   card.getAttribute('data-zones').split(' ').indexOf(state.zone) > -1;
-      var catOk  = state.cat === 'all' || card.getAttribute('data-cat') === state.cat;
-      var ok = zoneOk && catOk;
+      /* 시설 목록은 구역과 무관 — '종류'로만 거릅니다 */
+      var ok = state.cat === 'all' || card.getAttribute('data-cat') === state.cat;
       card.hidden = !ok;
+      if(card.parentNode) card.parentNode.hidden = !ok;   /* 위치 확인 버튼 묶음까지 */
       card.classList.remove('is-in');
       if(ok) shown.push(card);
     });
@@ -5190,7 +5455,7 @@
     if(!z){
       panel.hidden = true;
       setVideo('', '');       /* 영상 정지 */
-      setShots([], '');
+      setSpots([]);
       return;
     }
 
@@ -5200,7 +5465,9 @@
     panel.querySelector('[data-zone-desc]').textContent  = z.desc;
 
     setVideo(z.video, z.title);
-    setShots(z.shots, z.title);
+    setSpots(z.spots);
+    zoneLocate.hidden = !onMap(state.zone);
+    zoneLocate.setAttribute('aria-label', z.title + ' — 배치도에서 위치 확인');
 
     panel.hidden = false;
   }
@@ -5217,14 +5484,18 @@
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       state[key] = btn.getAttribute('data-value');
-      if(key === 'zone') showZone();
-      apply();
+      if(key === 'zone') showZone();   /* 구역 → 영상 · 설명 · 대표 시설만 바뀜 */
+      else apply();                    /* 종류 → 시설 목록 필터 */
       if(openIdx > -1) closeModal(); /* 필터가 바뀌면 팝업은 닫습니다 */
     });
   });
 
   showZone();
   apply();
+  syncLocate();
+  /* 배치도 섹션이 이 섹션보다 뒤에 있어도 로드 후 다시 맞춥니다 */
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncLocate);
+  window.addEventListener('load', syncLocate);
   booted = true;
 })();
 </script>
