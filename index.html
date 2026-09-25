@@ -2340,6 +2340,25 @@
       -webkit-user-drag:none;
     }
 
+    /* ── 배치도 확대 (모바일 핀치 · 두 번 탭) ──────────────────
+       배치도 위의 핀치는 브라우저 전체 확대 대신 이 섹션 안에서만 확대합니다.
+       그래야 시설을 눌렀을 때 확대를 스크립트로 부드럽게 풀 수 있습니다. */
+    #guide-section .guide-section__img,
+    #guide-section .guide-section__layer{
+      transform:var(--gs-t, none);
+      transform-origin:0 0;
+    }
+    #guide-section:not(.is-edit) .guide-section__map{ touch-action:pan-y; }
+    #guide-section.is-zoomed .guide-section__map{ touch-action:none; }
+    #guide-section.is-zoomed .guide-section__map,
+    #guide-section.is-zoom-anim .guide-section__map{ overflow:hidden; }
+    #guide-section.is-zoomed .guide-section__img,
+    #guide-section.is-zoomed .guide-section__layer{ will-change:transform; }
+    #guide-section.is-zoom-anim .guide-section__img,
+    #guide-section.is-zoom-anim .guide-section__layer{
+      transition:transform .42s cubic-bezier(.22,.7,.2,1);
+    }
+
     /* ── 핫스팟 ────────────────────────────────────────────── */
     #guide-section .guide-section__layer{
       position:absolute; inset:0; z-index:1;
@@ -2537,6 +2556,8 @@
       #guide-section .guide-section__tip{ transition:none; }
       #guide-section .guide-section__hs.is-tap::before,
       #guide-section.is-hint .guide-section__hs::before{ animation:none; }
+      #guide-section.is-zoom-anim .guide-section__img,
+      #guide-section.is-zoom-anim .guide-section__layer{ transition:none; }
     }
   </style>
 
@@ -2605,6 +2626,10 @@
         minMs: 450,
         maxMs: 950
       };
+
+      /* ── 배치도 확대 설정 (모바일) ───────────────────────────
+         max : 최대 배율 · dbl : 두 번 탭했을 때 배율 · ms : 확대가 풀리는 시간 */
+      var ZOOM = { max: 4, dbl: 2.5, ms: 420 };
 
       var GUIDE_ID = 'seosin-landscape-guide';   /* 연동할 조경 가이드 섹션 id */
       var POINT_D  = 4.2;   /* 시설 터치 원 기본 지름 (이미지 폭 대비 %) */
@@ -2792,27 +2817,33 @@
       }
 
       /* ── 조경 가이드 섹션 연동 ───────────────────────────── */
+      /* 팝업이 열려 있으면 (부드럽게) 닫고 true 를 돌려줍니다 */
       function closeGuideModal(g){
         var m = g.querySelector('#slg-modal');
         if (m && m.open){
           var x = m.querySelector('[data-modal-close]');
           if (x) x.click(); else m.close();
+          return true;
         }
+        return false;
       }
 
       /* 구역 → 해당 구역 칩 선택(영상·사진·카드 필터 갱신) 후 코스 패널로 스크롤 */
       function goZone(code){
         var g = guide();
         if (!g) return false;
-        closeGuideModal(g);
         var chip = findZoneChip(code);
-        if (chip && !chip.classList.contains('is-on')) chip.click();   /* 같은 구역이면 영상 유지 */
-        requestAnimationFrame(function(){
-          var t = g.querySelector(SCROLL.target);
-          if (!t || t.hidden || t.offsetParent === null) t = g.querySelector('#slg-zone');
-          if (!t || t.hidden || t.offsetParent === null) t = g;
-          scrollToEl(t);
-        });
+        var wait = closeGuideModal(g) ? 320 : 0;   /* 팝업 닫힘 애니메이션이 끝난 뒤 스크롤 */
+        function run(){
+          if (chip && !chip.classList.contains('is-on')) chip.click();   /* 같은 구역이면 영상 유지 */
+          requestAnimationFrame(function(){
+            var t = g.querySelector(SCROLL.target);
+            if (!t || t.hidden || t.offsetParent === null) t = g.querySelector('#slg-zone');
+            if (!t || t.hidden || t.offsetParent === null) t = g;
+            scrollToEl(t);
+          });
+        }
+        if (wait) setTimeout(run, wait); else run();
         return !!chip;
       }
 
@@ -2843,14 +2874,154 @@
         setTimeout(function(){ btn.classList.remove('is-tap'); }, 500);
       }
 
+      /* ── 배치도 확대 · 이동 (모바일) ─────────────────────────
+         · 두 손가락 핀치 = 확대/축소, 확대 중 한 손가락 = 이동
+         · 빈 곳 두 번 탭 = 확대 ↔ 원래대로
+         · 확대 상태에서 구역·시설을 누르면 확대가 부드럽게 풀린 뒤 연동 */
+      var zs = 1, zx = 0, zy = 0;          /* 배율 · 이동(px) */
+      var zTimer = null, gest = null, lastTap = null, suppressUntil = 0;
+      var zW = window.innerWidth;
+
+      function zRect(){ return map.getBoundingClientRect(); }
+      function zClamp(){
+        var r = zRect();
+        zs = clamp(zs, 1, ZOOM.max);
+        zx = clamp(zx, r.width - r.width * zs, 0);
+        zy = clamp(zy, r.height - r.height * zs, 0);
+      }
+      function zApply(){
+        map.style.setProperty('--gs-t', 'translate3d(' + zx + 'px,' + zy + 'px,0) scale(' + zs + ')');
+        root.classList.toggle('is-zoomed', zs > 1.001);
+      }
+      function zAnimate(s, x, y){
+        if (zTimer) clearTimeout(zTimer);
+        var reduce = mq('(prefers-reduced-motion: reduce)');
+        root.classList.toggle('is-zoom-anim', !reduce);
+        zs = s; zx = x; zy = y;
+        zClamp(); zApply();
+        var ms = reduce ? 0 : ZOOM.ms;
+        zTimer = setTimeout(function(){ zTimer = null; root.classList.remove('is-zoom-anim'); }, ms);
+        return ms;
+      }
+      /* 확대돼 있으면 부드럽게 풀고, 걸리는 시간(ms)을 돌려줍니다 */
+      function resetZoom(){
+        if (zs <= 1.001) return 0;
+        return zAnimate(1, 0, 0);
+      }
+
+      function tp(t, r){ return { x:t.clientX - r.left, y:t.clientY - r.top }; }
+      function dist(a, b){ return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)); }
+
+      if (!EDIT){
+        map.addEventListener('touchstart', function(e){
+          var r = zRect();
+          if (e.touches.length === 2){
+            var a = tp(e.touches[0], r), b = tp(e.touches[1], r);
+            var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            gest = { mode:'pinch', d0:Math.max(dist(a, b), 1), s0:zs,
+                     px:(mx - zx) / zs, py:(my - zy) / zs, moved:true };
+            e.preventDefault();          /* 브라우저 전체 확대 대신 배치도만 확대 */
+          } else if (e.touches.length === 1){
+            var p = tp(e.touches[0], r);
+            gest = { mode: zs > 1.001 ? 'pan' : 'tap', sx:p.x, sy:p.y, x0:zx, y0:zy, moved:false };
+          }
+        }, { passive:false });
+
+        map.addEventListener('touchmove', function(e){
+          if (!gest) return;
+          var r = zRect();
+          if (gest.mode === 'pinch' && e.touches.length >= 2){
+            e.preventDefault();
+            var a = tp(e.touches[0], r), b = tp(e.touches[1], r);
+            var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            zs = clamp(gest.s0 * dist(a, b) / gest.d0, 1, ZOOM.max);
+            zx = mx - gest.px * zs;
+            zy = my - gest.py * zs;
+            zClamp(); zApply();
+          } else if (gest.mode === 'pan' && e.touches.length === 1){
+            e.preventDefault();
+            var p = tp(e.touches[0], r);
+            var dx = p.x - gest.sx, dy = p.y - gest.sy;
+            if (!gest.moved && Math.abs(dx) + Math.abs(dy) > 6) gest.moved = true;
+            if (gest.moved){ zx = gest.x0 + dx; zy = gest.y0 + dy; zClamp(); zApply(); }
+          } else if (gest.mode === 'tap' && e.touches.length === 1){
+            var q = tp(e.touches[0], r);
+            if (Math.abs(q.x - gest.sx) + Math.abs(q.y - gest.sy) > 10) gest.moved = true;
+          }
+        }, { passive:false });
+
+        map.addEventListener('touchend', function(e){
+          if (!gest) return;
+          var r = zRect();
+          if (gest.mode === 'pinch'){
+            suppressUntil = Date.now() + 400;
+            if (e.touches.length === 1){
+              /* 한 손가락을 떼면 남은 손가락으로 이어서 이동 */
+              var p = tp(e.touches[0], r);
+              gest = { mode: zs > 1.001 ? 'pan' : 'none', sx:p.x, sy:p.y, x0:zx, y0:zy, moved:true };
+            } else if (!e.touches.length){
+              if (zs < 1.08) zAnimate(1, 0, 0);   /* 거의 원래 크기면 딱 맞춰 되돌림 */
+              gest = null;
+            }
+            return;
+          }
+          if (e.touches.length) return;
+          if (gest.moved){ suppressUntil = Date.now() + 400; gest = null; return; }
+
+          /* 빈 곳 두 번 탭 → 확대 ↔ 원래대로 */
+          var t = tp(e.changedTouches[0], r);
+          var onHs = e.target.closest && e.target.closest('.guide-section__hs');
+          var now = Date.now();
+          if (!onHs && lastTap && now - lastTap.t < 320 &&
+              Math.abs(t.x - lastTap.x) + Math.abs(t.y - lastTap.y) < 30){
+            lastTap = null;
+            e.preventDefault();
+            if (zs > 1.001) zAnimate(1, 0, 0);
+            else {
+              /* 탭한 지점(현재 이미지상의 점)을 기준으로 확대 */
+              var cx = (t.x - zx) / zs, cy = (t.y - zy) / zs, s = ZOOM.dbl;
+              zAnimate(s, t.x - cx * s, t.y - cy * s);
+            }
+          } else {
+            lastTap = onHs ? null : { t:now, x:t.x, y:t.y };
+          }
+          gest = null;
+        }, { passive:false });
+
+        map.addEventListener('touchcancel', function(){
+          gest = null;
+          if (zs > 1.001 && zs < 1.08) zAnimate(1, 0, 0);
+        });
+
+        /* iOS 사파리 — 배치도 위 핀치가 페이지 확대로 번지지 않게 */
+        map.addEventListener('gesturestart',  function(e){ e.preventDefault(); });
+        map.addEventListener('gesturechange', function(e){ e.preventDefault(); });
+
+        /* 화면 폭이 바뀌면(회전 등) 확대 초기화 — 주소창 높이 변화는 무시 */
+        window.addEventListener('resize', function(){
+          if (window.innerWidth === zW) return;
+          zW = window.innerWidth;
+          if (zTimer){ clearTimeout(zTimer); zTimer = null; root.classList.remove('is-zoom-anim'); }
+          zs = 1; zx = 0; zy = 0; zApply();
+        });
+      }
+
       layer.addEventListener('click', function(e){
         if (EDIT && !TEST) return;
         var btn = e.target.closest('.guide-section__hs');
         if (!btn || !layer.contains(btn)) return;
+        /* 핀치·이동 직후 손가락을 뗀 자리가 눌린 것으로 처리되지 않게 */
+        if (!EDIT && Date.now() < suppressUntil){ e.preventDefault(); return; }
         tap(btn);
         var code = btn.getAttribute('data-code');
-        var ok = btn.getAttribute('data-type') === 'zone' ? goZone(code) : openFacility(code);
-        if (EDIT && !ok && window.gsEditMsg) window.gsEditMsg('⚠ ' + code + ' — 조경 가이드 섹션에서 찾을 수 없습니다');
+        var isZ = btn.getAttribute('data-type') === 'zone';
+        function act(){
+          var ok = isZ ? goZone(code) : openFacility(code);
+          if (EDIT && !ok && window.gsEditMsg) window.gsEditMsg('⚠ ' + code + ' — 조경 가이드 섹션에서 찾을 수 없습니다');
+        }
+        /* 확대 상태면 먼저 부드럽게 축소 → 거의 끝날 즈음 팝업 · 스크롤 */
+        var wait = resetZoom();
+        if (wait) setTimeout(act, Math.round(wait * 0.7)); else act();
       });
 
       /* ── 등장 + 1회 힌트 ─────────────────────────────────── */
@@ -4013,12 +4184,21 @@
 #seosin-landscape-guide .slg-modal::backdrop{ background:rgba(5,9,8,.88); }
 #seosin-landscape-guide .slg-modal.is-fallback[open]{ z-index:9999; background:rgba(5,9,8,.88); }
 
+/* 열림 · 닫힘 — 배경은 페이드, 카드는 살짝 떠오르며 커졌다가 반대로 사라짐 */
+#seosin-landscape-guide .slg-modal[open]{ animation:slg-fade-in .36s ease both; }
+#seosin-landscape-guide .slg-modal[open]::backdrop{ animation:slg-fade-in .36s ease both; }
+#seosin-landscape-guide .slg-modal.is-closing{ animation:slg-fade-out .28s ease both; pointer-events:none; }
+#seosin-landscape-guide .slg-modal.is-closing::backdrop{ animation:slg-fade-out .28s ease both; }
+#seosin-landscape-guide .slg-modal.is-closing .slg-modal-inner{
+  animation:slg-modal-out .28s cubic-bezier(.4,0,.7,.2) both;
+}
+
 #seosin-landscape-guide .slg-modal-inner{
   --slg-c:var(--slg-ink-2);
   position:relative; width:100%; max-width:920px;
   display:grid; grid-template-columns:minmax(0,1fr);
   border:1px solid var(--slg-line-2); background:#0f1614;
-  animation:slg-modal-in .32s cubic-bezier(.2,.7,.3,1) both;
+  animation:slg-modal-in .46s cubic-bezier(.2,.7,.3,1) both;
 }
 #seosin-landscape-guide .slg-modal-inner[data-cat="play"]{ --slg-c:var(--slg-play); }
 #seosin-landscape-guide .slg-modal-inner[data-cat="relax"]{ --slg-c:var(--slg-relax); }
@@ -4125,11 +4305,19 @@
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
 @keyframes slg-zone-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
 @keyframes slg-card-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
-@keyframes slg-modal-in{ from{ opacity:0; transform:translateY(12px); } to{ opacity:1; transform:none; } }
+@keyframes slg-modal-in{ from{ opacity:0; transform:translateY(18px) scale(.965); } to{ opacity:1; transform:none; } }
+@keyframes slg-modal-out{ from{ opacity:1; transform:none; } to{ opacity:0; transform:translateY(12px) scale(.975); } }
+@keyframes slg-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes slg-fade-out{ from{ opacity:1; } to{ opacity:0; } }
 @media (prefers-reduced-motion:reduce){
   #seosin-landscape-guide .slg-zone,
   #seosin-landscape-guide .slg-card.is-in,
-  #seosin-landscape-guide .slg-modal-inner{ animation:none; }
+  #seosin-landscape-guide .slg-modal-inner,
+  #seosin-landscape-guide .slg-modal[open],
+  #seosin-landscape-guide .slg-modal[open]::backdrop,
+  #seosin-landscape-guide .slg-modal.is-closing,
+  #seosin-landscape-guide .slg-modal.is-closing::backdrop,
+  #seosin-landscape-guide .slg-modal.is-closing .slg-modal-inner{ animation:none; }
   #seosin-landscape-guide .slg-thumb img,
   #seosin-landscape-guide .slg-shot img,
   #seosin-landscape-guide .slg-more,
@@ -4803,6 +4991,10 @@
   var lastFocus = null;
   var openIdx   = -1;
 
+  var CLOSE_MS  = 280;     /* 닫힘 애니메이션 시간 — CSS .is-closing 과 맞춥니다 */
+  var closing   = false;
+  var closeT    = null;
+
   /* ── 팝업 동안 뒤 페이지 고정 ──────────────────────────────
      iOS는 body overflow:hidden 만으로는 뒤 페이지가 계속 스크롤되고,
      닫을 때 맨 위로 튀는 문제가 있어 position:fixed 방식으로 고정 후
@@ -4874,7 +5066,18 @@
     openIdx = idx;
   }
 
+  function isOpen(){ return canDialog ? modal.open : modal.hasAttribute('open'); }
+
   function openModal(idx){
+    /* 닫히는 도중에 다시 열면 닫힘을 취소하고 내용만 바꿉니다 */
+    if(closing){
+      clearTimeout(closeT); closeT = null;
+      closing = false;
+      modal.classList.remove('is-closing');
+      fillModal(idx);
+      modal.scrollTop = 0;
+      return;
+    }
     lastFocus = document.activeElement;
     fillModal(idx);
     lockScroll();
@@ -4884,9 +5087,26 @@
     focusNoScroll(modal.querySelector('[data-modal-close]'));
   }
 
+  /* 부드럽게 닫기 — 페이드아웃이 끝난 뒤 실제로 닫습니다 */
   function closeModal(){
-    if(canDialog){ if(modal.open) modal.close(); }
-    else { modal.removeAttribute('open'); modal.classList.remove('is-fallback'); afterClose(); }
+    if(closing || !isOpen()) return;
+    closing = true;
+    modal.classList.add('is-closing');
+    var ms = mq('(prefers-reduced-motion: reduce)') ? 0 : CLOSE_MS;
+    closeT = setTimeout(finishClose, ms);
+  }
+
+  function finishClose(){
+    closeT = null;
+    closing = false;
+    if(canDialog){
+      if(modal.open) modal.close();      /* close 이벤트 → afterClose */
+      modal.classList.remove('is-closing');
+    } else {
+      modal.removeAttribute('open');
+      modal.classList.remove('is-fallback', 'is-closing');
+      afterClose();
+    }
   }
 
   function afterClose(){
@@ -4908,6 +5128,12 @@
 
   modal.addEventListener('close', afterClose);
 
+  /* Esc 키 — 즉시 닫히지 않고 같은 애니메이션으로 닫히게 */
+  modal.addEventListener('cancel', function(e){
+    e.preventDefault();
+    closeModal();
+  });
+
   /* 배경(백드롭) 클릭으로 닫기 */
   modal.addEventListener('click', function(e){
     if(e.target === modal) closeModal();
@@ -4918,7 +5144,7 @@
   mNext.addEventListener('click', function(){ step(1); });
 
   document.addEventListener('keydown', function(e){
-    if(openIdx < 0) return;
+    if(openIdx < 0 || closing) return;
     if(e.key === 'ArrowLeft'){ e.preventDefault(); step(-1); }
     else if(e.key === 'ArrowRight'){ e.preventDefault(); step(1); }
     else if(e.key === 'Escape' && !canDialog){ e.preventDefault(); closeModal(); }
