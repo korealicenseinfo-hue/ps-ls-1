@@ -4101,8 +4101,8 @@
     <div class="slg-filter" role="group" aria-label="구역 선택">
       <span class="slg-filter-name">구역</span>
       <div class="slg-chips" data-filter="zone">
-        <button type="button" class="slg-chip is-on" data-value="all" aria-pressed="true">전체</button>
-        <button type="button" class="slg-chip" data-value="A" aria-pressed="false"><i class="slg-mark">A</i>물담정원</button>
+        <button type="button" class="slg-chip" data-value="all" aria-pressed="false">전체</button>
+        <button type="button" class="slg-chip is-on" data-value="A" aria-pressed="true"><i class="slg-mark">A</i>물담정원</button>
         <button type="button" class="slg-chip" data-value="B" aria-pressed="false"><i class="slg-mark">B</i>첨벙정원</button>
         <button type="button" class="slg-chip" data-value="C" aria-pressed="false"><i class="slg-mark">C</i>청류마루</button>
         <button type="button" class="slg-chip" data-value="D" aria-pressed="false"><i class="slg-mark">D</i>쉼결숲길</button>
@@ -5079,12 +5079,12 @@
     { code:'R6', cat:'relax', name:'키즈스테이션',   sub:'유아 동반 휴게시설', where:'단지 내 3개소', zones:['A','etc'],
       desc:'유아를 동반한 보호자를 위한 휴게시설입니다. 놀이터 가까이에 배치해 시야를 확보하면서 머물 수 있습니다.',
       img:'./img/R6-1.jpg' }
-      
+
   ];
   /* ▲ 데이터 끝 ============================================== */
 
   var CAT_LABEL = { play:'플레이 랜드', relax:'릴렉스 스팟' };
-  var state = { zone:'all', cat:'all' };
+  var state = { zone:'A', cat:'all' };   /* 처음 열릴 때 보여 줄 구역 — 'A' ~ 'F' */
   var booted = false;
 
   var grid   = root.querySelector('#slg-grid');
@@ -5647,9 +5647,76 @@
     return hit;
   }
 
+  /* ── 구역(코스) 위치 확인 시 배치도 라벨 숨김 ─────────────────
+     구역(A~F · etc)은 배치도에서 테두리만 깜빡이고
+     'D 쉼결숲길 · 코스 보기' 같은 라벨 글자는 띄우지 않습니다.
+     시설(P · R)은 기존처럼 라벨까지 표시됩니다.
+     사용자가 배치도를 직접 누르면 라벨이 원래대로 돌아옵니다. */
+  var MAP_LABEL_KEY = '코스 보기';   /* 배치도 구역 라벨에 들어가는 문구 */
+  var labelMute = null;
+
+  function isZoneCode(code){ return !!ZONES[String(code || '').trim()]; }
+
+  /* 배치도 안의 '코스 보기' 라벨 상자를 찾아 숨깁니다 (구역 테두리 · 핫스팟은 건드리지 않음) */
+  function hideMapLabels(map, bag){
+    var walker = document.createTreeWalker(map, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while((n = walker.nextNode())){
+      if(n.nodeValue.indexOf(MAP_LABEL_KEY) < 0) continue;
+      var el = n.parentElement;
+      if(!el || el.classList.contains('guide-section__hs')) continue;
+      /* 글자 전체가 라벨 문구뿐인 가장 바깥 상자까지 올라갑니다 */
+      var txt = el.textContent.trim();
+      while(el.parentElement && el.parentElement !== map &&
+            !el.parentElement.classList.contains('guide-section__hs') &&
+            el.parentElement.textContent.trim() === txt){
+        el = el.parentElement;
+      }
+      if(el.hasAttribute('data-slg-muted')) continue;
+      el.setAttribute('data-slg-muted', el.style.visibility || '');
+      el.style.visibility = 'hidden';
+      bag.push(el);
+    }
+  }
+
+  function unmuteMapLabel(){
+    if(!labelMute) return;
+    if(labelMute.obs) labelMute.obs.disconnect();
+    labelMute.map.removeEventListener('pointerdown', unmuteMapLabel, true);
+    labelMute.map.classList.remove('slg-no-label');
+    labelMute.hidden.forEach(function(el){
+      el.style.visibility = el.getAttribute('data-slg-muted') || '';
+      el.removeAttribute('data-slg-muted');
+    });
+    labelMute = null;
+  }
+
+  function muteMapLabel(){
+    var map = document.getElementById('guide-section');
+    if(!map) return;
+    unmuteMapLabel();
+    labelMute = { map:map, hidden:[], obs:null };
+    map.classList.add('slg-no-label');
+    hideMapLabels(map, labelMute.hidden);
+    /* 라벨이 신호 이후 · 스크롤 이후에 새로 생겨도 잡아냅니다 */
+    if('MutationObserver' in window){
+      labelMute.obs = new MutationObserver(function(){
+        if(labelMute) hideMapLabels(map, labelMute.hidden);
+      });
+      labelMute.obs.observe(map, { childList:true, subtree:true, characterData:true });
+    }
+    /* 사용자가 배치도를 직접 누르면 라벨을 원래대로 돌려줍니다 */
+    map.addEventListener('pointerdown', unmuteMapLabel, true);
+  }
+
   function locate(code){
     if(!code) return;
-    document.dispatchEvent(new CustomEvent('slg:locate', { detail:{ code:String(code) } }));
+    var zone = isZoneCode(code);
+    if(zone) muteMapLabel();
+    else unmuteMapLabel();
+    document.dispatchEvent(new CustomEvent('slg:locate', {
+      detail:{ code:String(code), kind: zone ? 'zone' : 'item', label: !zone }
+    }));
   }
 
   /* ── 카드 렌더 ───────────────────────────────────────────── */
