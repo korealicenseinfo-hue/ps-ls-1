@@ -4108,7 +4108,6 @@
         <button type="button" class="slg-chip" data-value="D" aria-pressed="false"><i class="slg-mark">D</i>쉼결숲길</button>
         <button type="button" class="slg-chip" data-value="E" aria-pressed="false"><i class="slg-mark">E</i>물결길</button>
         <button type="button" class="slg-chip" data-value="F" aria-pressed="false"><i class="slg-mark">F</i>시크릿가든</button>
-        <button type="button" class="slg-chip" data-value="etc" aria-pressed="false">그 외 단지 내</button>
       </div>
     </div>
   </div>
@@ -4161,12 +4160,15 @@
             <span class="slg-video-label">투어 가이드 영상</span>
           </div>
         </div>
+        <!-- 구역 대표 이미지 — 영상이 없는 구역(E · F 등)에서 영상 자리에 표시 -->
+        <figure class="slg-zone-pic" data-zone-pic hidden></figure>
         <div class="slg-shots" data-shots hidden></div>
       </div>
 
       <!-- 설명 -->
       <div class="slg-zone-text">
         <p class="slg-zone-desc" data-zone-desc></p>
+        <p class="slg-zone-quote" data-zone-quote hidden></p>
       </div>
 
     </div>
@@ -4553,6 +4555,17 @@
   font-size:clamp(10px,1.05cqw,12px); letter-spacing:.16em; color:var(--slg-ink-3);
 }
 
+/* 구역 대표 이미지 — 영상 자리와 같은 비율 · 테두리 */
+#seosin-landscape-guide .slg-zone-pic{
+  position:relative; width:100%; margin:0;
+  aspect-ratio:16/9; overflow:hidden;
+  background:var(--slg-bg-2); border:1px solid var(--slg-line);
+}
+#seosin-landscape-guide .slg-zone-pic[hidden]{ display:none; }
+#seosin-landscape-guide .slg-zone-pic img{
+  position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block;
+}
+
 /* 구역 대표 시설 (누르면 시설 팝업) */
 #seosin-landscape-guide .slg-shots{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.4cqw; margin-top:1.8cqw;
@@ -4603,6 +4616,14 @@
   margin:0; font-size:clamp(13px,1.28cqw,15px); line-height:1.95; color:var(--slg-ink-2);
   word-break:keep-all;
 }
+/* 구역 한 줄 카피 — 설명 아래 인용 형태 */
+#seosin-landscape-guide .slg-zone-quote{
+  margin:1.6em 0 0; padding-left:1em;
+  border-left:2px solid var(--slg-zone);
+  font-size:clamp(13px,1.28cqw,15px); line-height:1.85; color:var(--slg-ink);
+  word-break:keep-all;
+}
+#seosin-landscape-guide .slg-zone-quote[hidden]{ display:none; }
 
 /* 재생 바 */
 #seosin-landscape-guide .slg-seek{
@@ -4964,6 +4985,8 @@
              'https://vimeo.com/123456789'
              '123456789'              (비메오 ID만)
              ''                       (비우면 영상 영역 숨김)
+     img   : 구역 대표 이미지 — video 가 비어 있을 때 영상 자리에 표시됩니다
+     quote : 설명 아래에 한 줄 카피로 표시 (비우면 숨김)
 
      [시설]  카드를 누르면 팝업으로 설명이 열립니다
      cat   : 'play' = P(파랑) · 'relax' = R(주황) — 색이 자동으로 따라갑니다
@@ -4991,12 +5014,16 @@
         spots:[],
         video:'https://vimeo.com/1228647376' },
     E:{ title:'물결길', sub:'소나무 · 폰드 수경시설',
-        desc:'품위 있는 소나무 아래 물결처럼 이어지는 폰드의 수경시설에서 자연의 깊이와 물의 여유를 함께 누리는 품격 있는 휴식의 장. 소나무 그늘과 잔잔한 물결을 바라보며 일상의 여유를 느끼는 특별한 쉼의 공간입니다.',
+        desc:'품위 있는 소나무 아래, 물결처럼 이어지는 폰드의 수경시설에서 자연의 깊이와 물의 여유를 함께 누리는 품격 있는 휴식의 장입니다.',
+        quote:'소나무 그늘과 잔잔한 물결을 바라보며 일상의 여유를 느끼는 특별한 쉼의 공간',
         spots:[],
+        img:'./img/E(물결길).jpg',
         video:'' },
     F:{ title:'시크릿가든', sub:'잔디 · 초화 · 블루엔젤 · 바테이블',
-        desc:'푸른 정원과 은은한 차폐가 어우러진 공간에서 잠시 일상을 내려놓고 여유로운 휴식을 즐기는 시크릿 라운지. 잔디와 초화, 블루엔젤의 녹음으로 아늑한 정원을 조성하고, 바테이블에서 휴식을 함께 누릴 수 있는 공간입니다.',
+        desc:'푸른 정원과 은은한 차폐가 어우러진 공간에서 잠시 일상을 내려놓고 여유로운 휴식을 즐기는 시크릿 라운지입니다.',
+        quote:'잔디와 초화, 블루엔젤의 녹음으로 아늑한 정원을 이루고, 바테이블에서 휴식을 함께 누릴 수 있는 공간',
         spots:[],
+        img:'./img/F(시크릿가든).jpg',
         video:'' },
     etc:{ title:'그 외 단지 내 시설', sub:'정원 구역 외 놀이 · 휴게 시설',
         desc:'107~108동, 301~303동 일대에 배치된 놀이터와 휴게 시설입니다.',
@@ -5075,6 +5102,8 @@
   var vDurT      = panel.querySelector('[data-v-dur]');
   var vFull      = panel.querySelector('[data-v-full]');
   var shotsBox   = panel.querySelector('[data-shots]');
+  var zonePic    = panel.querySelector('[data-zone-pic]');
+  var zoneQuote  = panel.querySelector('[data-zone-quote]');
 
   function esc(s){
     return String(s).replace(/[&<>"']/g, function(c){
@@ -5092,6 +5121,17 @@
   function focusNoScroll(el){
     if(!el || !el.focus) return;
     try{ el.focus({ preventScroll:true }); }catch(e){ el.focus(); }
+  }
+
+  /* ── 구역 대표 이미지 · 한 줄 카피 ── */
+  function setZonePic(src, title){
+    if(!src){ zonePic.innerHTML = ''; zonePic.hidden = true; return; }
+    zonePic.innerHTML = '<img src="' + esc(src) + '" alt="' + esc(title + ' 대표 이미지') + '" decoding="async">';
+    zonePic.hidden = false;
+  }
+  function setZoneQuote(text){
+    zoneQuote.textContent = text || '';
+    zoneQuote.hidden = !text;
   }
 
   /* ── 투어 가이드 영상 — 유튜브 / 비메오 공용 최소 플레이어 ──
@@ -5899,6 +5939,8 @@
     if(!z){
       panel.hidden = true;
       setVideo('', '');       /* 영상 정지 */
+      setZonePic('', '');
+      setZoneQuote('');
       setSpots([]);
       return;
     }
@@ -5907,8 +5949,10 @@
     panel.querySelector('[data-zone-title]').textContent = z.title;
     panel.querySelector('[data-zone-sub]').textContent   = z.sub;
     panel.querySelector('[data-zone-desc]').textContent  = z.desc;
+    setZoneQuote(z.quote);
 
     setVideo(z.video, z.title);
+    setZonePic(parseSrc(z.video) ? '' : z.img, z.title);   /* 영상이 없을 때만 대표 이미지 */
     setSpots(z.spots);
     zoneLocate.hidden = !onMap(state.zone);
     zoneLocate.setAttribute('aria-label', z.title + ' — 배치도에서 위치 확인');
