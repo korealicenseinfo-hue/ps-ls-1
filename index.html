@@ -2283,7 +2283,7 @@
   </script>
 </section>
 
-<section id="guide-section" aria-label="단지 조경 배치도" style="scroll-margin-top: 67px;">
+<section id="guide-section" aria-label="단지 조경 배치도" style="scroll-margin-top: 110px;">
   <div class="guide-section__inner">
     <div class="guide-section__map" data-gs-map="">
       <img class="guide-section__img" src="./img/guide.jpg" alt="서신 더샵 에피트 3단지 조경 배치도 — 구역이나 시설을 누르면 해당 안내로 이동합니다" decoding="async" draggable="false">
@@ -2616,6 +2616,8 @@
         { type:'zone', code:'B', name:'첨벙정원', x:55.2, y:39.7, w:16.6, h:15.8 },
         { type:'zone', code:'C', name:'청류마루', x:55.3, y:57.2, w:21.6, h:18.8 },
         { type:'zone', code:'D', name:'쉼결숲길', x:60.6, y:75.4, w:18.9, h:18.9 },
+        { type:'zone', code:'E', name:'물결길', x:13.1, y:60.4, w:15.8, h:8.8, shape:'ellipse' },
+        { type:'zone', code:'F', name:'시크릿가든', x:10.2, y:38.5, w:16.5, h:7.2 },
         { type:'item', code:'P1', name:'클라우드워크', x:66.1, y:33.4 },
         { type:'item', code:'P2', name:'바다의보석', x:58.5, y:48.5 },
         { type:'item', code:'P3', name:'트리하우스', x:62.9, y:73.3 },
@@ -3764,6 +3766,55 @@
     </div>
   </article>
 
+
+    <!-- ───────── E ───────── -->
+  <article class="sc-item" id="sc-course-e" aria-labelledby="sc-t-e">
+    <div class="sc-titles">
+      <p class="sc-copy">소나무 그늘 아래 물결이 머무는 품격의 쉼터</p>
+      <h3 class="sc-name" id="sc-t-e"><span class="sc-key">E</span>물결길<i class="sc-bar">|</i><span class="sc-en">RIPPLE PATH</span></h3>
+    </div>
+    <figure class="sc-fig">
+      <img class="sc-img" src="./img/E(물결길).jpg" alt="물결길 전경" loading="lazy" decoding="async" width="1600" height="900">
+    </figure>
+    <div class="sc-desc">
+      <p class="sc-label">Description</p>
+      <div class="sc-text">
+        <p>소나무 그늘 아래에서 물결은 천천히 흐릅니다.</p>
+        <p>물결길은 품위 있는 소나무 아래 폰드의 수경시설이 물결처럼 이어져, 자연의 깊이와 물의 여유를 함께 누리는 휴식의 공간입니다.</p>
+        <p>잔잔한 수면을 따라 걷다 보면 소나무의 그늘과 물빛이 겹쳐지며, 일상의 속도가 한결 느려집니다.</p>
+        <p>바라보는 것만으로 여유가 채워지는, 품격 있는 쉼의 길입니다.</p>
+      </div>
+    </div>
+    <div class="sc-links">
+      <button type="button" class="sc-link" data-sc-video="E">설명 보기</button>
+      <button type="button" class="sc-link" data-sc-locate="E">배치도 위치</button>
+    </div>
+  </article>
+
+  <!-- ───────── F ───────── -->
+  <article class="sc-item" id="sc-course-f" aria-labelledby="sc-t-f">
+    <div class="sc-titles">
+      <p class="sc-copy">일상을 잠시 내려놓는 비밀의 라운지</p>
+      <h3 class="sc-name" id="sc-t-f"><span class="sc-key">F</span>시크릿가든<i class="sc-bar">|</i><span class="sc-en">SECRET GARDEN</span></h3>
+    </div>
+    <figure class="sc-fig">
+      <img class="sc-img" src="./img/F(시크릿가든).jpg" alt="시크릿가든 전경" loading="lazy" decoding="async" width="1600" height="900">
+    </figure>
+    <div class="sc-desc">
+      <p class="sc-label">Description</p>
+      <div class="sc-text">
+        <p>정원의 가장 안쪽에는 나만의 시간이 있습니다.</p>
+        <p>시크릿가든은 푸른 정원과 은은한 차폐가 어우러져, 잠시 일상을 내려놓고 여유로운 휴식을 즐기는 시크릿 라운지입니다.</p>
+        <p>잔디와 초화, 블루엔젤의 녹음이 아늑한 정원을 이루고, 바테이블에 앉아 정원을 바라보며 온전한 휴식을 누릴 수 있습니다.</p>
+        <p>머무는 이만 아는, 조용한 비밀의 정원입니다.</p>
+      </div>
+    </div>
+    <div class="sc-links">
+      <button type="button" class="sc-link" data-sc-video="F">설명 보기</button>
+      <button type="button" class="sc-link" data-sc-locate="F">배치도 위치</button>
+    </div>
+  </article>
+
 <style>
   @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&family=Noto+Serif+KR:wght@300;400;500&display=swap");
 
@@ -4055,6 +4106,8 @@
         <button type="button" class="slg-chip" data-value="B" aria-pressed="false"><i class="slg-mark">B</i>첨벙정원</button>
         <button type="button" class="slg-chip" data-value="C" aria-pressed="false"><i class="slg-mark">C</i>청류마루</button>
         <button type="button" class="slg-chip" data-value="D" aria-pressed="false"><i class="slg-mark">D</i>쉼결숲길</button>
+        <button type="button" class="slg-chip" data-value="E" aria-pressed="false"><i class="slg-mark">E</i>물결길</button>
+        <button type="button" class="slg-chip" data-value="F" aria-pressed="false"><i class="slg-mark">F</i>시크릿가든</button>
         <button type="button" class="slg-chip" data-value="etc" aria-pressed="false">그 외 단지 내</button>
       </div>
     </div>
@@ -4937,6 +4990,14 @@
         desc:'숲의 향기와 바람을 따라 걷는 치유의 공간. 왕벚나무 가로수와 배롱나무, 단풍나무, 느티나무, 은목서, 동백나무가 어우러집니다.',
         spots:[],
         video:'https://vimeo.com/1228647376' },
+    E:{ title:'물결길', sub:'소나무 · 폰드 수경시설',
+        desc:'품위 있는 소나무 아래 물결처럼 이어지는 폰드의 수경시설에서 자연의 깊이와 물의 여유를 함께 누리는 품격 있는 휴식의 장. 소나무 그늘과 잔잔한 물결을 바라보며 일상의 여유를 느끼는 특별한 쉼의 공간입니다.',
+        spots:[],
+        video:'' },
+    F:{ title:'시크릿가든', sub:'잔디 · 초화 · 블루엔젤 · 바테이블',
+        desc:'푸른 정원과 은은한 차폐가 어우러진 공간에서 잠시 일상을 내려놓고 여유로운 휴식을 즐기는 시크릿 라운지. 잔디와 초화, 블루엔젤의 녹음으로 아늑한 정원을 조성하고, 바테이블에서 휴식을 함께 누릴 수 있는 공간입니다.',
+        spots:[],
+        video:'' },
     etc:{ title:'그 외 단지 내 시설', sub:'정원 구역 외 놀이 · 휴게 시설',
         desc:'107~108동, 301~303동 일대에 배치된 놀이터와 휴게 시설입니다.',
         spots:[],
@@ -4956,19 +5017,19 @@
       img:'./img/P3(트리하우스).jpg' },
     { code:'P4', cat:'play',  name:'슈팅라이트',     sub:'어린이놀이터 4', where:'114·115동 사이', zones:['D'],
       desc:'빛과 소리로 반응하는 액티브 놀이 기구입니다. 몸을 크게 쓰는 놀이를 좋아하는 초등 연령대에 맞춰 구성했습니다.',
-      img:'./img/P4(슈팅라이트).jpg' },
+      img:'./img/P4(슈팅라이트).jpg' },
     { code:'P5', cat:'play',  name:'코지네스트',     sub:'어린이놀이터 5', where:'108·109동 사이', zones:['A'],
       desc:'둥지형 그네를 중심으로 한 아늑한 놀이 공간입니다. 여러 명이 함께 앉을 수 있어 형제·친구와 같이 타기 좋습니다.',
-      img:'./img/P5(코지네스트).jpg' },
+      img:'./img/P5(코지네스트).jpg' },
     { code:'P6', cat:'play',  name:'오로라웨이',     sub:'어린이놀이터 9', where:'301·302동 사이', zones:['etc'],
       desc:'곡선 터널과 미끄럼틀이 이어지는 놀이대입니다. 동선이 한눈에 들어와 보호자가 지켜보기 편한 배치입니다.',
-      img:'./img/P6(오로라웨이).jpg' },
+      img:'./img/P6(오로라웨이).jpg' },
     { code:'P7', cat:'play',  name:'블루밍플라워',   sub:'유아놀이터 1',   where:'107·108동 사이', zones:['A'],
       desc:'꽃을 모티프로 한 유아 전용 놀이 공간입니다. 기구 높이를 낮추고 바닥 포장을 부드럽게 해 첫 바깥놀이에 적합합니다.',
       img:'./img/P7(블루밍플라워).jpg' },
     { code:'P8', cat:'play',  name:'캐터피의 숲',    sub:'유아놀이터 3',   where:'302·303동 사이', zones:['etc'],
       desc:'애벌레 형태의 터널과 낮은 조합놀이대로 꾸민 유아놀이터입니다. 기어 통과하는 구조라 소근육·대근육 활동에 좋습니다.',
-      img:'./img/P8(캐터피의 숲).jpg' },
+      img:'./img/P8(캐터피의 숲).jpg' },
     { code:'P9', cat:'play',  name:'클라이밍',       sub:'실내 클라이밍',  where:'108동',          zones:['A'],
       desc:'단지 내 실내 클라이밍 월입니다. 날씨와 관계없이 이용할 수 있어 장마철과 한겨울 놀이 공간으로 활용됩니다.',
       img:'./img/P9.png' },
@@ -4978,19 +5039,20 @@
       img:'./img/R1(복층 티하우스).jpg' },
     { code:'R2', cat:'relax', name:'중형파고라 A',   sub:'중형 휴게시설',   where:'101·102동 앞',   zones:['B'],
       desc:'클라우드워크 바로 옆 중형 파고라입니다. 놀이터를 마주 보는 방향이라 아이를 지켜보며 쉬기 좋습니다.',
-      img:'./img/R2(중형파고라A).jpg' },
+      img:'./img/R2(중형파고라A).jpg' },
     { code:'R3', cat:'relax', name:'중형파고라 B',   sub:'중형 휴게시설',   where:'111동 앞',       zones:['B'],
       desc:'첨벙정원 동선 위에 놓인 중형 파고라입니다. 물놀이터와 가까워 젖은 옷을 말리며 쉬어 가기 좋습니다.',
-      img:'./img/R3(중형파고라B).jpg' },
+      img:'./img/R3(중형파고라B).jpg' },
     { code:'R4', cat:'relax', name:'중형파고라 C',   sub:'중형 휴게시설',   where:'112·114동 사이', zones:['C'],
       desc:'쉼결숲길 산책로 중간의 중형 파고라입니다. 왕벚나무 가로수 그늘과 이어져 봄철 경관이 좋습니다.',
-      img:'./img/R4(중형파고라C).jpg' },
+      img:'./img/R4(중형파고라C).jpg' },
     { code:'R5', cat:'relax', name:'소형파고라',     sub:'소형 휴게시설',   where:'단지 내 4개소',  zones:['D'],
       desc:'2~4인이 앉는 소형 파고라로 단지 내 네 곳에 나뉘어 있습니다. 산책 중 잠깐 앉아 쉬는 용도입니다.',
-      img:'./img/R5(소형파고라) (2).jpg' },
+      img:'./img/R5(소형파고라) (2).jpg' },
     { code:'R6', cat:'relax', name:'키즈스테이션',   sub:'유아 동반 휴게시설', where:'단지 내 3개소', zones:['A','etc'],
       desc:'유아를 동반한 보호자를 위한 휴게시설입니다. 놀이터 가까이에 배치해 시야를 확보하면서 머물 수 있습니다.',
-      img:'./img/R6(키즈스테이션) (2).jpg' }
+      img:'./img/R6(키즈스테이션) (2).jpg' }
+      
   ];
   /* ▲ 데이터 끝 ============================================== */
 
