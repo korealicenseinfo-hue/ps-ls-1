@@ -3677,15 +3677,6 @@
   </script>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════
-     코스 소개 섹션 (에디토리얼형) — #guide-section 바로 아래에 붙여 넣으세요
-
-     ▶ 모바일 튕김 · 떨림 방지
-       · 마크업 고정(HTML) — JS 가 내용을 나중에 그리지 않음
-       · 이미지 박스 aspect-ratio 고정 — 로드 전후 · 깨짐에도 높이 불변
-       · 등장 연출은 opacity · transform · clip-path 만 사용 (레이아웃 불변)
-       · vh 단위 · sticky · 패럴랙스 · content-visibility 미사용
-     ════════════════════════════════════════════════════════════ -->
 <section id="seosin-course" aria-label="정원 코스 소개">
 
   <header class="sc-head">
@@ -4169,6 +4160,23 @@
     <!-- 코스 장소 흐름 — 코스 그림 · 설명 아래, 순서대로 이미지와 함께 -->
     <div class="slg-route" data-route hidden></div>
   </article>
+
+  <!-- 주요 시설 · 장소 전체 목록 — 코스별로 구별 -->
+  <div class="slg-filters slg-filters--cat">
+    <div class="slg-filter" role="group" aria-label="주요 시설 코스 선택">
+      <span class="slg-filter-name">주요 시설</span>
+      <div class="slg-chips" data-filter="cat">
+        <button type="button" class="slg-chip is-on" data-value="all" aria-pressed="true">전체</button>
+        <button type="button" class="slg-chip" data-value="garden" data-course="garden" aria-pressed="false"><i class="slg-mark">G</i>Garden Course</button>
+        <button type="button" class="slg-chip" data-value="water" data-course="water" aria-pressed="false"><i class="slg-mark">W</i>Water Course</button>
+        <button type="button" class="slg-chip" data-value="forest" data-course="forest" aria-pressed="false"><i class="slg-mark">F</i>Forest Course</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="slg-count" data-count></p>
+
+  <div class="slg-groups" id="slg-grid" aria-live="polite"></div>
 
   <!-- 시설 상세 팝업 -->
   <dialog class="slg-modal" id="slg-modal" aria-labelledby="slg-modal-name">
@@ -5011,6 +5019,43 @@
   #seosin-landscape-guide .slg-course + .slg-course{ margin-top:8cqw; }
 }
 
+/* ── 주요 시설 · 장소 전체 목록 ─────────────────────────── */
+#seosin-landscape-guide .slg-count{ margin:2.4cqw 0 0; }
+#seosin-landscape-guide .slg-group[hidden]{ display:none; }
+#seosin-landscape-guide .slg-chip[hidden]{ display:none; }
+#seosin-landscape-guide .slg-group{ margin-top:4cqw; }
+#seosin-landscape-guide .slg-group-head{
+  display:flex; align-items:center; flex-wrap:wrap; gap:.6em 1.1em;
+  margin:0 0 2.4cqw; padding-bottom:1.6cqw;
+  border-bottom:1px solid rgba(var(--slg-cc-rgb),.45);
+}
+#seosin-landscape-guide .slg-group-mark{
+  display:grid; place-items:center; width:2.1em; height:2.1em; border-radius:50%;
+  background:var(--slg-cc-tone); color:#fff; box-shadow:0 0 0 1.5px rgba(255,255,255,.85);
+  font-size:clamp(12px,1.2cqw,14px); font-weight:700; font-style:normal;
+}
+#seosin-landscape-guide .slg-group-title{
+  margin:0; font-size:clamp(16px,1.8cqw,22px); font-weight:400; color:var(--slg-cc-ink);
+}
+#seosin-landscape-guide .slg-group-meta{ font-size:clamp(11px,1.1cqw,13px); letter-spacing:.08em; color:var(--slg-ink-3); }
+/* 카드 — 코스 색 */
+#seosin-landscape-guide .slg-card[data-cat="water"]{  --slg-c:var(--slg-water-tone); }
+#seosin-landscape-guide .slg-card[data-cat="garden"]{ --slg-c:var(--slg-garden-tone); }
+#seosin-landscape-guide .slg-card[data-cat="forest"]{ --slg-c:var(--slg-forest-tone); }
+#seosin-landscape-guide .slg-card[data-cat="water"] .slg-cat{  color:var(--slg-water-ink); }
+#seosin-landscape-guide .slg-card[data-cat="garden"] .slg-cat{ color:var(--slg-garden-ink); }
+#seosin-landscape-guide .slg-card[data-cat="forest"] .slg-cat{ color:var(--slg-forest-ink); }
+#seosin-landscape-guide .slg-item[data-cat="water"] .slg-locate{  --slg-lc:var(--slg-water-ink); }
+#seosin-landscape-guide .slg-item[data-cat="garden"] .slg-locate{ --slg-lc:var(--slg-garden-ink); }
+#seosin-landscape-guide .slg-item[data-cat="forest"] .slg-locate{ --slg-lc:var(--slg-forest-ink); }
+/* 장소 카드 — 배치도처럼 둥근 번호 · '장소' 표시로 시설과 구별 */
+#seosin-landscape-guide .slg-card--place .slg-badge,
+#seosin-landscape-guide .slg-card--place .slg-name-code{ border-radius:999px; min-width:2em; }
+#seosin-landscape-guide .slg-kind{
+  display:inline-block; margin-left:.5em; padding:.15em .55em; border-radius:999px;
+  border:1px solid currentColor; font-size:.92em; letter-spacing:.06em; opacity:.85;
+}
+
 /* 장소 팝업 — 주요 시설 */
 #seosin-landscape-guide .slg-modal-facs[hidden]{ display:none; }
 #seosin-landscape-guide .slg-modal-facs{ margin-top:28px; padding-top:22px; border-top:1px solid var(--slg-line); }
@@ -5200,15 +5245,12 @@
     { code:'2-1', cat:'water', place:'2', name:'은목서', sub:'중앙 로터리 상징수', where:'2 골든뷰잉가든', zones:['water'],
       desc:'골든뷰잉가든 중앙 로터리의 축이 되는 상징수입니다. 정원의 시선이 모이는 중심에서 단지의 상징성을 완성합니다.',
       img:'./img/fac-2-1.jpg' },
-    { code:'2-2', cat:'water', place:'2', name:'워터폴', sub:'9m 수직낙수 · 3m 캔틸레버', where:'2 골든뷰잉가든', zones:['water'],
-      desc:'9m 높이의 수직 낙수와 3m 캔틸레버 구조로 시원한 낙수 경관을 연출하는 골든뷰잉가든의 대표 수경시설입니다.',
+    { code:'2-2', cat:'water', place:'2', name:'오르간 파이프', sub:'수경 오브제', where:'2 골든뷰잉가든', zones:['water'],
+      desc:'골든뷰잉가든의 물소리와 어우러지는 오르간 파이프 형태의 오브제입니다. 정원에 리듬감 있는 수직의 풍경을 더합니다.',
       img:'./img/fac-2-2.jpg' },
-    { code:'2-3', cat:'water', place:'2', name:'상부 휴게공간', sub:'휴게공간', where:'2 골든뷰잉가든', zones:['water'],
-      desc:'워터폴 상부에 자리한 휴게공간입니다. 물소리와 함께 정원을 바라보며 머무는 시간을 더욱 풍성하게 만듭니다.',
+    { code:'2-3', cat:'water', place:'2', name:'금샘 오브제', sub:'상징 오브제', where:'2 골든뷰잉가든', zones:['water'],
+      desc:'금빛 샘 ‘금샘’을 모티프로 한 상징 오브제입니다. 워터 코스가 담아낸 금샘의 이야기를 정원 안에서 보여 줍니다.',
       img:'./img/fac-2-3.jpg' },
-    { code:'2-4', cat:'water', place:'2', name:'키즈스테이션', sub:'하부 키즈 휴게시설', where:'2 골든뷰잉가든', zones:['water'],
-      desc:'워터폴 하부의 키즈스테이션입니다. 아이와 보호자가 물소리와 함께 머무는 시간을 더욱 풍성하게 만듭니다.',
-      img:'./img/fac-2-4.jpg' },
     /* 3 네이처테라스 — Water Course */
     { code:'3-1', cat:'water', place:'3', name:'더샵트리', sub:'400년 팽나무 상징수', where:'3 네이처테라스', zones:['water'],
       desc:'네이처테라스의 중심에 자리한 400년 팽나무입니다. 자연의 생명력과 더샵의 가치를 상징하는 단지의 상징수입니다.',
@@ -5220,57 +5262,30 @@
       desc:'자연 지형을 닮은 곡선과 단차를 따라 흐르는 5단 유선형 수경시설로, 네이처라운지와 함께 테라스의 경관을 이룹니다.',
       img:'./img/fac-3-3.jpg' },
     /* 4 워터글로우가든 — Water Course */
-    { code:'4-1', cat:'water', place:'4', name:'워터버켓', sub:'수경 놀이시설', where:'4 워터글로우가든', zones:['water'],
-      desc:'워터글로우가든의 수경 놀이시설입니다. 금샘의 물결을 재해석한 공간에서 아이들의 놀이를 이끕니다.',
-      img:'./img/fac-4-1.jpg' },
-    { code:'4-2', cat:'water', place:'4', name:'워터샤워', sub:'수경 놀이시설', where:'4 워터글로우가든', zones:['water'],
-      desc:'시원한 물줄기 아래에서 즐기는 수경 놀이시설입니다. 동절기에는 일반 놀이터로도 활용할 수 있도록 계획했습니다.',
-      img:'./img/fac-4-2.jpg' },
-    { code:'4-3', cat:'water', place:'4', name:'워터게이트', sub:'수경 놀이시설', where:'4 워터글로우가든', zones:['water'],
-      desc:'워터버켓 · 워터샤워와 함께 수경 테마 공간을 이루는 놀이시설로, 가족의 체류를 자연스럽게 이끕니다.',
-      img:'./img/fac-4-3.jpg' },
-    { code:'4-4', cat:'water', place:'4', name:'티하우스', sub:'휴게시설', where:'4 워터글로우가든', zones:['water'],
+    { code:'4-1', cat:'water', place:'4', name:'티하우스', sub:'휴게시설', where:'4 워터글로우가든', zones:['water'],
       desc:'수경 놀이 공간 곁에 놓인 티하우스입니다. 아이들의 놀이를 지켜보며 가족이 함께 머무를 수 있습니다.',
-      img:'./img/fac-4-4.jpg' },
-    { code:'4-5', cat:'water', place:'4', name:'야자류 식재', sub:'코코스야자 · 당종려', where:'4 워터글로우가든', zones:['water'],
-      desc:'코코스야자와 당종려를 식재해 수경 테마 공간에 이국적인 분위기를 더합니다.',
-      img:'./img/fac-4-5.jpg' },
+      img:'./img/fac-4-1.jpg' },
     /* 5 블루엣가든 — Garden Course */
-    { code:'5-1', cat:'garden', place:'5', name:'수국 특화 식재', sub:'특화 식재', where:'5 블루엣가든', zones:['garden'],
-      desc:'블루엣가든의 중심이 되는 수국 특화 식재입니다. 더샵만의 품격을 담아낸 정원의 풍경을 완성합니다.',
-      img:'./img/fac-5-1.jpg' },
-    { code:'5-2', cat:'garden', place:'5', name:'그린오피스', sub:'커뮤니티 공간', where:'5 블루엣가든', zones:['garden'],
+    { code:'5-1', cat:'garden', place:'5', name:'그린오피스', sub:'커뮤니티 공간', where:'5 블루엣가든', zones:['garden'],
       desc:'정원 속에 놓인 그린오피스로, 휴식과 커뮤니티, 라이프스타일이 어우러진 정원 경험을 제안합니다.',
-      img:'./img/fac-5-2.jpg' },
-    { code:'5-3', cat:'garden', place:'5', name:'카페라운지', sub:'휴게 · 커뮤니티', where:'5 블루엣가든', zones:['garden'],
+      img:'./img/fac-5-1.jpg' },
+    { code:'5-2', cat:'garden', place:'5', name:'카페라운지', sub:'휴게 · 커뮤니티', where:'5 블루엣가든', zones:['garden'],
       desc:'수국 정원을 곁에 둔 카페라운지로, 이웃과 함께 머무는 세련된 정원의 시간을 만듭니다.',
-      img:'./img/fac-5-3.jpg' },
+      img:'./img/fac-5-2.jpg' },
     /* 10 센소리가든 — Garden Course */
     { code:'10-1', cat:'garden', place:'10', name:'육각 빛나무', sub:'시각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
-      desc:'육각 모듈을 따라 빛을 입체적으로 구성한 시각 체험 요소입니다.',
+      desc:'육각 모듈을 따라 빛을 입체적으로 구성한 시각 체험 요소로, 센소리가든의 첫 감각을 밝힙니다.',
       img:'./img/fac-10-1.jpg' },
-    { code:'10-2', cat:'garden', place:'10', name:'손끝 기둥', sub:'촉각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
-      desc:'손끝으로 다양한 질감을 느껴 보는 촉각 체험 요소입니다.',
+    { code:'10-2', cat:'garden', place:'10', name:'자연소리 샘물', sub:'청각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
+      desc:'샘물의 자연음에 귀 기울이며 머무는 청각 체험 요소입니다.',
       img:'./img/fac-10-2.jpg' },
-    { code:'10-3', cat:'garden', place:'10', name:'자연소리 샘물', sub:'청각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
-      desc:'샘물의 자연음을 귀 기울여 듣는 청각 체험 요소입니다.',
-      img:'./img/fac-10-3.jpg' },
-    { code:'10-4', cat:'garden', place:'10', name:'숨결 화분', sub:'후각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
-      desc:'식물의 향기를 가까이에서 맡아 보는 후각 체험 요소입니다.',
-      img:'./img/fac-10-4.jpg' },
-    { code:'10-5', cat:'garden', place:'10', name:'한 잎 식탁', sub:'미각 · 오감 체험', where:'10 센소리가든', zones:['garden'],
-      desc:'맛보는 감각을 정원으로 옮긴 미각 체험 요소로, 오감 테라피 정원을 완성합니다.',
-      img:'./img/fac-10-5.jpg' },
     /* 11 포레힐링가든 — Forest Course */
     { code:'11-1', cat:'forest', place:'11', name:'소나무 군식', sub:'상록 숲', where:'11 포레힐링가든', zones:['forest'],
       desc:'소나무를 무리 지어 심어 사계절 안정적인 녹음을 이루는 포레힐링가든의 숲입니다.',
       img:'./img/fac-11-1.jpg' },
     { code:'11-2', cat:'forest', place:'11', name:'코르크 보행로', sub:'코르크 포장 산책로', where:'11 포레힐링가든', zones:['forest'],
       desc:'코르크로 포장한 보행로로, 숲속을 천천히 걷고 깊이 쉬어 가는 치유의 산책 환경을 만듭니다.',
-      img:'./img/fac-11-2.jpg' },
-    { code:'11-3', cat:'forest', place:'11', name:'다층 식재', sub:'감탕나무 · 다정큼나무', where:'11 포레힐링가든', zones:['forest'],
-      desc:'감탕나무와 다정큼나무를 층층이 심어 숲의 깊이감과 아늑한 위요감을 더합니다.',
-      img:'./img/fac-11-3.jpg' }
+      img:'./img/fac-11-2.jpg' }
   ];
 
   /* [코스 장소] 번호 = 배치도의 코스 번호 (1~13)
@@ -6023,46 +6038,86 @@
     }));
   }
 
-  /* ── 카드 렌더 ───────────────────────────────────────────── */
-  grid.innerHTML = ITEMS.map(function(it, i){
-    var thumb = it.img
-      ? '<img src="' + esc(it.img) + '" alt="' + esc(it.name) + '" loading="lazy" decoding="async">'
-      : '<span class="slg-thumb-fallback"><b>' + esc(it.code) + '</b><span>' + esc(CAT_LABEL[it.cat]) + '</span></span>';
+  /* ── 주요 시설 (부대 시설) 전체 목록 ───────────────────────
+     코스(Garden · Water · Forest)별로 묶고, 각 코스 안에서는
+     장소 번호 순서대로 그 장소의 부대 시설을 나열합니다 (장소 카드는 넣지 않음). */
+  function cardHTML(o){
+    var thumb = o.img
+      ? '<img src="' + esc(o.img) + '" alt="' + esc(o.name) + '" loading="lazy" decoding="async">'
+      : '<span class="slg-thumb-fallback"><b>' + esc(o.code) + '</b><span>' + esc(CAT_LABEL[o.cat] || '') + '</span></span>';
     return ''
-      + '<div class="slg-item" data-cat="' + esc(it.cat) + '">'
-      + '<button type="button" class="slg-card" data-index="' + i + '"'
-      +   ' data-cat="' + esc(it.cat) + '"'
-      +   ' data-place="' + esc(it.place || '') + '"'
-      +   ' data-zones="' + esc(it.zones.join(' ')) + '"'
+      + '<div class="slg-item" data-cat="' + esc(o.cat) + '">'
+      + '<button type="button" class="slg-card' + (o.place ? ' slg-card--place' : '') + '"'
+      +   (o.place ? ' data-place-index="' + o.idx + '"' : ' data-index="' + o.idx + '"')
+      +   ' data-cat="' + esc(o.cat) + '"'
       +   ' aria-haspopup="dialog"'
-      +   ' aria-label="' + esc(it.code + ' ' + it.name + ' — ' + it.sub + ' 설명 보기') + '">'
+      +   ' aria-label="' + esc(o.code + ' ' + o.name + ' — 설명 보기') + '">'
       +   '<figure class="slg-thumb">'
-      +     '<span class="slg-badge">' + esc(it.code) + '</span>' + thumb
+      +     '<span class="slg-badge">' + esc(o.code) + '</span>' + thumb
       +     '<span class="slg-more">설명 보기</span>'
       +   '</figure>'
       +   '<div class="slg-info">'
-      +     '<p class="slg-cat">' + esc(CAT_LABEL[it.cat]) + '</p>'
-      +     '<h3 class="slg-name"><span class="slg-name-code" aria-hidden="true">' + esc(it.code) + '</span>'
-      +       '<span class="slg-name-text">' + esc(it.name) + '</span></h3>'
-      +     '<p class="slg-sub">' + esc(it.sub) + '</p>'
-      +     '<p class="slg-where">' + esc(it.where) + '</p>'
+      +     '<p class="slg-cat">' + esc(CAT_LABEL[o.cat] || '') + '<span class="slg-kind">' + (o.place ? '장소' : '시설') + '</span></p>'
+      +     '<h3 class="slg-name"><span class="slg-name-code" aria-hidden="true">' + esc(o.code) + '</span>'
+      +       '<span class="slg-name-text">' + esc(o.name) + '</span></h3>'
+      +     '<p class="slg-sub">' + esc(o.sub || '') + '</p>'
+      +     '<p class="slg-where">' + esc(o.where || '') + '</p>'
       +   '</div>'
       + '</button>'
-      + '<button type="button" class="slg-locate slg-locate--card" data-locate="' + esc(it.place || it.code) + '"'
-      +   ' aria-label="' + esc(it.code + ' ' + it.name + ' — 배치도에서 위치 확인') + '" hidden>'
+      + '<button type="button" class="slg-locate slg-locate--card" data-locate="' + esc(o.locate) + '"'
+      +   ' aria-label="' + esc(o.code + ' ' + o.name + ' — 배치도에서 위치 확인') + '" hidden>'
       +   PIN_SVG + '<span>위치 확인</span>'
       + '</button>'
       + '</div>';
+  }
+
+  var GROUP_ORDER = ['garden', 'water', 'forest'];
+  grid.innerHTML = GROUP_ORDER.map(function(key){
+    var z = ZONES[key];
+    if(!z) return '';
+    var html = [], nPlace = 0, nFac = 0;
+    (z.places || []).forEach(function(code){
+      var pi = placeIndex(code);
+      if(pi < 0) return;
+      var p = PLACES[pi];
+      var facs = [];
+      ITEMS.forEach(function(it, i){ if(it.place === p.code) facs.push(i); });
+      if(facs.length) nPlace++;   /* 장소 카드는 목록에 넣지 않고 부대 시설만 나열 */
+      facs.forEach(function(i){
+        var it = ITEMS[i];
+        nFac++;
+        html.push(cardHTML({ place:false, idx:i, code:it.code, cat:it.cat, name:it.name, img:it.img,
+          sub:it.sub, where:it.where, locate:it.place || it.code }));
+      });
+    });
+    if(!nFac){   /* 부대 시설이 없는 코스 — 목록 · 칩 숨김 */
+      var ec = root.querySelector('.slg-chips[data-filter="cat"] .slg-chip[data-value="' + key + '"]');
+      if(ec) ec.hidden = true;
+      return '';
+    }
+    return ''
+      + '<section class="slg-group" data-course="' + esc(key) + '" data-group="' + esc(key) + '" aria-label="' + esc(z.title) + '">'
+      +   '<header class="slg-group-head">'
+      +     '<i class="slg-group-mark">' + esc(z.mark || '') + '</i>'
+      +     '<h3 class="slg-group-title">' + esc(z.title) + '</h3>'
+      +     '<span class="slg-group-meta">' + esc([z.route, z.length].filter(Boolean).join(' · ')) + ' · 장소 ' + nPlace + '곳 · 부대 시설 ' + nFac + '개</span>'
+      +   '</header>'
+      +   '<div class="slg-grid">' + html.join('') + '</div>'
+      + '</section>';
   }).join('');
 
-  var cards = Array.prototype.slice.call(grid.querySelectorAll('.slg-card'));
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.slg-card[data-index]'));
+  var groups = Array.prototype.slice.call(grid.querySelectorAll('.slg-group'));  var cards = Array.prototype.slice.call(grid.querySelectorAll('.slg-card'));
 
   /* 시설 이미지가 없으면 깨진 아이콘 대신 코드 배지 화면으로 */
   function fallbackHTML(it){
     return '<span class="slg-thumb-fallback"><b>' + esc(it.code) + '</b><span>' + esc(CAT_LABEL[it.cat] || '') + '</span></span>';
   }
   Array.prototype.forEach.call(grid.querySelectorAll('.slg-thumb img'), function(img){
-    var it = ITEMS[Number(img.closest('.slg-card').getAttribute('data-index'))];
+    var cd = img.closest('.slg-card');
+    var it = cd.hasAttribute('data-place-index')
+      ? (function(p){ return { code:p.code, cat:p.course }; })(PLACES[Number(cd.getAttribute('data-place-index'))])
+      : ITEMS[Number(cd.getAttribute('data-index'))];
     function bad(){ if(img.parentNode) img.outerHTML = fallbackHTML(it); }
     if(img.complete && !img.naturalWidth) bad();
     else img.addEventListener('error', bad);
@@ -6164,12 +6219,9 @@
     return out;
   }
 
-  /* 이전/다음 넘김 순서 — 지금 보이는 카드 기준.
-     구역 대표 시설로 연 시설이 '종류' 필터에 가려져 있으면 전체 시설 기준 */
+  /* 이전/다음 넘김 순서 — 시설은 번호 순서대로 전체 (코스와 무관하게 이어서 넘어갑니다) */
   function navList(idx){
-    var list = visibleIndexes();
-    if(list.indexOf(idx) < 0) list = ITEMS.map(function(_, i){ return i; });
-    return list;
+    return ITEMS.map(function(_, i){ return i; });
   }
 
   function zoneNames(list){
@@ -6178,13 +6230,17 @@
     }).join(' · ');
   }
 
-  /* 장소 팝업 — 이전/다음은 같은 코스 안에서 번호 순서대로 */
+  /* 장소 팝업 — 이전/다음은 번호 순서(1 → 13)대로 모든 코스를 넘어갑니다 */
   function placeNav(pi){
-    var z = ZONES[PLACES[pi].course];
-    var list = [];
-    ((z && z.places) || []).forEach(function(c){ var i = placeIndex(c); if(i > -1) list.push(i); });
-    if(list.indexOf(pi) < 0) list = [pi];
-    return list;
+    return PLACES.map(function(_, i){ return i; }).sort(function(a, b){
+      return Number(PLACES[a].code) - Number(PLACES[b].code);
+    });
+  }
+  /* '순서' 항목 — 해당 코스 안에서 몇 번째인지 */
+  function courseOrder(p){
+    var z = ZONES[p.course] || {};
+    var list = z.places || [];
+    return { n:list.length, at:list.indexOf(p.code) };
   }
 
   function fillPlace(pi){
@@ -6212,7 +6268,8 @@
     var feat = hasFacs ? '' : p.feat;   /* 시설이 아래에 따로 나오면 '구성' 대신 '순서' */
     setModalLabels(true, feat);
     mWhere.textContent = [z.title, z.route, z.length].filter(Boolean).join(' · ');
-    mZone.textContent  = feat || ('코스 ' + list.length + '곳 중 ' + (at + 1) + '번째 장소');
+    var co = courseOrder(p);
+    mZone.textContent  = feat || ((z.title || '코스') + ' ' + co.n + '곳 중 ' + (co.at + 1) + '번째 장소');
     setFacs(p);
     modalLocate.hidden = !onMap(p.code);
 
@@ -6392,7 +6449,8 @@
     if(lb && grid.contains(lb)){ locate(lb.getAttribute('data-locate')); return; }
     var card = e.target.closest('.slg-card');
     if(!card || !grid.contains(card)) return;
-    openModal(Number(card.getAttribute('data-index')));
+    if(card.hasAttribute('data-place-index')) openModal(Number(card.getAttribute('data-place-index')), 'place');
+    else openModal(Number(card.getAttribute('data-index')));
   });
 
   /* 구역 대표 시설 클릭 → 같은 팝업 */
@@ -6422,24 +6480,23 @@
 
   /* ── 필터 적용 ───────────────────────────────────────────── */
   function apply(){
-    var shown = [];
-
-    cards.forEach(function(card){
-      /* 시설 목록은 코스와 무관 — '종류'(시설이 있는 장소)로만 거릅니다 */
-      var ok = state.cat === 'all' || card.getAttribute('data-place') === state.cat;
-      card.hidden = !ok;
-      if(card.parentNode) card.parentNode.hidden = !ok;   /* 위치 확인 버튼 묶음까지 */
-      card.classList.remove('is-in');
-      if(ok) shown.push(card);
+    var nPlace = 0, nFac = 0, shownCards = [];
+    groups.forEach(function(g){
+      var ok = state.cat === 'all' || g.getAttribute('data-group') === state.cat;
+      g.hidden = !ok;
+      Array.prototype.forEach.call(g.querySelectorAll('.slg-card'), function(c){
+        c.classList.remove('is-in');
+        if(!ok) return;
+        shownCards.push(c);
+        if(c.hasAttribute('data-place-index')) nPlace++; else nFac++;
+      });
     });
-
-    empty.hidden = shown.length > 0;
-    if(countN) countN.textContent = String(shown.length);
+    if(countN) countN.textContent = '부대 시설 ' + nFac + '개';
 
     /* 사용자가 필터를 바꿨을 때만 카드가 다시 등장합니다 */
-    if(booted && shown.length){
-      void grid.offsetWidth; /* 애니메이션 재시작 */
-      shown.forEach(function(card, i){
+    if(booted && shownCards.length){
+      void grid.offsetWidth;
+      shownCards.forEach(function(card, i){
         card.style.setProperty('--slg-i', i);
         card.classList.add('is-in');
       });
@@ -6645,6 +6702,5 @@
 })();
 </script>
 </section>
-
 </body>
 </html>
