@@ -2285,7 +2285,7 @@
 <section id="guide-section" aria-label="단지 조경 배치도" style="scroll-margin-top: 64px;">
   <div class="guide-section__inner">
     <div class="guide-section__map" data-gs-map="">
-      <img class="guide-section__img" src="./img/bs-gj/guide-bs.jpg" alt="더샵 금정위버시티 3단지 조경 배치도 — 구역이나 시설을 누르면 해당 안내로 이동합니다" decoding="async" draggable="false">
+      <img class="guide-section__img" src="./img/bs-gj/guide-bs.jpg" alt="더샵 금정위버시티 조경 배치도 — 구역이나 시설을 누르면 해당 안내로 이동합니다" decoding="async" draggable="false">
       <div class="guide-section__layer" data-gs-layer=""></div>
     </div>
   </div>
@@ -2293,9 +2293,9 @@
   <style>
     /* ── 스코프 루트 ───────────────────────────────────────── */
     #guide-section{
-      --gs-zone:#c3222c;      /* A~D 구역 (배치도 빨강) */
-      --gs-play:#1a9fd9;      /* P 플레이 랜드 (파랑) */
-      --gs-relax:#e8732f;     /* R 릴렉스 스팟 (주황) */
+      --gs-ease:cubic-bezier(.22,1,.36,1);       /* 부드럽게 감속 */
+      --gs-ink:20,22,24;                         /* 툴팁 바탕 */
+      --gs-gold:201,168,106;                     /* 샴페인 골드 헤어라인 */
       container:gs / inline-size;
       width:100%;
       margin:0;
@@ -2323,8 +2323,8 @@
       max-width:1000px;
       margin:0 auto;
       opacity:0;
-      transform:translateY(4cqw);
-      transition:opacity 1s ease, transform 1s ease;
+      transform:translateY(3cqw);
+      transition:opacity 1.2s ease, transform 1.2s var(--gs-ease);
       will-change:opacity, transform;
     }
     #guide-section.is-visible .guide-section__map{
@@ -2358,7 +2358,7 @@
       transition:transform .42s cubic-bezier(.22,.7,.2,1);
     }
 
-    /* ── 핫스팟 ────────────────────────────────────────────── */
+    /* ── 핫스팟 공통 ───────────────────────────────────────── */
     #guide-section .guide-section__layer{
       position:absolute; inset:0; z-index:1;
       pointer-events:none;
@@ -2366,8 +2366,9 @@
       font-family:"Pretendard","Pretendard Variable","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic",sans-serif;
     }
     #guide-section .guide-section__hs{
-      --gs-c:var(--gs-zone);
-      --gs-bg:rgba(195,34,44,.14);
+      --gs-rgb:146,52,62;                         /* 기본 — 딥 와인 */
+      --gs-c:rgb(var(--gs-rgb));
+      --gs-bg:rgba(var(--gs-rgb),.16);
       position:absolute; z-index:1;
       display:block; margin:0; padding:0; border:0;
       background:none; color:inherit; font:inherit;
@@ -2376,20 +2377,28 @@
       touch-action:manipulation;
       -webkit-tap-highlight-color:transparent;
     }
-    #guide-section .guide-section__hs::before{
+    #guide-section .guide-section__hs:focus{ outline:none; }
+
+    /* 색 — 배치도 인쇄 색에 맞춘 차분한 톤 */
+    #guide-section .guide-section__hs[data-cat="water"],
+    #guide-section .guide-section__hs--zone[data-code="water" i] { --gs-rgb:63,91,133; }
+    #guide-section .guide-section__hs[data-cat="garden"],
+    #guide-section .guide-section__hs--zone[data-code="garden" i]{ --gs-rgb:180,99,61; }
+    #guide-section .guide-section__hs[data-cat="forest"],
+    #guide-section .guide-section__hs--zone[data-code="forest" i]{ --gs-rgb:47,106,53; }
+    #guide-section .guide-section__hs[data-cat="play"] { --gs-rgb:46,118,160; }
+    #guide-section .guide-section__hs[data-cat="relax"]{ --gs-rgb:184,116,70; }
+
+    #guide-section .guide-section__hs::before,
+    #guide-section .guide-section__hs::after{
       content:""; position:absolute; inset:0;
       border-radius:inherit;
-      border:2px solid transparent;
-      background:transparent;
-      transition:border-color .25s ease, background-color .25s ease, transform .25s ease;
+      pointer-events:none;
     }
-    #guide-section .guide-section__hs:focus{ outline:none; }
-    #guide-section .guide-section__hs:focus-visible::before{
-      border-color:var(--gs-c); background:var(--gs-bg);
-      box-shadow:0 0 0 2px rgba(255,255,255,.85);
-    }
+    #guide-section .guide-section__hs::before{ border:0 solid transparent; }
+    #guide-section .guide-section__hs::after{ opacity:0; }
 
-    /* 구역 — 사각(기본) / 타원 */
+    /* 구역 — 테두리 없이 이름(툴팁)만 표시 */
     #guide-section .guide-section__hs--zone{
       left:var(--x); top:var(--y);
       width:var(--w); height:var(--h);
@@ -2397,7 +2406,8 @@
     }
     #guide-section .guide-section__hs--ellipse{ border-radius:50%; }
 
-    /* 시설 — 중심점 기준 원, 좁은 화면에서도 최소 터치 영역 보장 */
+    /* 시설 — 중심점 기준 원.
+       맵 위 원은 스크립트의 MAP_D 하나로 지름이 통일됩니다 */
     #guide-section .guide-section__hs--point{
       z-index:2;
       left:var(--x); top:var(--y);
@@ -2409,80 +2419,152 @@
     @container gs (max-width:640px){
       #guide-section .guide-section__hs--point{ width:max(var(--d), 26px); }
     }
-    #guide-section .guide-section__hs[data-cat="play"]{ --gs-c:var(--gs-play);  --gs-bg:rgba(26,159,217,.22); }
-    #guide-section .guide-section__hs[data-cat="relax"]{ --gs-c:var(--gs-relax); --gs-bg:rgba(232,115,47,.22); }
 
-    /* 툴팁 (마우스 기기 · 키보드 포커스) */
+    /* ── 맵 시설 원 — 얇은 화이트 링 + 컬러 헤일로 ─────────── */
+    #guide-section .guide-section__hs--ring::before{
+      border:1.5px solid rgba(255,255,255,0);
+      background:radial-gradient(circle, rgba(var(--gs-rgb),0) 0 52%, rgba(var(--gs-rgb),0) 100%);
+      box-shadow:0 0 0 0 rgba(var(--gs-rgb),0), 0 0 0 0 rgba(var(--gs-rgb),0);
+      transform:scale(.82);
+      opacity:0;
+      transition:opacity .5s var(--gs-ease), transform .6s var(--gs-ease),
+                 border-color .5s var(--gs-ease), box-shadow .6s var(--gs-ease), background .6s var(--gs-ease);
+    }
+    #guide-section .guide-section__hs--ring::after{
+      border:1px solid rgba(var(--gs-rgb),.55);
+    }
+    #guide-section:not(.is-edit) .guide-section__hs--ring:focus-visible::before{
+      opacity:1; transform:scale(1);
+      border-color:rgba(255,255,255,.95);
+      background:radial-gradient(circle, rgba(var(--gs-rgb),.04) 0 50%, rgba(var(--gs-rgb),.22) 100%);
+      box-shadow:0 0 0 1px rgba(var(--gs-rgb),.7), 0 0 0 6px rgba(var(--gs-gold),.35);
+    }
+
+    /* ── 툴팁 — 글자만 부드럽게 떠오르는 글래스 라벨 ──────────── */
     #guide-section .guide-section__tip{
-      position:absolute; left:50%; bottom:calc(100% + 6px); z-index:3;
-      padding:.45em .8em; border-radius:4px;
-      background:rgba(11,17,15,.92); color:#f2efe9;
-      box-shadow:0 0 0 1px var(--gs-c);
-      font-size:clamp(11px,1.3cqw,13px); white-space:nowrap;
+      position:absolute; left:50%; bottom:calc(100% + 10px); z-index:3;
+      display:inline-flex; align-items:center; gap:.55em;
+      padding:.55em 1.05em; border-radius:999px;
+      background:rgba(var(--gs-ink),.72);
+      -webkit-backdrop-filter:blur(14px) saturate(1.4);
+      backdrop-filter:blur(14px) saturate(1.4);
+      color:#f7f3ea;
+      box-shadow:0 0 0 1px rgba(var(--gs-gold),.38), 0 14px 32px -14px rgba(0,0,0,.6);
+      font-size:clamp(11px,1.3cqw,13.5px); font-weight:500;
+      letter-spacing:.015em; line-height:1.2; white-space:nowrap;
       opacity:0; visibility:hidden; pointer-events:none;
-      transform:translate(-50%,4px);
-      transition:opacity .2s ease, transform .2s ease, visibility .2s;
+      filter:blur(3px);
+      transform:translate(-50%,8px);
+      transition:opacity .45s var(--gs-ease), transform .55s var(--gs-ease),
+                 filter .45s var(--gs-ease), visibility 0s linear .45s;
     }
-    #guide-section .guide-section__tip--below{ bottom:auto; top:calc(100% + 6px); transform:translate(-50%,-4px); }
+    #guide-section .guide-section__tip i{
+      flex:none;
+      display:inline-grid; place-items:center;
+      min-width:1.7em; height:1.7em; padding:0 .4em; margin-left:-.45em;
+      border-radius:999px;
+      background:var(--gs-c);
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);
+      color:#fff; font-style:normal; font-weight:700; font-size:.82em; letter-spacing:0;
+    }
+    #guide-section .guide-section__tip b{ font-weight:600; }
+    #guide-section .guide-section__tip em{
+      font-style:normal; font-weight:400; color:rgba(var(--gs-gold),1);
+      padding-left:.6em; border-left:1px solid rgba(255,255,255,.18);
+    }
+    #guide-section .guide-section__tip--below{
+      bottom:auto; top:calc(100% + 10px);
+      transform:translate(-50%,-8px);
+    }
+    /* 구역 라벨은 구역 한가운데 */
     #guide-section .guide-section__hs--zone .guide-section__tip{
-      bottom:auto; top:50%; transform:translate(-50%,-50%);
+      bottom:auto; top:50%; transform:translate(-50%,calc(-50% + 8px));
     }
-    #guide-section .guide-section__hs:focus-visible .guide-section__tip{
-      opacity:1; visibility:visible; transform:translate(-50%,0);
+
+    /* 보이는 상태 */
+    #guide-section:not(.is-edit) .guide-section__hs:focus-visible .guide-section__tip,
+    #guide-section .guide-section__hs.is-locate .guide-section__tip{
+      opacity:1; visibility:visible; filter:none;
+      transform:translate(-50%,0);
+      transition:opacity .45s var(--gs-ease), transform .55s var(--gs-ease),
+                 filter .45s var(--gs-ease), visibility 0s;
     }
-    #guide-section .guide-section__hs--zone:focus-visible .guide-section__tip{ transform:translate(-50%,-50%); }
+    #guide-section:not(.is-edit) .guide-section__hs--zone:focus-visible .guide-section__tip,
+    #guide-section .guide-section__hs--zone.is-locate .guide-section__tip{ transform:translate(-50%,-50%); }
+
     @container gs (max-width:640px){
       #guide-section .guide-section__tip{ display:none; }
+      #guide-section .guide-section__hs.is-locate .guide-section__tip{ display:inline-flex; }
     }
 
     @media (hover:hover) and (pointer:fine){
-      #guide-section .guide-section__hs:hover::before{ border-color:var(--gs-c); background:var(--gs-bg); }
-      #guide-section .guide-section__hs--point:hover::before{ transform:scale(1.08); }
-      #guide-section .guide-section__hs:hover .guide-section__tip{
-        opacity:1; visibility:visible; transform:translate(-50%,0);
+      #guide-section:not(.is-edit) .guide-section__hs--ring:hover::before{
+        opacity:1; transform:scale(1);
+        border-color:rgba(255,255,255,.95);
+        background:radial-gradient(circle, rgba(var(--gs-rgb),.04) 0 50%, rgba(var(--gs-rgb),.22) 100%);
+        box-shadow:0 0 0 1px rgba(var(--gs-rgb),.7), 0 8px 22px -6px rgba(var(--gs-rgb),.6);
       }
-      #guide-section .guide-section__hs--zone:hover .guide-section__tip{ transform:translate(-50%,-50%); }
+      #guide-section:not(.is-edit) .guide-section__hs:hover .guide-section__tip{
+        opacity:1; visibility:visible; filter:none;
+        transform:translate(-50%,0);
+        transition:opacity .45s var(--gs-ease) .06s, transform .55s var(--gs-ease) .06s,
+                   filter .45s var(--gs-ease) .06s, visibility 0s;
+      }
+      #guide-section:not(.is-edit) .guide-section__hs--zone:hover .guide-section__tip{ transform:translate(-50%,-50%); }
     }
 
-    #guide-section .guide-section__hs.is-tap::before{ animation:gs-tap .45s ease-out; }
-    #guide-section.is-hint .guide-section__hs::before{ animation:gs-hint 1.3s ease-in-out 2; }
+    /* ── 탭 피드백 — 맵 원에만 잔잔한 물결 ───────────────────── */
+    #guide-section:not(.is-edit) .guide-section__hs--ring.is-tap::after{ animation:gs-ripple .7s var(--gs-ease); }
+    @keyframes gs-ripple{
+      0%  { opacity:.9; transform:scale(.9); }
+      100%{ opacity:0;  transform:scale(1.5); }
+    }
 
-    @keyframes gs-tap{
-      0%  { border-color:var(--gs-c); background:var(--gs-bg); transform:scale(.94); }
-      100%{ border-color:transparent; background:transparent; transform:scale(1.06); }
+    /* ── 첫 등장 힌트 — 맵 원이 순서대로 숨 쉬듯 빛남 ─────────── */
+    #guide-section.is-hint .guide-section__hs--ring::before{
+      animation:gs-hint 1.3s ease-in-out 2;
+      animation-delay:calc(var(--gs-n, 0) * 45ms);
     }
     @keyframes gs-hint{
-      0%,100%{ border-color:transparent; background:transparent; }
-      50%    { border-color:var(--gs-c); background:var(--gs-bg); }
+      0%,100%{ opacity:0; transform:scale(.82); }
+      50%    { opacity:1; transform:scale(1);
+               border-color:rgba(255,255,255,.9);
+               background:radial-gradient(circle, rgba(var(--gs-rgb),.04) 0 50%, rgba(var(--gs-rgb),.18) 100%);
+               box-shadow:0 0 0 1px rgba(var(--gs-rgb),.55), 0 0 18px 2px rgba(var(--gs-rgb),.3); }
     }
 
-    /* ── 위치 확인 깜빡임 (조경 가이드의 '위치 확인' 버튼) ──── */
-    #guide-section .guide-section__hs{ --gs-ring:rgba(195,34,44,.55); }
-    #guide-section .guide-section__hs[data-cat="play"]{ --gs-ring:rgba(26,159,217,.6); }
-    #guide-section .guide-section__hs[data-cat="relax"]{ --gs-ring:rgba(232,115,47,.6); }
+    /* ── 위치 확인 (조경 가이드의 '위치 확인' 버튼) ──────────
+       맵 원 — 링이 맥박처럼 뛰고 물결이 퍼짐
+       구역 · 범례 — 테두리 없이 이름 라벨만 은은하게 빛남
+       1.3s × 3 = 스크립트 LOCATE_MS 3900 과 맞춤 */
     #guide-section .guide-section__hs.is-locate{ z-index:5; }
-    #guide-section .guide-section__hs.is-locate::before{
-      border-width:3px;
-      animation:gs-locate .75s ease-in-out 5;
+    #guide-section .guide-section__hs--ring.is-locate::before{
+      opacity:1;
+      animation:gs-locate 1.3s ease-in-out 3;
     }
-    #guide-section .guide-section__hs.is-locate .guide-section__tip{
-      display:block; opacity:1; visibility:visible; transform:translate(-50%,0);
-      transition:none;
+    #guide-section:not(.is-edit) .guide-section__hs--ring.is-locate::after{
+      animation:gs-locate-ripple 1.3s var(--gs-ease) 3;
     }
-    #guide-section .guide-section__hs--zone.is-locate .guide-section__tip{ transform:translate(-50%,-50%); }
+    #guide-section .guide-section__hs:not(.guide-section__hs--ring).is-locate .guide-section__tip{
+      animation:gs-locate-tip 1.3s ease-in-out 3;
+    }
     @keyframes gs-locate{
-      0%,100%{ border-color:var(--gs-c); background:var(--gs-bg); box-shadow:0 0 0 0 var(--gs-ring); transform:scale(1); }
-      50%    { border-color:#fff; background:var(--gs-c); box-shadow:0 0 0 14px rgba(0,0,0,0); transform:scale(1.12); }
+      0%,100%{ transform:scale(1);
+               border-color:rgba(255,255,255,.95);
+               background:radial-gradient(circle, rgba(var(--gs-rgb),.08) 0 50%, rgba(var(--gs-rgb),.26) 100%);
+               box-shadow:0 0 0 1.5px rgba(var(--gs-rgb),.85), 0 0 18px 3px rgba(var(--gs-rgb),.3); }
+      50%    { transform:scale(1.1);
+               border-color:#fff;
+               background:radial-gradient(circle, rgba(var(--gs-rgb),.14) 0 50%, rgba(var(--gs-rgb),.4) 100%);
+               box-shadow:0 0 0 1.5px rgb(var(--gs-rgb)), 0 0 30px 7px rgba(var(--gs-rgb),.42); }
     }
-    #guide-section .guide-section__hs--zone.is-locate::before{ animation-name:gs-locate-zone; }
-
-    /* ── 코스 장소 번호(1~13) — 배치도 코스 색 (Water 남색 · Garden 테라코타 · Forest 초록) ── */
-    #guide-section .guide-section__hs[data-cat="water"]{  --gs-c:#3f5b85; --gs-bg:rgba(63,91,133,.24);  --gs-ring:rgba(63,91,133,.6); }
-    #guide-section .guide-section__hs[data-cat="garden"]{ --gs-c:#b4633d; --gs-bg:rgba(180,99,61,.24);  --gs-ring:rgba(180,99,61,.6); }
-    #guide-section .guide-section__hs[data-cat="forest"]{ --gs-c:#2f6a35; --gs-bg:rgba(47,106,53,.24);  --gs-ring:rgba(47,106,53,.6); }
-    @keyframes gs-locate-zone{
-      0%,100%{ border-color:var(--gs-c); background:var(--gs-bg); box-shadow:0 0 0 0 var(--gs-ring); }
-      50%    { border-color:#fff; background:rgba(195,34,44,.38); box-shadow:0 0 0 12px rgba(0,0,0,0); }
+    @keyframes gs-locate-ripple{
+      0%  { opacity:.8; transform:scale(1); }
+      100%{ opacity:0;  transform:scale(1.9); }
+    }
+    @keyframes gs-locate-tip{
+      0%,100%{ box-shadow:0 0 0 1px rgba(var(--gs-gold),.38), 0 14px 32px -14px rgba(0,0,0,.6), 0 0 0 0 rgba(var(--gs-rgb),0); }
+      50%    { box-shadow:0 0 0 1px rgba(var(--gs-gold),.75), 0 14px 32px -14px rgba(0,0,0,.6), 0 0 26px 4px rgba(var(--gs-rgb),.45); }
     }
 
     /* ── 편집 모드 (주소 뒤 ?hs=edit) ──────────────────────── */
@@ -2496,15 +2578,18 @@
     #guide-section.is-edit .guide-section__layer{ pointer-events:auto; }
     #guide-section.is-edit .guide-section__hs{ cursor:move; touch-action:none; }
     #guide-section.is-edit .guide-section__hs::before{
-      border:1.5px dashed var(--gs-c); background:var(--gs-bg); animation:none; transition:none;
+      opacity:1; transform:none;
+      border:1.5px dashed var(--gs-c); background:var(--gs-bg);
+      box-shadow:none; animation:none; transition:none;
     }
-    #guide-section.is-edit .guide-section__hs--point:hover::before{ transform:none; }
     #guide-section.is-edit .guide-section__hs::after{
       content:attr(data-code);
-      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-      padding:2px 4px; border-radius:3px; pointer-events:none;
+      inset:auto; left:50%; top:50%; transform:translate(-50%,-50%);
+      opacity:1; border:0; animation:none;
+      padding:2px 4px; border-radius:3px;
       font-size:11px; font-weight:700; line-height:1; color:#fff; background:var(--gs-c);
     }
+    #guide-section.is-edit .guide-section__hs--legend::before{ border-style:dotted; }
     #guide-section.is-edit .guide-section__tip{ display:none; }
     #guide-section.is-edit .guide-section__hs.is-sel{ z-index:6; }
     #guide-section.is-edit .guide-section__hs.is-sel::before{
@@ -2581,13 +2666,16 @@
     @media (prefers-reduced-motion: reduce){
       #guide-section .guide-section__map{ transition:none; opacity:1; transform:none; }
       #guide-section .guide-section__hs::before,
-      #guide-section .guide-section__tip{ transition:none; }
-      #guide-section .guide-section__hs.is-tap::before,
-      #guide-section.is-hint .guide-section__hs::before{ animation:none; }
-      #guide-section .guide-section__hs.is-locate::before{
-        animation:none; border-color:#fff; background:var(--gs-bg);
-        box-shadow:0 0 0 3px var(--gs-c);
+      #guide-section .guide-section__tip{ transition:none !important; filter:none; }
+      #guide-section .guide-section__hs.is-tap::after,
+      #guide-section.is-hint .guide-section__hs::before,
+      #guide-section .guide-section__hs.is-locate .guide-section__tip{ animation:none; }
+      #guide-section .guide-section__hs--ring.is-locate::before{
+        animation:none; opacity:1; transform:none; border-color:#fff;
+        background:rgba(var(--gs-rgb),.24);
+        box-shadow:0 0 0 2px var(--gs-c), 0 0 0 6px rgba(var(--gs-rgb),.18);
       }
+      #guide-section .guide-section__hs.is-locate::after{ animation:none; opacity:0; }
       #guide-section.is-zoom-anim .guide-section__img,
       #guide-section.is-zoom-anim .guide-section__layer{ transition:none; }
     }
@@ -2624,16 +2712,16 @@
         { type:'zone', code:'garden', name:'Garden Course', x:56.7, y:70.2, w:34.8, h:24.7 },
         { type:'zone', code:'water', name:'Water Course', x:9.7, y:70.4, w:46.2, h:12.8 },
         { type:'zone', code:'forest', name:'Forest Course', x:9.7, y:83.2, w:46.9, h:11.9 },
-        { type:'item', code:'1', name:'워터폴가든', x:73.8, y:54.1, d:5.9, cat:'water' },
-        { type:'item', code:'2', name:'골든뷰잉가든', x:62.3, y:46.3, d:5.2, cat:'water' },
-        { type:'item', code:'3', name:'네이처테라스', x:52.2, y:43.9, d:5.2, cat:'water' },
+        { type:'item', code:'1', name:'워터폴가든', x:73.8, y:54.1, cat:'water' },
+        { type:'item', code:'2', name:'골든뷰잉가든', x:62.3, y:46.3, cat:'water' },
+        { type:'item', code:'3', name:'네이처테라스', x:52.2, y:43.9, cat:'water' },
         { type:'item', code:'4', name:'워터글로우가든', x:42.4, y:37.4, cat:'water' },
-        { type:'item', code:'5', name:'블루엣가든', x:31.5, y:31.1, d:6, cat:'garden' },
-        { type:'item', code:'6', name:'펫가든', x:20.7, y:24.4, d:5.7, cat:'garden' },
-        { type:'item', code:'7', name:'페르마타가든', x:23, y:35, d:5.6, cat:'garden' },
-        { type:'item', code:'8', name:'블루밍플레이', x:35, y:42.3, d:6.1, cat:'garden' },
-        { type:'item', code:'9', name:'골든블루밍가든', x:44.1, y:47.6, d:5.3, cat:'garden' },
-        { type:'item', code:'10', name:'센소리가든', x:54.5, y:54.1, d:6.3, cat:'garden' },
+        { type:'item', code:'5', name:'블루엣가든', x:31.5, y:31.1, cat:'garden' },
+        { type:'item', code:'6', name:'펫가든', x:20.7, y:24.4, cat:'garden' },
+        { type:'item', code:'7', name:'페르마타가든', x:23, y:35, cat:'garden' },
+        { type:'item', code:'8', name:'블루밍플레이', x:35, y:42.3, cat:'garden' },
+        { type:'item', code:'9', name:'골든블루밍가든', x:44.1, y:47.6, cat:'garden' },
+        { type:'item', code:'10', name:'센소리가든', x:54.5, y:54.1, cat:'garden' },
         { type:'item', code:'11', name:'포레힐링가든', x:46.2, y:33.4, cat:'forest' },
         { type:'item', code:'12', name:'마운딩그라운드', x:59.4, y:39.9, cat:'forest' },
         { type:'item', code:'13', name:'포레어드벤처', x:70.2, y:46.2, cat:'forest' },
@@ -2674,7 +2762,9 @@
       var ZOOM = { max: 4, dbl: 2.5, ms: 420 };
 
       var GUIDE_ID = 'seosin-landscape-guide';   /* 연동할 조경 가이드 섹션 id */
-      var POINT_D  = 4.2;   /* 시설 터치 원 기본 지름 (이미지 폭 대비 %) */
+      var POINT_D  = 4.2;   /* 범례 시설 터치 영역 기본 지름 (이미지 폭 대비 %) */
+      var MAP_D    = 5.6;   /* 맵 위 시설 강조 원 지름 — 모든 항목 동일 (이미지 폭 대비 %) */
+      var LEGEND_Y = 68;    /* 이 Y% 아래(하단 코스 범례)에 놓인 항목은 원 없이 글자만 표시 */
       /* ▲ 설정 끝 ============================================== */
 
       var map   = root.querySelector('[data-gs-map]');
@@ -2692,6 +2782,7 @@
       function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
       function r1(n){ return Math.round(n * 10) / 10; }
       function isZone(h){ return h.type === 'zone'; }
+      function isLegend(h){ return h.y >= LEGEND_Y; }
       function up(s){ return String(s == null ? '' : s).trim().toUpperCase(); }
 
       /* ── 조경 가이드 섹션 읽기 (구역 칩 · 시설 카드) ─────────── */
@@ -2753,6 +2844,11 @@
         if (h.cat) return h.cat;
         var hit = lookup(h.code);
         if (hit && hit.cat) return hit.cat;
+        /* 범례 번호는 같은 번호의 맵 항목 색을 따라감 */
+        for (var i = 0; i < HOTSPOTS.length; i++){
+          var o = HOTSPOTS[i];
+          if (o !== h && !isZone(o) && o.cat && up(o.code) === up(h.code)) return o.cat;
+        }
         return /^r/i.test(h.code) ? 'relax' : 'play';
       }
       function nameOf(h){
@@ -2764,22 +2860,27 @@
       function vars(h){
         var s = '--x:' + h.x + '%;--y:' + h.y + '%;';
         if (isZone(h)) s += '--w:' + h.w + '%;--h:' + h.h + '%;';
-        else s += '--d:' + (h.d != null ? h.d : POINT_D) + '%;';
+        else s += '--d:' + (isLegend(h) ? (h.d != null ? h.d : POINT_D) : MAP_D) + '%;';
         return s;
       }
 
-      function hsHTML(h, i){
-        var zone = isZone(h), name = nameOf(h);
+      function hsHTML(h, i, n){
+        var zone = isZone(h), name = nameOf(h), legend = isLegend(h);
+        /* 맵 위 시설만 원(ring) — 구역 · 범례는 글자 라벨만 */
         var cls = 'guide-section__hs guide-section__hs--' + (zone ? 'zone' : 'point') +
+                  (!zone && !legend ? ' guide-section__hs--ring' : '') +
+                  (legend ? ' guide-section__hs--legend' : '') +
                   (h.shape === 'ellipse' ? ' guide-section__hs--ellipse' : '');
         if (EDIT && guide() && !lookup(h.code)) cls += ' is-orphan';
         var label = zone
           ? h.code + ' ' + name + ' — 조경 코스 안내로 이동'
           : h.code + ' ' + name + (/^\d+$/.test(h.code) ? ' — 장소 설명 보기' : ' — 시설 설명 보기');
-        var tip = zone ? h.code + ' ' + name + ' · 코스 보기' : h.code + ' ' + name;
+        var tip = zone
+          ? '<b>' + esc(name) + '</b><em>코스 보기</em>'
+          : '<i>' + esc(h.code) + '</i>' + esc(name);
         var below = !zone && h.y < 14;
         var handles = '';
-        if (EDIT){
+        if (EDIT && (zone || legend)){   /* 맵 원은 MAP_D 로 통일 — 크기 핸들 없음 */
           handles = zone
             ? ['nw','ne','sw','se'].map(function(k){ return '<span class="guide-section__hd" data-h="' + k + '"></span>'; }).join('')
             : '<span class="guide-section__hd" data-h="r"></span>';
@@ -2787,17 +2888,21 @@
         return '<button type="button" class="' + cls + '"' +
                ' data-i="' + i + '" data-type="' + (zone ? 'zone' : 'item') + '"' +
                ' data-code="' + esc(h.code) + '" data-cat="' + catOf(h) + '"' +
-               ' style="' + vars(h) + '"' +
+               ' style="' + vars(h) + (n != null ? '--gs-n:' + n + ';' : '') + '"' +
                (zone ? '' : ' aria-haspopup="dialog"') +
                ' aria-label="' + esc(label) + '">' +
                  '<span class="guide-section__tip' + (below ? ' guide-section__tip--below' : '') +
-                 '" aria-hidden="true">' + esc(tip) + '</span>' + handles +
+                 '" aria-hidden="true">' + tip + '</span>' + handles +
                '</button>';
       }
 
       function render(){
         var zones = [], items = [];
-        HOTSPOTS.forEach(function(h, i){ (isZone(h) ? zones : items).push(hsHTML(h, i)); });
+        var n = 0;   /* 힌트가 순서대로 번지도록 맵 원에 순번 */
+        HOTSPOTS.forEach(function(h, i){
+          if (isZone(h)) zones.push(hsHTML(h, i));
+          else items.push(hsHTML(h, i, isLegend(h) ? null : n++));
+        });
         layer.innerHTML = zones.join('') + items.join('');   /* 시설 점이 구역 위로 */
       }
       render();
@@ -2931,7 +3036,7 @@
         btn.classList.remove('is-tap');
         void btn.offsetWidth;
         btn.classList.add('is-tap');
-        setTimeout(function(){ btn.classList.remove('is-tap'); }, 500);
+        setTimeout(function(){ btn.classList.remove('is-tap'); }, 700);
       }
 
       /* ── 배치도 확대 · 이동 (모바일) ─────────────────────────
@@ -3087,7 +3192,7 @@
       /* ── 위치 확인 — 조경 가이드의 '위치 확인' 버튼 ─────────────
          'slg:locate' 신호를 받으면 (팝업 닫기 → 확대 해제 →) 배치도로 스크롤한 뒤
          해당 코드의 구역 · 시설을 깜빡여 보여 줍니다. 같은 코드가 여러 곳이면 모두 깜빡입니다. */
-      var LOCATE_MS = 3900;     /* 깜빡임 유지 시간 — CSS gs-locate(.75s × 5) 와 맞춤 */
+      var LOCATE_MS = 3900;     /* 강조 유지 시간 — CSS gs-locate(1.3s × 3) 와 맞춤 */
       var locT = null;
 
       /* code 는 쉼표로 여러 개 가능 — 예: '1,2,3,4' (코스 전체 번호를 한 번에 깜빡임) */
@@ -3145,7 +3250,7 @@
         if (EDIT || mq('(prefers-reduced-motion: reduce)')) return;
         setTimeout(function(){
           root.classList.add('is-hint');
-          setTimeout(function(){ root.classList.remove('is-hint'); }, 2700);
+          setTimeout(function(){ root.classList.remove('is-hint'); }, 3400);
         }, 900);
       }
       if (EDIT || !('IntersectionObserver' in window)){
@@ -3188,7 +3293,7 @@
       ed.setAttribute('data-gs-editor', '');
       ed.innerHTML =
         '<div class="gse-head"><b>배치도 좌표 편집</b><span data-e-count></span><button type="button" data-e-min>접기</button></div>' +
-        '<p class="gse-help">드래그 = 이동 · 노란 점 = 크기 · 방향키 = 0.1% (Shift 1%) · Esc = 선택 해제</p>' +
+        '<p class="gse-help">드래그 = 이동 · 노란 점 = 크기 · 방향키 = 0.1% (Shift 1%) · Esc = 선택 해제<br>맵 원 지름은 코드의 MAP_D 로 통일 · Y ' + LEGEND_Y + '% 아래는 범례(글자만)</p>' +
         '<p class="gse-link" data-e-link></p>' +
         '<div class="gse-row">' +
           '<button type="button" data-e-mode="edit" class="is-on">편집</button>' +
@@ -3214,7 +3319,7 @@
               '<label class="gse-f" data-for="zone"><span>너비 %</span><input data-k="w" type="number" step="0.1" min="1" max="100"></label>' +
               '<label class="gse-f" data-for="zone"><span>높이 %</span><input data-k="h" type="number" step="0.1" min="1" max="100"></label>' +
               '<label class="gse-f" data-for="zone"><span>모양</span><select data-k="shape"><option value="rect">사각</option><option value="ellipse">타원</option></select></label>' +
-              '<label class="gse-f" data-for="item"><span>지름 %</span><input data-k="d" type="number" step="0.1" min="0.5" max="20"></label>' +
+              '<label class="gse-f" data-for="legend"><span>터치 영역 지름 %</span><input data-k="d" type="number" step="0.1" min="0.5" max="20"></label>' +
             '</div>' +
             '<div class="gse-row">' +
               '<button type="button" data-e-dup>복제</button>' +
@@ -3343,7 +3448,7 @@
         var h = HOTSPOTS[sel];
         eFields.hidden = !h;
         if (!h) return;
-        var kind = isZone(h) ? 'zone' : 'item';
+        var kind = isZone(h) ? 'zone' : (isLegend(h) ? 'legend' : 'item');
         each(eFields.querySelectorAll('[data-for]'), function(r){
           r.hidden = r.getAttribute('data-for') !== kind;
         });
@@ -3369,6 +3474,8 @@
       function applyOne(i){
         var el = elOf(i);
         if (el) el.setAttribute('style', vars(HOTSPOTS[i]));
+        /* 맵 ↔ 범례 경계를 넘어가면 표시 방식이 바뀌므로 다시 그림 */
+        if (el && el.classList.contains('guide-section__hs--legend') !== isLegend(HOTSPOTS[i])) render(), select(sel);
       }
 
       /* ── 항목 만들기 · 타입 변환 ─────────────────────────── */
@@ -3624,7 +3731,7 @@
           if (isZone(h)){
             s += ', w:' + r1(h.w) + ', h:' + r1(h.h);
             if (h.shape === 'ellipse') s += ", shape:'ellipse'";
-          } else if (h.d != null && r1(h.d) !== POINT_D){
+          } else if (isLegend(h) && h.d != null && r1(h.d) !== POINT_D){
             s += ', d:' + r1(h.d);
           }
           if (!isZone(h) && h.cat) s += ', cat:' + q(h.cat);
@@ -4078,8 +4185,8 @@
     <p class="slg-eyebrow">Landscape Guide</p>
     <h2 id="slg-title">산지와 정원의 품에서,<br>일상을 만나다</h2>
     <p class="slg-lead">
-      더샵 금정위버시티 3단지의 정원 네 구역과 그 안에 놓인 놀이·휴게 시설입니다.
-      구역을 고르면 투어 가이드 영상과 대표 시설이 함께 열립니다.
+      더샵 금정위버시티의 정원 세 구역과 그 안에 놓인 놀이·휴게 시설입니다.<br>
+      구역을 고르면 코스별 특별한 의미와 대표 시설이 함께 펼쳐집니다.
     </p>
   </header>
 
