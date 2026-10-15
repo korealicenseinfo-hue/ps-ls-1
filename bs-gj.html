@@ -4848,7 +4848,7 @@
         <p class="slg-modal-sub" data-modal-sub></p>
         <p class="slg-modal-line" data-modal-line hidden></p>
 
-        <!-- 장소 음성 해설 — 코스 소개의 '설명 듣기'와 같은 버튼 (누르면 재생 · 다시 누르면 멈춤) -->
+        <!-- 장소 음성 해설 (audio/W1~W4 · G5~G10 · F11~F13.wav) — 코스 소개의 '설명 듣기'와 같은 버튼 (누르면 재생 · 다시 누르면 멈춤) -->
         <div class="slg-audio" data-modal-audio hidden>
           <button type="button" class="slg-tts" data-audio-toggle aria-pressed="false"><span class="slg-tts-ico" aria-hidden="true"><svg class="slg-tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="slg-tts-eq"><i></i><i></i><i></i></span></span><span class="slg-tts-label">설명 듣기</span></button>
         </div>
@@ -6171,13 +6171,13 @@
   ];
 
   /* [음성 해설] 코스별 접두어 + 장소 번호로 자동 연결
-       Water  Course : w1 ~ w4      Garden Course : g5 ~ g10      Forest Course : f11 ~ f13
+       Water  Course : W1 ~ W4      Garden Course : G5 ~ G10      Forest Course : F11 ~ F13
      AUDIO_EXTS : 같은 이름으로 준비된 형식 — 앞에서부터 '이 기기가 재생할 수 있는' 첫 형식을 씁니다
        (코스 소개 설명 듣기와 같은 방식 · 용량을 줄이려면 mp3 를 올리고 ['.mp3', '.wav'] 로)
      특정 장소만 다른 파일을 쓰려면 PLACES 항목에 audio:'경로' (또는 ['a.mp3','a.wav']) */
   var AUDIO_DIR    = './img/bs-gj/audio/';
   var AUDIO_EXTS   = ['.wav'];
-  var AUDIO_PREFIX = { water:'w', garden:'g', forest:'f' };
+  var AUDIO_PREFIX = { water:'W', garden:'G', forest:'F' };   /* 파일명 대문자 — 서버는 대소문자를 구분합니다 */
   function audioOf(p){
     if(p.audio) return [].concat(p.audio);
     var pre = AUDIO_PREFIX[p.course];
