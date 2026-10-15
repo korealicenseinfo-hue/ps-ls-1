@@ -3943,9 +3943,9 @@
       <p class="sc-label">Description</p>
       <div class="sc-text">
         <p>물소리를 따라 여정이 시작됩니다.</p>
-        <p>워터 코스는 워터폴가든에서 워터글로우가든까지 이어지는 250m의 물길로, 금샘의 유연한 물결을 단지 안에 담아낸 상징적인 동선입니다.</p>
-        <p>9m 높이의 워터폴과 400년 팽나무 ‘더샵트리’, 5단 캐스케이드가 차례로 펼쳐지고, 수경 놀이시설과 티하우스가 가족의 시간을 채웁니다.</p>
-        <p>물이 흐르는 곳마다 머무는 시간이 깊어집니다.</p>
+        <p>워터폴가든에서 워터글로우가든까지 이어지는 250m의 물길, <br class="sc-br">금샘의 유연한 물결을 단지 안에 담아낸 상징적인 동선입니다.</p>
+        <p>9m 높이의 워터폴과 <span class="sc-nb">400년 팽나무 ‘더샵트리’,</span> <br class="sc-br"><span class="sc-nb">5단 캐스케이드가</span> 물길을 따라 차례로 펼쳐집니다.</p>
+        <p>수경 놀이시설과 티하우스가 가족의 시간을 채우고, <br class="sc-br">물이 흐르는 곳마다 머무는 시간이 깊어집니다.</p>
       </div>
     </div>
     <div class="sc-links">
@@ -3969,8 +3969,8 @@
       <p class="sc-label">Description</p>
       <div class="sc-text">
         <p>걸음마다 다른 정원이 피어납니다.</p>
-        <p>가든 코스는 블루엣가든에서 센소리가든까지 여섯 개의 테마 정원을 잇는 460m의 산책로로, 단지에서 가장 다채로운 정원 경험을 선사합니다.</p>
-        <p>수국 특화 식재와 그린오피스·카페라운지가 어우러진 블루엣가든을 지나, 보고 듣고 만지고 맡고 맛보는 오감 테라피 정원에 닿습니다.</p>
+        <p>블루엣가든에서 센소리가든까지 여섯 개의 테마 정원을 잇는 <br class="sc-br">460m의 산책로로, 단지에서 가장 다채로운 정원 경험을 선사합니다.</p>
+        <p>수국 정원과 <span class="sc-nb">그린오피스·카페라운지</span>가 어우러진 블루엣가든을 지나 <br class="sc-br">보고 듣고 만지고 맡고 맛보는 오감 테라피 정원에 닿습니다.</p>
         <p>휴식과 커뮤니티, 일상의 감각이 함께 피어나는 정원입니다.</p>
       </div>
     </div>
@@ -3997,8 +3997,8 @@
       <p class="sc-label">Description</p>
       <div class="sc-text">
         <p>깊은 숲에서 생명의 숨결이 시작됩니다.</p>
-        <p>포레스트 코스는 포레힐링가든과 마운딩그라운드, 포레어드벤처를 잇는 240m의 숲길로, 숲의 고요함을 온전히 느끼게 하는 치유의 산책로입니다.</p>
-        <p>소나무 군식과 코르크 포장 보행로가 어우러지고, 감탕나무와 다정큼나무의 다층 식재가 사계절 안정적인 녹음을 이룹니다.</p>
+        <p>포레힐링가든과 마운딩그라운드, 포레어드벤처를 잇는 240m의 숲길, <br class="sc-br">숲의 고요함을 온전히 느끼는 치유의 산책로입니다.</p>
+        <p>소나무 군식 사이로 코르크 보행로가 이어지고, <br class="sc-br">감탕나무와 다정큼나무가 사계절 짙은 녹음을 이룹니다.</p>
         <p>천천히 걷고, 깊이 쉬어 가는 숲의 여정입니다.</p>
       </div>
     </div>
@@ -4112,6 +4112,11 @@
   }
   #seosin-course .sc-text p + p{ margin-top:.5em; }
 
+  /* ── 줄바꿈 — PC는 문장 흐름대로 두 줄, 모바일은 자연 흐름 ── */
+  #seosin-course .sc-text p,
+  #seosin-course .sc-copy{ text-wrap:pretty; }
+  #seosin-course .sc-nb{ white-space:nowrap; }
+
   /* ── 하단 링크 + 구분선 ── */
   #seosin-course .sc-links{
     display:flex; justify-content:flex-end; gap:clamp(18px,2.4cqw,36px);
@@ -4187,6 +4192,7 @@
     #seosin-course .sc-desc{ grid-template-columns:minmax(0,1fr); gap:3cqw; margin-top:6cqw; padding:0 5cqw; }
     #seosin-course .sc-label{ font-size:3.6cqw; padding-top:0; }
     #seosin-course .sc-text p{ font-size:clamp(14px,3.9cqw,17px); line-height:1.85; }
+    #seosin-course .sc-br{ display:none; }   /* 모바일은 PC용 줄바꿈 끄고 자연 흐름 */
     #seosin-course .sc-links{ margin:6cqw 5cqw 0; padding-bottom:6cqw; justify-content:flex-start; }
     #seosin-course.is-js .sc-fig{ clip-path:inset(0 0 8% 0); }
   }
@@ -4370,9 +4376,9 @@
     <p class="slg-eyebrow">Landscape Guide</p>
     <h2 id="slg-title">산지와 정원의 품에서,<br>일상을 만나다</h2>
     <p class="slg-lead">
-      물과 정원, 숲이 어우러져 단지 전체가 하나의 흐름으로 펼쳐집니다.<br>
-      추천 코스를 따라 걸으며 공간마다 숨겨진 특별함을 발견해 보세요. 약 30분의 도슨트 투어이며,<br>
-      코스와 장소마다 <b>설명 듣기</b>를 누르면 AI 도슨트가 설명을 읽어 드립니다.
+      <span class="slg-ln">물과 정원, 숲이 어우러져 단지 전체가 하나의 흐름으로 펼쳐집니다.</span>
+      <span class="slg-ln">추천 코스를 따라 걸으며 공간마다 숨겨진 특별함을 발견해 보세요.</span>
+      <span class="slg-ln">세 개의 코스를 따라 걷는 약 30분의 도슨트 투어입니다.</span>
     </p>
   </header>
 
@@ -4475,7 +4481,6 @@
         <h3 class="slg-modal-name" id="slg-modal-name" data-modal-name></h3>
         <p class="slg-modal-sub" data-modal-sub></p>
         <p class="slg-modal-line" data-modal-line hidden></p>
-        <button type="button" class="slg-locate slg-tts slg-tts--modal" data-modal-tts data-tts-key="slg-modal" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
         <p class="slg-modal-desc" data-modal-desc></p>
         <div class="slg-modal-tip" data-modal-tip hidden>
           <span class="slg-modal-tip-label">관람 포인트</span>
@@ -4547,7 +4552,7 @@
 
 /* ── 헤더 ─────────────────────────────────────────────────── */
 #seosin-landscape-guide .slg-head{
-  max-width:64ch; margin:0 auto 5cqw; text-align:center;
+  max-width:760px; margin:0 auto 5cqw; text-align:center;
 }
 #seosin-landscape-guide .slg-eyebrow{
   display:inline-flex; align-items:center; gap:.9em;
@@ -4562,11 +4567,18 @@
 #seosin-landscape-guide h2{
   margin:0; font-size:clamp(23px,3.4cqw,44px); font-weight:300;
   line-height:1.4; letter-spacing:-.015em; color:var(--slg-ink);
+  text-wrap:balance;
 }
 #seosin-landscape-guide .slg-lead{
-  margin:2.6cqw auto 0; max-width:52ch;
+  margin:2.6cqw auto 0;
   font-size:clamp(13px,1.3cqw,16px); line-height:1.9; color:var(--slg-ink-2);
   word-break:keep-all;
+}
+/* PC — 한 문장 한 줄 · 모바일 — 이어서 흐르며 줄 길이 균형 */
+#seosin-landscape-guide .slg-ln{ display:block; }
+@container slg (max-width:640px){
+  #seosin-landscape-guide .slg-ln{ display:inline; }
+  #seosin-landscape-guide .slg-lead{ text-wrap:balance; }
 }
 
 /* ── 필터 ─────────────────────────────────────────────────── */
@@ -4671,10 +4683,6 @@
   display:grid; gap:3cqw; margin-top:3.2cqw;
   grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);
   align-items:start;
-}
-/* 코스 패널 — 이미지 없이 설명만 */
-#seosin-landscape-guide .slg-zone-grid--text{
-  grid-template-columns:minmax(0,1fr); max-width:72ch;
 }
 
 /* 영상 — 재생 · 시간바 · 전체화면만 노출하는 최소 플레이어 */
@@ -4871,11 +4879,11 @@
   box-shadow:0 0 0 1.5px rgba(255,255,255,.9), 0 2px 8px rgba(0,0,0,.35);
 }
 
-/* 설명 */
+/* 설명 (단일 패널용) */
 #seosin-landscape-guide .slg-zone-text{ display:block; }
 #seosin-landscape-guide .slg-zone-desc{
   margin:0; font-size:clamp(13px,1.28cqw,15px); line-height:1.95; color:var(--slg-ink-2);
-  word-break:keep-all;
+  word-break:keep-all; text-wrap:pretty;
 }
 #seosin-landscape-guide .slg-zone-quote{
   margin:1.6em 0 0; padding-left:1em;
@@ -5090,7 +5098,8 @@
   margin:10px 0 0; font-size:13px; color:var(--slg-ink-3);
 }
 #seosin-landscape-guide .slg-modal-desc{
-  margin:22px 0 0; font-size:15px; line-height:1.95; color:var(--slg-ink-2); word-break:keep-all;
+  margin:22px 0 0; font-size:15px; line-height:1.95; color:var(--slg-ink-2);
+  word-break:keep-all; text-wrap:pretty;
 }
 #seosin-landscape-guide .slg-modal-spec{
   margin:26px 0 0; padding-top:20px; border-top:1px solid var(--slg-line);
@@ -5237,10 +5246,17 @@
   #seosin-landscape-guide .slg-stop:hover .slg-stop-more{ color:var(--slg-cc-ink); }
 }
 
-/* 코스 3개 펼침 */
+/* 코스 3개 펼침 — 설명 없이 헤더 + 장소 흐름만 */
 #seosin-landscape-guide .slg-courses{ display:block; }
 #seosin-landscape-guide .slg-course{ scroll-margin-top:90px; }
 #seosin-landscape-guide .slg-course + .slg-course{ margin-top:4.6cqw; }
+#seosin-landscape-guide .slg-course .slg-route{
+  margin-top:clamp(14px,2cqw,26px); padding-top:0; border-top:0;
+}
+
+/* 코스 헤더 버튼 */
+#seosin-landscape-guide .slg-head-actions{ display:flex; gap:8px; margin-left:auto; flex:0 0 auto; }
+#seosin-landscape-guide .slg-head-actions .slg-locate--zone{ margin-left:0; }
 
 /* 팝업 — 코스 색 */
 #seosin-landscape-guide .slg-modal-inner[data-cat="water"]{  --slg-c:var(--slg-water-tone); }
@@ -5263,6 +5279,8 @@
   #seosin-landscape-guide .slg-stop-thumb{ width:23cqw; }
   #seosin-landscape-guide .slg-stop-more{ display:none; }
   #seosin-landscape-guide .slg-stop-tag{ font-size:9.5px; }
+  #seosin-landscape-guide .slg-head-actions{ margin-left:0; width:100%; }
+  #seosin-landscape-guide .slg-head-actions .slg-locate{ flex:1 1 0; width:auto; justify-content:center; }
 }
 
 /* ── 좁은 폭 대응 ─────────────────────────────────────────── */
@@ -5290,18 +5308,13 @@
 }
 
 /* ── 한 줄 소개 · 관람 포인트 ─────────────────────────────── */
-#seosin-landscape-guide .slg-lead b{ font-weight:500; color:var(--slg-gold); }
-#seosin-landscape-guide .slg-zone-line{
-  margin:0 0 1.1em; font-size:clamp(14px,1.45cqw,17px); line-height:1.6;
-  color:var(--slg-cc-ink, var(--slg-ink)); word-break:keep-all;
-}
 #seosin-landscape-guide .slg-stop-line{
   font-size:clamp(11.5px,1.15cqw,13px); line-height:1.5; letter-spacing:0;
-  color:var(--slg-ink-2); word-break:keep-all;
+  color:var(--slg-ink-2); word-break:keep-all; text-wrap:pretty;
 }
 #seosin-landscape-guide .slg-modal-line{
   margin:16px 0 0; padding-left:.9em; border-left:2px solid var(--slg-c, var(--slg-gold));
-  font-size:15px; line-height:1.6; color:var(--slg-ink); word-break:keep-all;
+  font-size:15px; line-height:1.6; color:var(--slg-ink); word-break:keep-all; text-wrap:pretty;
 }
 #seosin-landscape-guide .slg-modal-line[hidden],
 #seosin-landscape-guide .slg-modal-tip[hidden]{ display:none; }
@@ -5314,38 +5327,7 @@
   display:block; margin-bottom:.6em; font-size:11px; letter-spacing:.18em; color:var(--slg-gold);
 }
 #seosin-landscape-guide .slg-modal-tip p{
-  margin:0; font-size:14px; line-height:1.8; color:var(--slg-ink-2); word-break:keep-all;
-}
-
-/* ── AI 도슨트 음성 (설명 듣기) ────────────────────────────── */
-#seosin-landscape-guide .slg-head-actions{ display:flex; gap:8px; margin-left:auto; flex:0 0 auto; }
-#seosin-landscape-guide .slg-head-actions .slg-locate--zone{ margin-left:0; }
-#seosin-landscape-guide .slg-course .slg-tts{ --slg-lc:var(--slg-cc-ink, var(--slg-gold)); }
-#seosin-landscape-guide .slg-tts{ gap:.55em; }
-#seosin-landscape-guide .slg-tts--modal{ margin-top:18px; }
-#seosin-landscape-guide .tts-ico{ position:relative; display:inline-grid; place-items:center; width:1.25em; height:1.25em; flex:0 0 auto; }
-#seosin-landscape-guide .slg-locate .tts-spk{ width:100%; height:100%; stroke-linecap:round; transition:opacity .35s ease, transform .35s ease; }
-#seosin-landscape-guide .tts-eq{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; opacity:0; transition:opacity .35s ease; }
-#seosin-landscape-guide .tts-eq i{ width:2px; height:42%; border-radius:1px; background:currentColor; transform:scaleY(.5); }
-#seosin-landscape-guide .slg-tts.is-speaking{ color:var(--slg-lc); border-color:var(--slg-lc); background:rgba(255,255,255,.04); }
-#seosin-landscape-guide .slg-tts.is-speaking .tts-spk{ opacity:0; transform:scale(.7); }
-#seosin-landscape-guide .slg-tts.is-speaking .tts-eq{ opacity:1; }
-#seosin-landscape-guide .slg-tts.is-speaking .tts-eq i{ animation:slg-eq .9s ease-in-out infinite; }
-#seosin-landscape-guide .slg-tts.is-speaking .tts-eq i:nth-child(2){ animation-delay:-.3s; }
-#seosin-landscape-guide .slg-tts.is-speaking .tts-eq i:nth-child(3){ animation-delay:-.6s; }
-@keyframes slg-eq{ 0%,100%{ transform:scaleY(.45); } 50%{ transform:scaleY(1.5); } }
-/* 읽는 문장만 또렷하게 */
-#seosin-landscape-guide .tts-part{ transition:opacity .55s ease, color .55s ease; }
-#seosin-landscape-guide .is-tts .tts-part{ opacity:.4; }
-#seosin-landscape-guide .is-tts .tts-part.is-reading{ opacity:1; }
-#seosin-landscape-guide .is-tts .tts-s.is-reading{ color:var(--slg-ink); }
-@container slg (max-width:640px){
-  #seosin-landscape-guide .slg-head-actions{ margin-left:0; width:100%; }
-  #seosin-landscape-guide .slg-head-actions .slg-locate{ flex:1 1 0; width:auto; justify-content:center; }
-}
-@media (prefers-reduced-motion:reduce){
-  #seosin-landscape-guide .slg-tts.is-speaking .tts-eq i{ animation:none; transform:none; }
-  #seosin-landscape-guide .tts-part{ transition:none; }
+  margin:0; font-size:14px; line-height:1.8; color:var(--slg-ink-2); word-break:keep-all; text-wrap:pretty;
 }
 
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
@@ -5371,6 +5353,7 @@
 <script>
   /* ==========================================================
      ▼ AI 도슨트 음성 — 설명 듣기 (FlosDocent)
+     위 '코스 소개' 섹션의 설명 듣기 버튼이 사용합니다 (삭제 금지)
 
      [아나운서 음성 · 권장]  TTS_ENDPOINT = '/api/tts'
        함께 드린 api/tts.js(Vercel Function)가 클라우드 AI 음성으로 읽습니다.
@@ -5603,8 +5586,8 @@
      mark   : 칩 · 패널 원 안의 글자
      places : 코스에 속한 장소 번호 (아래 PLACES 의 code) — 순서대로 흐름에 표시
      route · length : 배치도 범례의 ROUTE 번호 · 거리
-     quote  : 설명 아래 한 줄 카피 (비우면 숨김)
-     video · img · spots : 단일 구역 패널용 (코스 3개 펼침 보기에서는 쓰지 않음)
+     line · desc · quote · video · img · spots : 단일 구역 패널용
+       (코스 3개 펼침 보기에서는 쓰지 않음 — 코스 설명은 위 '코스 소개' 섹션에 있음)
 
      [시설]  ITEMS — 장소 팝업 상단 갤러리에 장소 사진 다음으로 넘어가며 표시됩니다
      cat   : 'water' · 'garden' · 'forest'
@@ -5616,7 +5599,7 @@
 
     water:{ mark:'W', title:'Water Course', ko:'워터 코스', sub:'ROUTE.1 · 250m · 워터폴가든 → 워터글로우가든',
         line:'금빛 샘과 물결의 경관을 경험하는 물의 길',
-        desc:'물소리를 따라 여정이 시작되는 250m의 수경 산책로입니다. 폭포가 맞이하는 워터폴가든에서 출발해 9m 높이에서 금빛 물결이 쏟아지는 골든뷰잉가든, 400년 더샵트리 아래 물이 흐르는 네이처테라스를 지나 빛과 물이 반짝이는 워터글로우가든에 닿습니다. 금빛 샘 ‘금샘’의 유연한 물결을 단지 안의 물길로 풀어낸, 더샵 금정위버시티의 상징적인 동선입니다.',
+        desc:'물소리를 따라 여정이 시작되는 250m의 수경 산책로입니다. 폭포가 맞이하는 워터폴가든에서 출발해 9m 높이에서 금빛 물결이 쏟아지는 골든뷰잉가든, 400년 더샵트리 아래 물이 흐르는 네이처테라스를 지나 빛과 물이 반짝이는 워터글로우가든에 닿습니다.',
         quote:'물소리를 따라 머무는, 단지의 상징이 되는 수경 풍경',
         route:'ROUTE.1', length:'250m', places:['1','2','3','4'],
         spots:[],
@@ -5625,7 +5608,7 @@
 
     garden:{ mark:'G', title:'Garden Course', ko:'가든 코스', sub:'ROUTE.2 · 460m · 블루엣가든 → 센소리가든',
         line:'다채로운 정원의 감성과 라이프스타일을 담은 정원 길',
-        desc:'걸음마다 다른 정원이 피어나는 460m의 정원 산책로입니다. 수국 특화 식재와 그린오피스 · 카페라운지가 어우러진 블루엣가든에서 시작해 반려가족과 함께 걷는 펫가든, 입체적인 정원 풍경 속 쉼터 페르마타가든, 꽃이 피어나는 순간을 담은 블루밍플레이, 금빛 꽃물결과 금정산을 함께 담은 골든블루밍가든을 지나 오감 체험 정원 센소리가든에 닿습니다. 휴식과 커뮤니티, 놀이와 운동이 하나의 흐름으로 이어지는 단지에서 가장 다채로운 길입니다.',
+        desc:'걸음마다 다른 정원이 피어나는 460m의 정원 산책로입니다. 블루엣가든에서 시작해 펫가든, 페르마타가든, 블루밍플레이, 골든블루밍가든을 지나 오감 체험 정원 센소리가든에 닿습니다.',
         quote:'휴식과 커뮤니티, 라이프스타일이 어우러진 세련된 정원 경험',
         route:'ROUTE.2', length:'460m', places:['5','6','7','8','9','10'],
         spots:[],
@@ -5634,7 +5617,7 @@
 
     forest:{ mark:'F', title:'Forest Course', ko:'포레스트 코스', sub:'ROUTE.3 · 240m · 포레힐링가든 → 포레어드벤처',
         line:'숲의 흐름을 담은 치유의 숲길',
-        desc:'깊은 숲에서 생명의 숨결이 시작되는 240m의 숲길입니다. 소나무 숲을 따라 걷는 치유의 산책로 포레힐링가든에서 출발해 마운딩과 트랙을 연계한 역동적인 놀이 · 운동 공간 마운딩그라운드, 숲의 감성을 담아 모험을 펼치는 탐험 놀이터 포레어드벤처로 이어집니다. 감탕나무와 다정큼나무의 다층 식재가 사계절 안정적인 녹음을 이룹니다.',
+        desc:'깊은 숲에서 생명의 숨결이 시작되는 240m의 숲길입니다. 포레힐링가든에서 출발해 마운딩그라운드, 포레어드벤처로 이어집니다.',
         quote:'천천히 걷고 깊이 쉬어 가는 치유의 산책 환경',
         route:'ROUTE.3', length:'240m', places:['11','12','13'],
         spots:[],
@@ -6340,7 +6323,6 @@
   }
 
   /* ── 배치도 위치 확인 ── */
-  var TTS_ICO = '<span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span>';
   var PIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.2"/></svg>';
 
   function mapCode(code){
@@ -6451,50 +6433,6 @@
   var mLine       = modal.querySelector('[data-modal-line]');
   var mTip        = modal.querySelector('[data-modal-tip]');
   var mTipText    = modal.querySelector('[data-modal-tip-text]');
-  var mTts        = modal.querySelector('[data-modal-tts]');
-
-  /* ── AI 도슨트 음성 ── */
-  function docent(){ return window.FlosDocent || null; }
-  function dot(t){ t = String(t || '').trim(); return t && !/[.!?]$/.test(t) ? t + '.' : t; }
-
-  function modalSegs(){
-    var d = docent(), segs = [];
-    if(openKind === 'place'){
-      var p = PLACES[openIdx];
-      segs.push({ text:p.code + '번, ' + p.name + '.' });
-    } else {
-      segs.push({ text:dot(mName.textContent) + ' ' + dot(mSub.textContent) });
-    }
-    if(!mLine.hidden) segs.push({ text:dot(mLine.textContent), el:mLine });
-    d.split(mDesc).forEach(function(sp){ segs.push({ text:sp.textContent, el:sp }); });
-    if(!mTip.hidden) segs.push({ text:'관람 포인트. ' + dot(mTipText.textContent), el:mTip });
-    else if(openKind === 'place' && PLACES[openIdx].feat) segs.push({ text:'주요 구성은 ' + PLACES[openIdx].feat + '입니다.' });
-    return segs;
-  }
-  function speakModal(){
-    var d = docent();
-    if(d) d.speak('slg-modal', modalSegs(), { scope:mBody });
-  }
-  mTts.addEventListener('click', function(){
-    var d = docent();
-    if(!d || openIdx < 0) return;
-    d.toggle('slg-modal', modalSegs, { scope:mBody });
-  });
-
-  function courseSegs(key){
-    var z = ZONES[key], el = root.querySelector('#slg-course-' + key), d = docent();
-    if(!z || !el) return [];
-    var segs = [{ text:(z.ko || z.title) + '. ' + [z.route, z.length].filter(Boolean).join(', ') + ' 코스입니다.' }];
-    var ln = el.querySelector('.slg-zone-line');
-    if(ln) segs.push({ text:dot(ln.textContent), el:ln });
-    d.split(el.querySelector('.slg-zone-desc')).forEach(function(sp){ segs.push({ text:sp.textContent, el:sp }); });
-    var q = el.querySelector('.slg-zone-quote');
-    if(q) segs.push({ text:dot(q.textContent), el:q });
-    var names = (z.places || []).map(function(c){ var i = placeIndex(c); return i < 0 ? '' : PLACES[i].name; }).filter(Boolean);
-    if(names.length) segs.push({ text:'이 코스는 ' + names.join(', ') + ' 순서로 이어집니다. 번호를 누르면 장소마다 자세한 설명을 보고 들을 수 있습니다.',
-                                 el:el.querySelector('.slg-route') });
-    return segs;
-  }
 
   /* ── 팝업 상단 갤러리 ──────────────────────────────────────
      첫 장 = 장소 사진, 이어서 그 장소의 주요 시설(ITEMS) 사진.
@@ -6775,7 +6713,6 @@
     mSub.textContent   = p.en || '';
     mLine.textContent  = p.line || '';
     mLine.hidden       = !p.line;
-    mDesc.removeAttribute('data-tts-split');
     mDesc.textContent  = p.desc || '';
     mTipText.textContent = p.tip || '';
     mTip.hidden        = !p.tip;
@@ -6809,7 +6746,6 @@
     mSub.textContent   = it.sub;
     mLine.textContent  = '';
     mLine.hidden       = true;
-    mDesc.removeAttribute('data-tts-split');
     mDesc.textContent  = it.desc || '';
     mTipText.textContent = '';
     mTip.hidden        = true;
@@ -6830,11 +6766,8 @@
   }
 
   function fillAny(idx, kind){
-    var d = docent(), was = !!(d && d.active('slg-modal'));
-    if(was) d.stop();
     if(kind === 'place') fillPlace(idx);
     else fillModal(idx);
-    if(was) speakModal();   /* 듣는 중에 이전/다음으로 넘기면 이어서 읽습니다 */
   }
 
   function isOpen(){ return canDialog ? modal.open : modal.hasAttribute('open'); }
@@ -6859,8 +6792,6 @@
 
   function closeModal(){
     if(closing || !isOpen()) return;
-    var d = docent();
-    if(d && d.active('slg-modal')) d.stop();
     closing = true;
     modal.classList.add('is-closing');
     var ms = mq('(prefers-reduced-motion: reduce)') ? 0 : CLOSE_MS;
@@ -6881,8 +6812,6 @@
   }
 
   function afterClose(){
-    var d = docent();
-    if(d && d.active('slg-modal')) d.stop();
     galStop();
     galHold = false;
     unlockScroll();
@@ -6983,7 +6912,7 @@
 
   /* ── 코스 3개 펼침 ─────────────────────────────────────────
      COURSE_ORDER 순서(Water → Garden → Forest)대로 코스 패널을 모두 그립니다.
-     코스 패널은 이미지 없이 설명 + 장소 흐름만 보여 줍니다. */
+     코스 설명은 위 '코스 소개' 섹션에 있으므로, 여기서는 헤더 + 장소 흐름만 보여 줍니다. */
   var coursesBox = root.querySelector('#slg-courses');
   var zoneChipsEl = root.querySelector('.slg-chips[data-filter="zone"]');
 
@@ -7000,18 +6929,8 @@
       +       '<span class="slg-zone-sub">' + esc(z.sub || '') + '</span>'
       +     '</div>'
       +     '<div class="slg-head-actions">'
-      +       '<button type="button" class="slg-locate slg-tts" data-course-tts="' + esc(key) + '"'
-      +         ' data-tts-key="slg-course-' + esc(key) + '" aria-pressed="false"'
-      +         ' aria-label="' + esc(z.title + ' — 코스 설명 듣기') + '">' + TTS_ICO + '<span class="tts-label">설명 듣기</span></button>'
       +       '<button type="button" class="slg-locate slg-locate--zone" data-course-locate="' + esc(key) + '"'
       +         ' aria-label="' + esc(z.title + ' — 배치도에서 위치 확인') + '">' + PIN_SVG + '<span>위치 확인</span></button>'
-      +     '</div>'
-      +   '</div>'
-      +   '<div class="slg-zone-grid slg-zone-grid--text">'
-      +     '<div class="slg-zone-text">'
-      +       (z.line ? '<p class="slg-zone-line">' + esc(z.line) + '</p>' : '')
-      +       '<p class="slg-zone-desc">' + esc(z.desc || '') + '</p>'
-      +       (z.quote ? '<p class="slg-zone-quote">' + esc(z.quote) + '</p>' : '')
       +     '</div>'
       +   '</div>'
       +   '<div class="slg-route">' + routeHTML(z) + '</div>'
@@ -7022,7 +6941,6 @@
     if(!coursesBox) return;
     coursesBox.innerHTML = COURSE_ORDER.map(coursePanelHTML).join('');
     hideBroken(coursesBox);
-    if(docent()) docent().sync();
     syncCourseLocate();
   }
 
@@ -7093,12 +7011,6 @@
 
   if(coursesBox){
     coursesBox.addEventListener('click', function(e){
-      var tb = e.target.closest('[data-course-tts]');
-      if(tb && coursesBox.contains(tb)){
-        var d = docent(), key = tb.getAttribute('data-course-tts');
-        if(d) d.toggle('slg-course-' + key, function(){ return courseSegs(key); }, { scope:tb.closest('.slg-course') });
-        return;
-      }
       var lb = e.target.closest('[data-course-locate]');
       if(lb && coursesBox.contains(lb)){ locate(lb.getAttribute('data-course-locate')); return; }
       var st = e.target.closest('.slg-stop');
