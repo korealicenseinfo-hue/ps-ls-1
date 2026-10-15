@@ -4848,20 +4848,9 @@
         <p class="slg-modal-sub" data-modal-sub></p>
         <p class="slg-modal-line" data-modal-line hidden></p>
 
-        <!-- 장소 음성 해설 (audio/w1~w4 · g5~g10 · f11~f13.wav) -->
+        <!-- 장소 음성 해설 — 코스 소개의 '설명 듣기'와 같은 버튼 (누르면 재생 · 다시 누르면 멈춤) -->
         <div class="slg-audio" data-modal-audio hidden>
-          <button type="button" class="slg-audio-btn" data-audio-toggle aria-pressed="false" aria-label="음성 해설 듣기">
-            <span class="slg-aico">
-              <svg class="slg-aico--play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
-              <svg class="slg-aico--pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>
-            </span>
-            <span class="slg-audio-label">음성 해설 듣기</span>
-          </button>
-          <input class="slg-seek slg-audio-seek" type="range" min="0" max="1000" value="0" step="1"
-                 data-audio-seek aria-label="음성 재생 위치">
-          <span class="slg-audio-time"><span data-audio-cur>0:00</span> / <span data-audio-dur>0:00</span></span>
-          <!-- 실제 재생기 — 코스 소개 '설명 듣기'와 같은 방식 (미리 받지 않고, 누를 때 불러와 바로 재생) -->
-          <audio data-audio-el preload="none" playsinline webkit-playsinline aria-hidden="true"></audio>
+          <button type="button" class="slg-tts" data-audio-toggle aria-pressed="false"><span class="slg-tts-ico" aria-hidden="true"><svg class="slg-tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="slg-tts-eq"><i></i><i></i><i></i></span></span><span class="slg-tts-label">설명 듣기</span></button>
         </div>
 
         <p class="slg-modal-desc" data-modal-desc></p>
@@ -5710,51 +5699,48 @@
   margin:0; font-size:14px; line-height:1.8; color:var(--slg-ink-2); word-break:keep-all; text-wrap:pretty;
 }
 
-/* ── 장소 음성 해설 ───────────────────────────────────────── */
-#seosin-landscape-guide .slg-audio{
-  display:flex; align-items:center; gap:14px;
-  margin:20px 0 0; padding:8px 18px 8px 8px;
-  border:1px solid var(--slg-line-2); border-radius:999px;
-  background:rgba(242,239,233,.03);
-}
+/* ── 장소 음성 해설 — 코스 소개 '설명 듣기'와 같은 모양 ───────── */
+#seosin-landscape-guide .slg-audio{ margin:18px 0 0; }
 #seosin-landscape-guide .slg-audio[hidden]{ display:none; }
-#seosin-landscape-guide .slg-audio-btn{
-  flex:0 0 auto; display:inline-flex; align-items:center; gap:.6em;
-  margin:0; padding:5px 16px 5px 5px; border:0; border-radius:999px;
-  background:var(--slg-c); color:#fff; cursor:pointer;
-  font:inherit; font-size:13px; line-height:1.2; letter-spacing:.02em; white-space:nowrap;
+#seosin-landscape-guide .slg-tts{
+  position:relative; display:inline-flex; align-items:center; gap:.7em;
+  min-height:44px; margin:0; padding:0; border:0; background:none;
+  font:inherit; font-size:14px; font-weight:400; letter-spacing:.08em; line-height:1.2;
+  color:var(--slg-ink-2); cursor:pointer;
   -webkit-appearance:none; appearance:none; touch-action:manipulation;
-  transition:filter .2s ease;
+  transition:color .3s ease;
 }
-#seosin-landscape-guide .slg-audio-btn:focus-visible{ outline:1px solid var(--slg-c); outline-offset:3px; }
-#seosin-landscape-guide .slg-aico{
-  display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
-  background:rgba(0,0,0,.22);
+#seosin-landscape-guide .slg-tts::before{
+  content:""; position:absolute; left:1.95em; right:0; bottom:10px; height:1px;
+  background:currentColor; transform:scaleX(0); transform-origin:left;
+  transition:transform .45s cubic-bezier(.22,.61,.36,1);
 }
-#seosin-landscape-guide .slg-aico svg{ grid-area:1/1; width:13px; height:13px; fill:currentColor; }
-#seosin-landscape-guide .slg-aico--play{ margin-left:2px; }
-#seosin-landscape-guide .slg-aico--pause{ display:none; }
-#seosin-landscape-guide .slg-audio.is-playing .slg-aico--play{ display:none; }
-#seosin-landscape-guide .slg-audio.is-playing .slg-aico--pause{ display:block; }
-#seosin-landscape-guide .slg-audio audio{ display:none; }
-#seosin-landscape-guide .slg-audio[data-state="loading"] .slg-aico{ animation:slg-audio-pulse 1s ease-in-out infinite; }
-#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-btn{ background:transparent; color:var(--slg-ink-2); box-shadow:inset 0 0 0 1px var(--slg-line-2); }
-#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-seek,
-#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-time{ opacity:.35; }
-@keyframes slg-audio-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
-#seosin-landscape-guide .slg-audio-seek{ flex:1 1 auto; min-width:0; }
-#seosin-landscape-guide .slg-audio-time{
-  flex:0 0 auto; font-size:12px; color:var(--slg-ink-3); font-variant-numeric:tabular-nums;
+#seosin-landscape-guide .slg-tts:focus-visible{ outline:1px solid var(--slg-c); outline-offset:4px; }
+#seosin-landscape-guide .slg-tts-ico{ position:relative; display:inline-grid; place-items:center; width:1.3em; height:1.3em; flex:0 0 auto; }
+#seosin-landscape-guide .slg-tts-spk{
+  width:100%; height:100%; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+  transition:opacity .35s ease, transform .35s ease;
 }
+#seosin-landscape-guide .slg-tts-eq{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; opacity:0; transition:opacity .35s ease; }
+#seosin-landscape-guide .slg-tts-eq i{ width:2px; height:42%; border-radius:1px; background:currentColor; transform:scaleY(.5); }
+#seosin-landscape-guide .slg-tts.is-speaking,
+#seosin-landscape-guide .slg-tts.is-loading{ color:var(--slg-c); }
+#seosin-landscape-guide .slg-tts.is-speaking .slg-tts-spk{ opacity:0; transform:scale(.7); }
+#seosin-landscape-guide .slg-tts.is-speaking .slg-tts-eq{ opacity:1; }
+#seosin-landscape-guide .slg-tts.is-speaking .slg-tts-eq i{ animation:slg-eq .9s ease-in-out infinite; }
+#seosin-landscape-guide .slg-tts.is-speaking .slg-tts-eq i:nth-child(2){ animation-delay:-.3s; }
+#seosin-landscape-guide .slg-tts.is-speaking .slg-tts-eq i:nth-child(3){ animation-delay:-.6s; }
+#seosin-landscape-guide .slg-tts.is-loading .slg-tts-spk{ animation:slg-tts-pulse 1s ease-in-out infinite; }
+#seosin-landscape-guide .slg-tts.is-error{ color:var(--slg-ink-3); }
 @media (hover:hover) and (pointer:fine){
-  #seosin-landscape-guide .slg-audio-btn:hover{ filter:brightness(1.12); }
+  #seosin-landscape-guide .slg-tts:hover{ color:var(--slg-c); }
+  #seosin-landscape-guide .slg-tts:hover::before{ transform:scaleX(1); }
 }
-@media (max-width:480px){
-  #seosin-landscape-guide .slg-audio{ gap:10px; padding-right:14px; }
-  #seosin-landscape-guide .slg-audio-label{ display:none; }
-  #seosin-landscape-guide .slg-audio-btn{ padding:5px; }
-  #seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-label{ display:inline; }
-  #seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-btn{ padding-right:14px; }
+@keyframes slg-eq{ 0%,100%{ transform:scaleY(.45); } 50%{ transform:scaleY(1.5); } }
+@keyframes slg-tts-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
+@media (prefers-reduced-motion:reduce){
+  #seosin-landscape-guide .slg-tts .slg-tts-eq i,
+  #seosin-landscape-guide .slg-tts .slg-tts-spk{ animation:none !important; }
 }
 
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
@@ -7078,91 +7064,109 @@
   var mWhereDt   = mWhere.previousElementSibling;
   var mZoneDt    = mZone.previousElementSibling;
 
-  /* ── 장소 음성 해설 플레이어 ───────────────────────────────
-     위 '코스 소개'의 설명 듣기와 같은 방식으로 재생합니다 (맥 · 아이폰 · 안드로이드 · 카톡 인앱 공통)
-     · 팝업을 열 때는 아무것도 받지 않음 (preload none)
-     · 버튼을 누르는 순간 → 경로 지정 · load() · play() 를 클릭 안에서 한 번에 호출
-     · 오류는 실제로 재생을 시도했을 때만 표시하고, 잠시 뒤 원래 상태로 돌아갑니다 */
+  /* ── 장소 음성 해설 — 코스 소개 '설명 듣기'와 같은 방식 ─────────
+     · <audio> 하나를 만들어 섹션에 붙여 둠 (팝업 · 최상위 레이어 밖)
+     · 팝업을 열 때는 아무것도 받지 않고, 버튼을 누르는 순간
+       경로 지정 → load() → play() 를 클릭 안에서 한 번에 호출 (iOS 재생 허용 조건)
+     · 다시 누르면 멈춤 · 오류는 잠깐 표시 후 원래대로 */
   var aBox   = modal.querySelector('[data-modal-audio]');
   var aBtn   = aBox.querySelector('[data-audio-toggle]');
-  var aLabel = aBox.querySelector('.slg-audio-label');
-  var aSeek  = aBox.querySelector('[data-audio-seek]');
-  var aCurT  = aBox.querySelector('[data-audio-cur]');
-  var aDurT  = aBox.querySelector('[data-audio-dur]');
-  var aEl    = aBox.querySelector('[data-audio-el]');
+  var aLabel = aBtn.querySelector('.slg-tts-label');
 
-  var A_LABEL = { idle:'설명 듣기', loading:'불러오는 중', playing:'듣기 멈춤', error:'재생할 수 없어요' };
-  var aList = [], aReq = 0, aOn = false, aErrT = 0;
+  var A_LABEL = { idle:'설명 듣기', loading:'불러오는 중', playing:'듣기 멈춤',
+                  error:'재생할 수 없어요', missing:'음성 파일이 없어요' };
+  var aEl = null, aList = [], aReq = 0, aOn = false, aErrT = 0;
+
+  function aPlayer(){
+    if(aEl) return aEl;
+    var a = document.createElement('audio');
+    a.preload = 'none';
+    a.setAttribute('playsinline', '');
+    a.setAttribute('webkit-playsinline', '');
+    a.setAttribute('aria-hidden', 'true');
+    a.style.display = 'none';
+    root.appendChild(a);
+
+    a.addEventListener('playing', function(){ if(aOn) aState('playing'); });
+    a.addEventListener('waiting', function(){ if(aOn && !a.paused) aState('loading'); });
+    a.addEventListener('ended', function(){ aStop(); });
+    a.addEventListener('error', function(){ if(aOn) aFail(); });
+    aEl = a;
+    return a;
+  }
 
   function aTypeOf(src){
     var ext = (String(src).split('?')[0].split('.').pop() || '').toLowerCase();
     return { wav:'audio/wav', mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/mp4', ogg:'audio/ogg', oga:'audio/ogg', webm:'audio/webm' }[ext] || '';
   }
   function aPick(list){
+    var a = aPlayer();
     for(var i = 0; i < list.length; i++){
       var t = aTypeOf(list[i]);
-      if(!t || aEl.canPlayType(t) || (t === 'audio/wav' && aEl.canPlayType('audio/wave; codecs="1"'))) return list[i];
+      if(!t || a.canPlayType(t) || (t === 'audio/wav' && a.canPlayType('audio/wave; codecs="1"'))) return list[i];
     }
     return list[list.length - 1];
   }
   function aAbs(src){ var x = document.createElement('a'); x.href = src; return x.href; }
 
   function aState(s){
-    aBox.setAttribute('data-state', s);
-    var on = s === 'loading' || s === 'playing';
-    aBox.classList.toggle('is-playing', on);
-    aBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    aBtn.setAttribute('aria-label', '음성 해설 — ' + A_LABEL[s]);
+    aBtn.classList.toggle('is-loading', s === 'loading');
+    aBtn.classList.toggle('is-speaking', s === 'playing');
+    aBtn.classList.toggle('is-error', s === 'error' || s === 'missing');
+    aBtn.setAttribute('aria-pressed', (s === 'loading' || s === 'playing') ? 'true' : 'false');
     aLabel.textContent = A_LABEL[s];
-  }
-  function aUI(){
-    var d = isFinite(aEl.duration) ? aEl.duration : 0;
-    var c = aOn ? (aEl.currentTime || 0) : 0;
-    var p = d > 0 ? Math.min(1, c / d) : 0;
-    aSeek.value = String(Math.round(p * 1000));
-    aSeek.style.setProperty('--slg-p', (p * 100) + '%');
-    aCurT.textContent = mmss(c);
-    aDurT.textContent = mmss(aOn ? d : 0);
   }
 
   function aStop(){
     aReq++;
     aOn = false;
-    try{ aEl.pause(); }catch(_){}
-    try{ if(aEl.readyState > 0) aEl.currentTime = 0; }catch(_){}
-    if(aBox.getAttribute('data-state') !== 'error') aState('idle');
-    aUI();
+    if(aEl){
+      try{ aEl.pause(); }catch(_){}
+      try{ if(aEl.readyState > 0) aEl.currentTime = 0; }catch(_){}
+    }
+    aState('idle');
   }
+
   function aFail(){
+    var src = aEl ? aEl.getAttribute('src') : '';
+    var code = aEl && aEl.error ? aEl.error.code : 0;
     aStop();
     clearTimeout(aErrT);
     aState('error');
-    aErrT = setTimeout(function(){ if(aBox.getAttribute('data-state') === 'error') aState('idle'); }, 2600);
+    aErrT = setTimeout(function(){ if(aBtn.classList.contains('is-error')) aState('idle'); }, 2600);
+    /* 원인 구분 — 파일이 없는지(경로 · 파일명 대소문자), 형식 문제인지 */
+    try{ console.warn('[음성 해설] 재생 실패', src, 'MediaError code:', code); }catch(_){}
+    if(src && window.fetch){
+      fetch(src, { method:'HEAD', cache:'no-store' }).then(function(r){
+        if(!r.ok && aBtn.classList.contains('is-error')) aState('missing');
+      }).catch(function(){});
+    }
   }
 
   function aStart(){
     if(!aList.length) return;
+    var a = aPlayer();
     aStop();
     clearTimeout(aErrT);
 
-    /* 다른 음성(코스 소개 설명 듣기 · AI 도슨트) 정지 */
+    /* 다른 음성(AI 도슨트 · 브라우저 음성) 정지 — 코스 소개 음성은 아래 'play' 감지로 스스로 멈춤 */
     var d = window.FlosDocent;
     if(d && typeof d.stop === 'function'){ try{ d.stop(); }catch(_){} }
     else if(window.speechSynthesis){ try{ window.speechSynthesis.cancel(); }catch(_){} }
 
     var src = aPick(aList);
-    if(aEl.src !== aAbs(src)){
-      aEl.src = src;
-      aEl.load();                       /* iOS · 구형 WebView 에서 소스 교체 확정 */
+    if(a.src !== aAbs(src)){
+      a.src = src;
+      a.load();                         /* iOS · 구형 WebView 에서 소스 교체 확정 */
     } else {
-      try{ if(aEl.readyState > 0) aEl.currentTime = 0; }catch(_){}
+      try{ if(a.readyState > 0) a.currentTime = 0; }catch(_){}
     }
 
     aOn = true;
     aState('loading');
 
     var my = ++aReq, pr;
-    try{ pr = aEl.play(); }             /* 반드시 클릭 안에서 동기 호출 */
+    try{ pr = a.play(); }               /* 반드시 클릭 안에서 동기 호출 */
     catch(err){ aFail(); return; }
     if(pr && typeof pr.then === 'function'){
       pr.catch(function(err){
@@ -7173,42 +7177,21 @@
     }
   }
 
-  aEl.addEventListener('playing', function(){ if(aOn) aState('playing'); });
-  aEl.addEventListener('waiting', function(){ if(aOn && !aEl.paused) aState('loading'); });
-  aEl.addEventListener('loadedmetadata', aUI);
-  aEl.addEventListener('durationchange', aUI);
-  aEl.addEventListener('timeupdate', aUI);
-  aEl.addEventListener('ended', function(){ aStop(); });
-  aEl.addEventListener('error', function(){ if(aOn) aFail(); });   /* 재생 시도 중일 때만 */
-  /* 전화 · 제어센터 등 밖에서 멈춘 경우 */
-  aEl.addEventListener('pause', function(){
-    if(aOn && !aEl.ended && aEl.readyState >= 2){ aOn = false; aState('idle'); }
-  });
-
   /* 장소가 바뀔 때 — 소리만 멈추고 버튼 준비 (파일은 누를 때 받음) */
   function setAudio(list){
     aStop();
     clearTimeout(aErrT);
     aList = [].concat(list || []).filter(Boolean);
-    aState('idle');
     aBox.hidden = !aList.length;
-    aUI();
   }
 
   aBtn.addEventListener('click', function(){
     if(aOn) aStop(); else aStart();
   });
 
-  aSeek.addEventListener('input', function(){
-    if(!aOn || !isFinite(aEl.duration) || !aEl.duration) return;
-    try{ aEl.currentTime = Number(aSeek.value) / 1000 * aEl.duration; }catch(_){}
-    aUI();
-  });
-  aSeek.addEventListener('pointerup', function(){ if(this.blur) this.blur(); });
-
   /* 다른 영상 · 오디오(코스 소개 설명 듣기 포함)가 재생되면 멈춤 */
   document.addEventListener('play', function(e){
-    if(aOn && e.target !== aEl) aStop();
+    if(aOn && aEl && e.target !== aEl) aStop();
   }, true);
   document.addEventListener('flos:tts', function(e){
     if(e.detail && e.detail.state === 'play' && aOn) aStop();
@@ -7462,7 +7445,6 @@
 
   document.addEventListener('keydown', function(e){
     if(openIdx < 0 || closing) return;
-    if(e.target && e.target.closest && e.target.closest('.slg-audio')) return;   /* 음성 탐색바 조작 중에는 장소 넘김 안 함 */
     if(e.key === 'ArrowLeft'){ e.preventDefault(); step(-1); }
     else if(e.key === 'ArrowRight'){ e.preventDefault(); step(1); }
     else if(e.key === 'Escape' && !canDialog){ e.preventDefault(); closeModal(); }
