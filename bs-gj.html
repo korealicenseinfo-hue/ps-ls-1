@@ -4150,7 +4150,6 @@
     })();
   </script>
 </section>
-
 <section id="seosin-course" aria-label="정원 코스 소개">
 
   <header class="sc-head">
@@ -5255,6 +5254,27 @@
   width:100%; height:100%; object-fit:contain; display:block;
   background:#070b0a;
   -webkit-user-drag:none; user-select:none;
+}
+/* 시설 사진 캡션 */
+#seosin-landscape-guide .slg-slide-cap{
+  position:absolute; left:0; right:0; bottom:0; z-index:3;
+  display:flex; align-items:center; gap:10px;
+  padding:3em clamp(16px,2.4vw,24px) clamp(14px,1.8vw,18px);
+  background:linear-gradient(to top, rgba(5,9,8,.88), rgba(5,9,8,0));
+  pointer-events:none;
+}
+#seosin-landscape-guide .slg-slide-code{
+  flex:0 0 auto; display:inline-grid; place-items:center; min-width:2.6em;
+  padding:.2em .5em; border-radius:5px;
+  font-size:12px; font-weight:700; line-height:1.3; color:#fff; background:var(--slg-c);
+  box-shadow:0 0 0 1px rgba(255,255,255,.85);
+}
+#seosin-landscape-guide .slg-slide-text{ display:flex; flex-direction:column; gap:3px; min-width:0; }
+#seosin-landscape-guide .slg-slide-text b{
+  font-size:clamp(14px,1.6vw,16px); font-weight:500; line-height:1.35; color:#fff; word-break:keep-all;
+}
+#seosin-landscape-guide .slg-slide-text small{
+  font-size:12px; letter-spacing:.02em; color:var(--slg-ink-2);
 }
 /* 넘김 버튼 · 장수 */
 #seosin-landscape-guide .slg-gal-btn{
@@ -6671,10 +6691,18 @@
     var fb = s.cap
       ? '<span class="slg-thumb-fallback"><span>' + esc(s.name || '') + '</span></span>'
       : '<span class="slg-thumb-fallback"><b>' + esc(s.code) + '</b><span>' + esc(s.label || '') + '</span></span>';
+    /* 시설 사진 캡션 — 시설 번호 · 이름 · 설명 */
+    var cap = s.fac
+      ? '<span class="slg-slide-cap">'
+      +   '<span class="slg-slide-code">' + esc(s.code) + '</span>'
+      +   '<span class="slg-slide-text"><b>' + esc(s.name) + '</b>'
+      +     (s.sub ? '<small>' + esc(s.sub) + '</small>' : '') + '</span>'
+      + '</span>'
+      : '';
     return ''
       + '<div class="slg-slide" role="group" aria-roledescription="슬라이드"'
       +   ' aria-label="' + (i + 1) + ' / ' + n + (s.name ? ' — ' + esc(s.name) : '') + '">'
-      +   fb + imgs
+      +   fb + imgs + cap
       + '</div>';
   }
 
@@ -6922,7 +6950,7 @@
       if(it.place !== p.code) return;
       if(it.img && used[it.img]) return;
       if(it.img) used[it.img] = 1;
-      slides.push({ src:it.img, alt:it.name, code:it.code, label:it.name, name:it.name, sub:it.sub, cap:true });
+      slides.push({ src:it.img, alt:it.name, code:it.code, label:it.name, name:it.name, sub:it.sub, cap:true, fac:true });
     });
     setGallery(slides);
 
