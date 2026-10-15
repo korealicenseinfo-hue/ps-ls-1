@@ -4740,7 +4740,7 @@
 
   <header class="slg-head">
     <p class="slg-eyebrow">Landscape Guide</p>
-    <h2 id="slg-title">산지와 정원의 품에서<br>일상을 만나다</h2>
+    <h2 id="slg-title">산지와 정원의 품에서,<br>일상을 만나다</h2>
     <p class="slg-lead">
       <span class="slg-ln">물과 정원, 숲이 어우러져 단지 전체가 하나의 흐름으로 펼쳐집니다.</span>
       <span class="slg-ln">추천 코스를 따라 걸으며 공간마다 숨겨진 특별함을 발견해 보세요.</span><br>
@@ -4860,6 +4860,8 @@
           <input class="slg-seek slg-audio-seek" type="range" min="0" max="1000" value="0" step="1"
                  data-audio-seek aria-label="음성 재생 위치">
           <span class="slg-audio-time"><span data-audio-cur>0:00</span> / <span data-audio-dur>0:00</span></span>
+          <!-- 실제 재생기 — 문서 안에 둔 <audio> 가 iOS · 구형 안드로이드에서 가장 안정적입니다 -->
+          <audio data-audio-el preload="metadata" playsinline webkit-playsinline x-webkit-airplay="allow"></audio>
         </div>
 
         <p class="slg-modal-desc" data-modal-desc></p>
@@ -5734,6 +5736,12 @@
 #seosin-landscape-guide .slg-aico--pause{ display:none; }
 #seosin-landscape-guide .slg-audio.is-playing .slg-aico--play{ display:none; }
 #seosin-landscape-guide .slg-audio.is-playing .slg-aico--pause{ display:block; }
+#seosin-landscape-guide .slg-audio audio{ display:none; }
+#seosin-landscape-guide .slg-audio[data-state="loading"] .slg-aico{ animation:slg-audio-pulse 1s ease-in-out infinite; }
+#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-btn{ background:transparent; color:var(--slg-ink-2); box-shadow:inset 0 0 0 1px var(--slg-line-2); }
+#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-seek,
+#seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-time{ opacity:.35; }
+@keyframes slg-audio-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
 #seosin-landscape-guide .slg-audio-seek{ flex:1 1 auto; min-width:0; }
 #seosin-landscape-guide .slg-audio-time{
   flex:0 0 auto; font-size:12px; color:var(--slg-ink-3); font-variant-numeric:tabular-nums;
@@ -5745,6 +5753,8 @@
   #seosin-landscape-guide .slg-audio{ gap:10px; padding-right:14px; }
   #seosin-landscape-guide .slg-audio-label{ display:none; }
   #seosin-landscape-guide .slg-audio-btn{ padding:5px; }
+  #seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-label{ display:inline; }
+  #seosin-landscape-guide .slg-audio[data-state="error"] .slg-audio-btn{ padding-right:14px; }
 }
 
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
@@ -7075,7 +7085,53 @@
   var aSeek   = aBox.querySelector('[data-audio-seek]');
   var aCurT   = aBox.querySelector('[data-audio-cur]');
   var aDurT   = aBox.querySelector('[data-audio-dur]');
-  var aEl = null, aSrc = '', aDead = {};
+  var aEl     = aBox.querySelector('[data-audio-el]');
+
+  /* 같은 이름의 대체 형식 — wav 를 못 읽는 기기에서 순서대로 시도합니다
+     (예: audio/w1.wav 가 안 되면 audio/w1.m4a → audio/w1.mp3)
+     대체 파일이 없으면 그냥 건너뜁니다 */
+  var AUDIO_FALLBACK = ['.m4a', '.mp3'];
+  var AUDIO_TYPES = { wav:'audio/wav', mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac', ogg:'audio/ogg' };
+
+  var aOrig  = '';     /* 장소에 지정된 원본 경로 */
+  var aList  = [];     /* 시도할 경로 목록 */
+  var aAt    = 0;      /* 지금 쓰는 경로 */
+  var aWant  = false;  /* 사용자가 재생을 원함 */
+  var aTried = false;  /* 이 장소에서 재생 버튼을 누른 적 있음 */
+  var aDead  = {};     /* 실패한 경로 (이번 방문 동안) */
+
+  function aExt(s){ var m = String(s).match(/\.([a-z0-9]+)(?:[?#].*)?$/i); return m ? m[1].toLowerCase() : ''; }
+  function aCands(src){
+    if(!src) return [];
+    var list = [src];
+    var m = src.match(/^(.*)\.(wav|mp3|m4a|aac|ogg)$/i);
+    if(m) AUDIO_FALLBACK.forEach(function(ext){
+      var s = m[1] + ext;
+      if(list.indexOf(s) < 0) list.push(s);
+    });
+    /* 브라우저가 확실히 못 읽는 형식은 뒤로 미룸 */
+    var ok = [], no = [];
+    list.forEach(function(s){
+      if(aDead[s]) return;
+      var t = AUDIO_TYPES[aExt(s)], can = '';
+      try{ can = t && aEl.canPlayType ? aEl.canPlayType(t) : 'maybe'; }catch(e){ can = 'maybe'; }
+      (can ? ok : no).push(s);
+    });
+    return ok.concat(no);
+  }
+
+  function aState(s){
+    aBox.setAttribute('data-state', s);
+    var on = s === 'playing' || s === 'loading';
+    aBox.classList.toggle('is-playing', on);
+    aBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var txt = s === 'playing' ? '일시정지'
+            : s === 'loading' ? '불러오는 중'
+            : s === 'error'   ? '다시 시도'
+            : '음성 해설 듣기';
+    aLabel.textContent = txt;
+    aBtn.setAttribute('aria-label', s === 'error' ? '음성을 재생할 수 없습니다 — 다시 시도' : '음성 해설 ' + txt);
+  }
 
   function aUI(){
     var d = aEl && isFinite(aEl.duration) ? aEl.duration : 0;
@@ -7086,62 +7142,127 @@
     aCurT.textContent = mmss(c);
     aDurT.textContent = mmss(d);
   }
-  function aPlaying(on){
-    aBox.classList.toggle('is-playing', !!on);
-    aBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-    aBtn.setAttribute('aria-label', on ? '음성 해설 일시정지' : '음성 해설 듣기');
-    aLabel.textContent = on ? '일시정지' : '음성 해설 듣기';
+  function aLoad(i){
+    aAt = i;
+    aEl.src = aList[i];
+    try{ aEl.load(); }catch(e){}
+    aUI();
   }
-  function aEnsure(){
-    if(aEl) return aEl;
-    aEl = new Audio();
-    aEl.preload = 'metadata';
-    aEl.addEventListener('loadedmetadata', aUI);
-    aEl.addEventListener('durationchange', aUI);
-    aEl.addEventListener('timeupdate', aUI);
-    aEl.addEventListener('play',  function(){ aPlaying(true); });
-    aEl.addEventListener('pause', function(){ aPlaying(false); });
-    aEl.addEventListener('ended', function(){ aPlaying(false); aEl.currentTime = 0; aUI(); });
-    aEl.addEventListener('error', function(){
-      if(!aSrc || !aEl.getAttribute('src')) return;   /* 정지 시 src 비울 때 나는 오류는 무시 */
-      aDead[aSrc] = 1;                                 /* 파일 없음 → 이번 방문 동안 숨김 */
-      aPlaying(false);
-      aBox.hidden = true;
-    });
-    return aEl;
+
+  /* 지금 경로가 실패 → 다음 형식으로. 더 없으면 false */
+  function aNext(){
+    if(aList[aAt]) aDead[aList[aAt]] = 1;
+    if(aAt + 1 < aList.length){
+      aLoad(aAt + 1);
+      if(aWant) aTryPlay();
+      return true;
+    }
+    return false;
   }
+
+  function aFail(){
+    aWant = false;
+    if(aTried) aState('error');      /* 눌렀는데 안 되면 '다시 시도' 표시 */
+    else aBox.hidden = true;         /* 미리 확인 단계에서 파일이 없으면 숨김 */
+  }
+
+  function aTryPlay(){
+    aWant = true;
+    if(aEl.paused) aState('loading');
+    var pr;
+    try{ pr = aEl.play(); }catch(e){ pr = null; }
+    if(pr && typeof pr.then === 'function'){
+      var src = aList[aAt];
+      pr.then(function(){
+        if(aList[aAt] === src && !aEl.paused) aState('playing');
+      }).catch(function(err){
+        if(aList[aAt] !== src) return;                       /* 이미 다른 경로로 넘어감 */
+        var n = err && err.name;
+        if(n === 'AbortError') return;                       /* 일시정지 · 경로 변경으로 중단 */
+        if(n === 'NotAllowedError'){ aWant = false; aState('idle'); return; } /* 자동재생 차단 */
+        if(!aNext()) aFail();                                /* NotSupportedError 등 → 다음 형식 */
+      });
+    }
+  }
+
+  /* 재생기 이벤트 */
+  ['loadedmetadata', 'durationchange', 'timeupdate'].forEach(function(ev){ aEl.addEventListener(ev, aUI); });
+  aEl.addEventListener('playing', function(){ if(aList.length) aState('playing'); });
+  aEl.addEventListener('waiting', function(){ if(aWant && !aEl.paused) aState('loading'); });
+  aEl.addEventListener('pause', function(){
+    if(aEl.ended || aBox.getAttribute('data-state') === 'error') return;
+    /* 경로를 바꾸는 중(불러오기 전)에 생기는 pause 는 무시, 그 외(사용자 · 전화 · 다른 앱)는 정지 상태로 */
+    if(!aWant || aEl.readyState >= 2){ aWant = false; aState('idle'); }
+  });
+  aEl.addEventListener('ended', function(){
+    aWant = false;
+    try{ aEl.currentTime = 0; }catch(e){}
+    aState('idle');
+    aUI();
+  });
+  aEl.addEventListener('error', function(){
+    /* 지금 장소의 현재 경로에서 난 오류만 처리 (이전 경로 · 중단 오류 무시) */
+    if(!aList.length || aEl.getAttribute('src') !== aList[aAt]) return;
+    var er = aEl.error;
+    if(er && er.code === 1) return;   /* MEDIA_ERR_ABORTED */
+    if(!aNext()) aFail();
+  });
+
   function aStop(){
-    if(!aEl) return;
+    aWant = false;
     try{ aEl.pause(); }catch(e){}
   }
+
   function setAudio(src){
     aStop();
-    aSrc = src || '';
-    aPlaying(false);
-    if(!aSrc || aDead[aSrc]){
-      if(aEl && aEl.getAttribute('src')){ aEl.removeAttribute('src'); try{ aEl.load(); }catch(e){} }
+    aOrig = src || '';
+    aTried = false;
+    aList = aCands(aOrig);
+    aAt = 0;
+    aState('idle');
+    if(!aList.length){
+      /* src 를 비우지 않습니다 — 빈 src 로 load() 하면 iOS 에서 늦게 오류가 와
+         다음 장소의 플레이어까지 숨겨지던 문제가 있었습니다 */
       aBox.hidden = true;
       aUI();
       return;
     }
-    var a = aEnsure();
-    if(a.getAttribute('src') !== aSrc) a.src = aSrc;   /* 메타데이터만 미리 받아 길이 표시 + 파일 존재 확인 */
-    else { try{ a.currentTime = 0; }catch(e){} }
     aBox.hidden = false;
-    aUI();
+    if(aEl.getAttribute('src') !== aList[0]) aLoad(0);
+    else { try{ aEl.currentTime = 0; }catch(e){} aUI(); }
   }
 
   aBtn.addEventListener('click', function(){
-    if(!aSrc) return;
-    var a = aEnsure();
-    if(!a.paused){ a.pause(); return; }
+    if(!aList.length && !aOrig) return;
+
+    /* 재생 중 · 불러오는 중이면 정지 */
+    if(!aEl.paused || aWant){
+      aStop();
+      aState('idle');
+      return;
+    }
+
+    /* 재생 실패 후 '다시 시도' — 실패 기록을 지우고 처음 경로부터 */
+    if(aBox.getAttribute('data-state') === 'error'){
+      aCands(aOrig).concat([aOrig]).forEach(function(s){ delete aDead[s]; });
+      AUDIO_FALLBACK.forEach(function(ext){ delete aDead[aOrig.replace(/\.[a-z0-9]+$/i, ext)]; });
+      aList = aCands(aOrig);
+      if(!aList.length) return;
+      aLoad(0);
+    }
+
     if(window.FlosDocent) window.FlosDocent.stop();   /* AI 도슨트 음성과 겹치지 않게 */
-    var pr = a.play();
-    if(pr && pr.catch) pr.catch(function(){ aPlaying(false); });
+
+    /* iOS 17+ — 무음 스위치가 켜져 있어도 미디어 소리로 재생 */
+    try{ if(navigator.audioSession) navigator.audioSession.type = 'playback'; }catch(e){}
+
+    aTried = true;
+    aTryPlay();   /* 반드시 클릭 안에서 바로 호출 — iOS 재생 허용 조건 */
   });
+
   aSeek.addEventListener('input', function(){
-    if(!aEl || !isFinite(aEl.duration) || !aEl.duration) return;
-    aEl.currentTime = Number(aSeek.value) / 1000 * aEl.duration;
+    if(!isFinite(aEl.duration) || !aEl.duration) return;
+    try{ aEl.currentTime = Number(aSeek.value) / 1000 * aEl.duration; }catch(e){}
     aUI();
   });
   aSeek.addEventListener('pointerup', function(){ if(this.blur) this.blur(); });
