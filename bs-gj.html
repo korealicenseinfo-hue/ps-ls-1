@@ -485,8 +485,8 @@
          aria-labelledby="dsharp-intro-title"
          data-tone="auto"
          data-theme="dark"
-         data-video="https://player.vimeo.com/video/1236077540?quality=1080p&amp;muted=1&amp;autoplay=1&amp;autopause=0&amp;loop=1&amp;background=1&amp;dnt=1"
-         data-video-full="https://player.vimeo.com/video/1236077540?autoplay=1&amp;playsinline=1&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1"
+         data-video="https://player.vimeo.com/video/1236342288?quality=1080p&amp;muted=1&amp;autoplay=1&amp;autopause=0&amp;loop=1&amp;background=1&amp;dnt=1"
+         data-video-full="https://player.vimeo.com/video/1236342288?autoplay=1&amp;playsinline=1&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1"
          data-video-file=""
          data-video-min-width="0">
   <!--
@@ -4847,6 +4847,21 @@
         <h3 class="slg-modal-name" id="slg-modal-name" data-modal-name></h3>
         <p class="slg-modal-sub" data-modal-sub></p>
         <p class="slg-modal-line" data-modal-line hidden></p>
+
+        <!-- 장소 음성 해설 (d-1.wav ~ d-13.wav) -->
+        <div class="slg-audio" data-modal-audio hidden>
+          <button type="button" class="slg-audio-btn" data-audio-toggle aria-pressed="false" aria-label="음성 해설 듣기">
+            <span class="slg-aico">
+              <svg class="slg-aico--play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+              <svg class="slg-aico--pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zm5 0h3v14h-3z"/></svg>
+            </span>
+            <span class="slg-audio-label">음성 해설 듣기</span>
+          </button>
+          <input class="slg-seek slg-audio-seek" type="range" min="0" max="1000" value="0" step="1"
+                 data-audio-seek aria-label="음성 재생 위치">
+          <span class="slg-audio-time"><span data-audio-cur>0:00</span> / <span data-audio-dur>0:00</span></span>
+        </div>
+
         <p class="slg-modal-desc" data-modal-desc></p>
         <div class="slg-modal-tip" data-modal-tip hidden>
           <span class="slg-modal-tip-label">관람 포인트</span>
@@ -5693,6 +5708,45 @@
   margin:0; font-size:14px; line-height:1.8; color:var(--slg-ink-2); word-break:keep-all; text-wrap:pretty;
 }
 
+/* ── 장소 음성 해설 ───────────────────────────────────────── */
+#seosin-landscape-guide .slg-audio{
+  display:flex; align-items:center; gap:14px;
+  margin:20px 0 0; padding:8px 18px 8px 8px;
+  border:1px solid var(--slg-line-2); border-radius:999px;
+  background:rgba(242,239,233,.03);
+}
+#seosin-landscape-guide .slg-audio[hidden]{ display:none; }
+#seosin-landscape-guide .slg-audio-btn{
+  flex:0 0 auto; display:inline-flex; align-items:center; gap:.6em;
+  margin:0; padding:5px 16px 5px 5px; border:0; border-radius:999px;
+  background:var(--slg-c); color:#fff; cursor:pointer;
+  font:inherit; font-size:13px; line-height:1.2; letter-spacing:.02em; white-space:nowrap;
+  -webkit-appearance:none; appearance:none; touch-action:manipulation;
+  transition:filter .2s ease;
+}
+#seosin-landscape-guide .slg-audio-btn:focus-visible{ outline:1px solid var(--slg-c); outline-offset:3px; }
+#seosin-landscape-guide .slg-aico{
+  display:grid; place-items:center; width:30px; height:30px; border-radius:50%;
+  background:rgba(0,0,0,.22);
+}
+#seosin-landscape-guide .slg-aico svg{ grid-area:1/1; width:13px; height:13px; fill:currentColor; }
+#seosin-landscape-guide .slg-aico--play{ margin-left:2px; }
+#seosin-landscape-guide .slg-aico--pause{ display:none; }
+#seosin-landscape-guide .slg-audio.is-playing .slg-aico--play{ display:none; }
+#seosin-landscape-guide .slg-audio.is-playing .slg-aico--pause{ display:block; }
+#seosin-landscape-guide .slg-audio-seek{ flex:1 1 auto; min-width:0; }
+#seosin-landscape-guide .slg-audio-time{
+  flex:0 0 auto; font-size:12px; color:var(--slg-ink-3); font-variant-numeric:tabular-nums;
+}
+@media (hover:hover) and (pointer:fine){
+  #seosin-landscape-guide .slg-audio-btn:hover{ filter:brightness(1.12); }
+}
+@media (max-width:480px){
+  #seosin-landscape-guide .slg-audio{ gap:10px; padding-right:14px; }
+  #seosin-landscape-guide .slg-audio-label{ display:none; }
+  #seosin-landscape-guide .slg-audio-btn{ padding:5px; }
+}
+
 /* ── 스코프 애니메이션 ────────────────────────────────────── */
 @keyframes slg-zone-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
 @keyframes slg-modal-in{ from{ opacity:0; transform:translateY(18px) scale(.965); } to{ opacity:1; transform:none; } }
@@ -6044,7 +6098,8 @@
      tip    : 관람 포인트 — 팝업 설명 아래 상자로 표시 (비우면 숨김)
      feat   : 팝업 '구성' 항목 (비우면 '순서' 표시)
      img    : 흐름 썸네일 · 팝업 갤러리 첫 장
-     img2   : 팝업 갤러리 두 번째 장 (시설 사진이 없는 장소용 — 비우면 사진 1장만 표시) */
+     img2   : 팝업 갤러리 두 번째 장 (시설 사진이 없는 장소용 — 비우면 사진 1장만 표시)
+     audio  : 음성 해설 파일 (비우면 d-{번호}.wav 자동 연결 — 아래 AUDIO_DIR 참고) */
   var PLACES = [
     /* ROUTE.1 · WATER COURSE · 250m */
     { code:'1',  course:'water',  name:'워터폴가든',     en:'WATERFALL GARDEN',   key:false, feat:'', img:'./img/bs-gj/f-1.jpg',
@@ -6118,6 +6173,13 @@
       desc:'포레스트 코스의 마지막 장면을 여는 탐험 놀이터입니다. 숲의 감성을 담은 놀이시설에서 아이들은 오르고 건너며 모험을 펼치고, 짙은 녹음 아래에서 가족의 산책이 함께 이어집니다.',
       tip:'포레스트 코스의 끝에서 아이들과 함께 숲속 모험을 즐기며 여정을 마무리해 보세요.' }
   ];
+
+  /* [음성 해설] 장소 번호 순서대로 d-1.wav ~ d-13.wav 자동 연결
+     특정 장소만 다른 파일을 쓰려면 PLACES 항목에 audio:'경로' 를 넣으세요
+     (파일이 없으면 그 장소의 플레이어는 자동으로 숨겨집니다) */
+  var AUDIO_DIR = './img/bs-gj/';
+  var AUDIO_EXT = '.wav';
+  function audioOf(p){ return p.audio || (AUDIO_DIR + 'd-' + p.code + AUDIO_EXT); }
   /* ▲ 데이터 끝 ============================================== */
 
   var CAT_LABEL = { play:'플레이 랜드', relax:'릴렉스 스팟',
@@ -6998,6 +7060,90 @@
   var mWhereDt   = mWhere.previousElementSibling;
   var mZoneDt    = mZone.previousElementSibling;
 
+  /* ── 장소 음성 해설 플레이어 ─────────────────────────────── */
+  var aBox    = modal.querySelector('[data-modal-audio]');
+  var aBtn    = aBox.querySelector('[data-audio-toggle]');
+  var aLabel  = aBox.querySelector('.slg-audio-label');
+  var aSeek   = aBox.querySelector('[data-audio-seek]');
+  var aCurT   = aBox.querySelector('[data-audio-cur]');
+  var aDurT   = aBox.querySelector('[data-audio-dur]');
+  var aEl = null, aSrc = '', aDead = {};
+
+  function aUI(){
+    var d = aEl && isFinite(aEl.duration) ? aEl.duration : 0;
+    var c = aEl ? aEl.currentTime || 0 : 0;
+    var p = d > 0 ? Math.min(1, c / d) : 0;
+    aSeek.value = String(Math.round(p * 1000));
+    aSeek.style.setProperty('--slg-p', (p * 100) + '%');
+    aCurT.textContent = mmss(c);
+    aDurT.textContent = mmss(d);
+  }
+  function aPlaying(on){
+    aBox.classList.toggle('is-playing', !!on);
+    aBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    aBtn.setAttribute('aria-label', on ? '음성 해설 일시정지' : '음성 해설 듣기');
+    aLabel.textContent = on ? '일시정지' : '음성 해설 듣기';
+  }
+  function aEnsure(){
+    if(aEl) return aEl;
+    aEl = new Audio();
+    aEl.preload = 'metadata';
+    aEl.addEventListener('loadedmetadata', aUI);
+    aEl.addEventListener('durationchange', aUI);
+    aEl.addEventListener('timeupdate', aUI);
+    aEl.addEventListener('play',  function(){ aPlaying(true); });
+    aEl.addEventListener('pause', function(){ aPlaying(false); });
+    aEl.addEventListener('ended', function(){ aPlaying(false); aEl.currentTime = 0; aUI(); });
+    aEl.addEventListener('error', function(){
+      if(!aSrc || !aEl.getAttribute('src')) return;   /* 정지 시 src 비울 때 나는 오류는 무시 */
+      aDead[aSrc] = 1;                                 /* 파일 없음 → 이번 방문 동안 숨김 */
+      aPlaying(false);
+      aBox.hidden = true;
+    });
+    return aEl;
+  }
+  function aStop(){
+    if(!aEl) return;
+    try{ aEl.pause(); }catch(e){}
+  }
+  function setAudio(src){
+    aStop();
+    aSrc = src || '';
+    aPlaying(false);
+    if(!aSrc || aDead[aSrc]){
+      if(aEl && aEl.getAttribute('src')){ aEl.removeAttribute('src'); try{ aEl.load(); }catch(e){} }
+      aBox.hidden = true;
+      aUI();
+      return;
+    }
+    var a = aEnsure();
+    if(a.getAttribute('src') !== aSrc) a.src = aSrc;   /* 메타데이터만 미리 받아 길이 표시 + 파일 존재 확인 */
+    else { try{ a.currentTime = 0; }catch(e){} }
+    aBox.hidden = false;
+    aUI();
+  }
+
+  aBtn.addEventListener('click', function(){
+    if(!aSrc) return;
+    var a = aEnsure();
+    if(!a.paused){ a.pause(); return; }
+    if(window.FlosDocent) window.FlosDocent.stop();   /* AI 도슨트 음성과 겹치지 않게 */
+    var pr = a.play();
+    if(pr && pr.catch) pr.catch(function(){ aPlaying(false); });
+  });
+  aSeek.addEventListener('input', function(){
+    if(!aEl || !isFinite(aEl.duration) || !aEl.duration) return;
+    aEl.currentTime = Number(aSeek.value) / 1000 * aEl.duration;
+    aUI();
+  });
+  aSeek.addEventListener('pointerup', function(){ if(this.blur) this.blur(); });
+
+  /* 도슨트 음성이 시작되면 해설 음성은 멈춤 */
+  document.addEventListener('flos:tts', function(e){
+    if(e.detail && e.detail.state === 'play') aStop();
+  });
+  window.addEventListener('pagehide', aStop);
+
   var canDialog = typeof modal.showModal === 'function';
   var lastFocus = null;
   var openIdx   = -1;
@@ -7104,6 +7250,7 @@
     mDesc.textContent  = p.desc || '';
     mTipText.textContent = p.tip || '';
     mTip.hidden        = !p.tip;
+    setAudio(audioOf(p));
     setModalLabels(true, p.feat);
     mWhere.textContent = [z.title, z.route, z.length].filter(Boolean).join(' · ');
     var co = courseOrder(p);
@@ -7137,6 +7284,7 @@
     mDesc.textContent  = it.desc || '';
     mTipText.textContent = '';
     mTip.hidden        = true;
+    setAudio('');
     mWhere.textContent = it.where;
     mZone.textContent  = zoneNames(it.zones);
     modalLocate.hidden = !onMap(it.place || it.code);
@@ -7181,6 +7329,7 @@
   function closeModal(){
     if(closing || !isOpen()) return;
     closing = true;
+    aStop();
     modal.classList.add('is-closing');
     var ms = mq('(prefers-reduced-motion: reduce)') ? 0 : CLOSE_MS;
     closeT = setTimeout(finishClose, ms);
@@ -7200,6 +7349,7 @@
   }
 
   function afterClose(){
+    setAudio('');
     galStop();
     galHold = false;
     unlockScroll();
@@ -7239,6 +7389,7 @@
 
   document.addEventListener('keydown', function(e){
     if(openIdx < 0 || closing) return;
+    if(e.target && e.target.closest && e.target.closest('.slg-audio')) return;   /* 음성 탐색바 조작 중에는 장소 넘김 안 함 */
     if(e.key === 'ArrowLeft'){ e.preventDefault(); step(-1); }
     else if(e.key === 'ArrowRight'){ e.preventDefault(); step(1); }
     else if(e.key === 'Escape' && !canDialog){ e.preventDefault(); closeModal(); }
