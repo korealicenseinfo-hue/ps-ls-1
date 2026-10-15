@@ -2734,6 +2734,131 @@
       #guide-section .guide-section__route polyline{ animation:none; stroke-dashoffset:0; }
       #guide-section .guide-section__route .gs-r-flow{ display:none; }
     }
+    /* ── 터치 · 커서 표시 — 누르는 자리와 눌리는 영역을 보여 줍니다 ──────
+       PC   : 마우스를 따라오는 샴페인 골드 점 + 얇은 링 (시설 위에서는 링이 커지며 시설 색으로)
+       모바일 : 손가락이 닿은 자리에 헤일로 + 링이 피어나고, 떼면 물결처럼 퍼지며 사라짐
+       공통 : 눌린 구역 · 시설의 영역이 골드 헤어라인으로 드러남 */
+    #guide-section .guide-section__cursor{
+      position:absolute; left:0; top:0; z-index:6;
+      width:0; height:0; pointer-events:none;
+      --gs-cc:var(--gs-gold);
+      opacity:0; transition:opacity .4s var(--gs-ease);
+    }
+    #guide-section .guide-section__cursor.is-on{ opacity:1; }
+    #guide-section .gs-cur-r,
+    #guide-section .gs-cur-d{ position:absolute; left:0; top:0; will-change:transform; }
+    #guide-section .gs-cur-r i{
+      position:absolute; left:-17px; top:-17px; width:34px; height:34px; border-radius:50%;
+      border:1px solid rgba(var(--gs-cc),.9);
+      box-shadow:0 0 0 1px rgba(255,255,255,.14), 0 6px 18px -6px rgba(0,0,0,.45), inset 0 0 14px rgba(var(--gs-cc),.14);
+      transition:transform .5s var(--gs-ease), border-color .35s ease, background-color .35s ease, box-shadow .35s ease;
+    }
+    #guide-section .gs-cur-d i{
+      position:absolute; left:-3px; top:-3px; width:6px; height:6px; border-radius:50%;
+      background:rgb(var(--gs-cc));
+      box-shadow:0 0 0 1px rgba(255,255,255,.85), 0 0 10px rgba(var(--gs-cc),.75);
+      transition:transform .3s var(--gs-ease), background-color .35s ease;
+    }
+    #guide-section .guide-section__cursor.is-hot .gs-cur-r i{
+      transform:scale(1.6);
+      border-color:rgba(255,255,255,.95);
+      background-color:rgba(var(--gs-cc),.1);
+      box-shadow:0 0 0 1px rgba(var(--gs-cc),.7), 0 0 22px rgba(var(--gs-cc),.4), inset 0 0 14px rgba(var(--gs-cc),.2);
+    }
+    #guide-section .guide-section__cursor.is-hot .gs-cur-d i{ transform:scale(.7); }
+    #guide-section .guide-section__cursor.is-down .gs-cur-r i{ transform:scale(.82); transition-duration:.18s; }
+    #guide-section .guide-section__cursor.is-hot.is-down .gs-cur-r i{ transform:scale(1.35); }
+
+    /* PC 기본 커서 숨김 — 골드 커서가 대신합니다 */
+    #guide-section.has-cursor:not(.is-edit) .guide-section__map,
+    #guide-section.has-cursor:not(.is-edit) .guide-section__hs{ cursor:none; }
+
+    /* 모바일 터치 표시 */
+    #guide-section .guide-section__touch{
+      position:absolute; z-index:6; width:0; height:0; pointer-events:none;
+      --gs-tc:var(--gs-gold);
+    }
+    #guide-section .guide-section__touch::before,
+    #guide-section .guide-section__touch::after,
+    #guide-section .guide-section__touch i{
+      content:""; position:absolute; border-radius:50%;
+    }
+    #guide-section .guide-section__touch::before{           /* 헤일로 */
+      left:-34px; top:-34px; width:68px; height:68px;
+      background:radial-gradient(circle, rgba(var(--gs-tc),.32) 0, rgba(var(--gs-tc),.12) 45%, rgba(var(--gs-tc),0) 70%);
+      animation:gs-touch-in .38s var(--gs-ease) both;
+    }
+    #guide-section .guide-section__touch::after{            /* 링 */
+      left:-22px; top:-22px; width:44px; height:44px;
+      border:1px solid rgba(255,255,255,.92);
+      box-shadow:0 0 0 1px rgba(var(--gs-tc),.7), 0 0 20px rgba(var(--gs-tc),.45), inset 0 0 12px rgba(var(--gs-tc),.22);
+      animation:gs-touch-in .38s var(--gs-ease) both;
+    }
+    #guide-section .guide-section__touch i{                 /* 중심 점 */
+      left:-3px; top:-3px; width:6px; height:6px;
+      background:rgb(var(--gs-tc));
+      box-shadow:0 0 0 1px rgba(255,255,255,.9), 0 0 10px rgba(var(--gs-tc),.8);
+      animation:gs-touch-in .3s var(--gs-ease) both;
+    }
+    #guide-section .guide-section__touch.is-out::after{ animation:gs-touch-out .75s var(--gs-ease) both; }
+    #guide-section .guide-section__touch.is-out::before,
+    #guide-section .guide-section__touch.is-out i{ animation:gs-touch-fade .55s ease both; }
+    @keyframes gs-touch-in{
+      from{ opacity:0; transform:scale(.35); }
+      to  { opacity:1; transform:scale(1); }
+    }
+    @keyframes gs-touch-out{
+      from{ opacity:1; transform:scale(1); }
+      to  { opacity:0; transform:scale(1.9); }
+    }
+    @keyframes gs-touch-fade{
+      from{ opacity:1; }
+      to  { opacity:0; }
+    }
+
+    /* 눌린 · 가리킨 영역 — 구역과 하단 범례는 골드 헤어라인 박스로 */
+    #guide-section:not(.is-edit) .guide-section__hs:not(.guide-section__hs--ring)::before{
+      border:1px solid rgba(var(--gs-gold),.8);
+      background:linear-gradient(135deg, rgba(var(--gs-rgb),.16), rgba(var(--gs-rgb),.04));
+      box-shadow:0 0 0 4px rgba(var(--gs-gold),.1), 0 12px 30px -12px rgba(0,0,0,.45),
+                 inset 0 0 0 1px rgba(255,255,255,.12);
+      opacity:0; transform:scale(.97);
+      transition:opacity .4s var(--gs-ease), transform .5s var(--gs-ease);
+    }
+    #guide-section:not(.is-edit) .guide-section__hs.is-press:not(.guide-section__hs--ring)::before{
+      opacity:1; transform:none; transition-duration:.18s, .25s;
+    }
+    /* 시설 원 — 누르는 동안 링이 드러남 */
+    #guide-section:not(.is-edit) .guide-section__hs--ring.is-press::before{
+      opacity:1; transform:scale(1);
+      border-color:rgba(255,255,255,.95);
+      background:radial-gradient(circle, rgba(var(--gs-rgb),.06) 0 50%, rgba(var(--gs-rgb),.28) 100%);
+      box-shadow:0 0 0 1px rgba(var(--gs-rgb),.75), 0 0 0 6px rgba(var(--gs-gold),.28), 0 0 22px rgba(var(--gs-rgb),.4);
+      transition-duration:.18s;
+    }
+    /* 누르는 동안 이름 라벨도 표시 (모바일 포함) */
+    #guide-section:not(.is-edit) .guide-section__hs.is-press .guide-section__tip{
+      display:inline-flex; opacity:1; visibility:visible; filter:none;
+      transform:translate(-50%,0);
+      transition:opacity .25s var(--gs-ease), transform .35s var(--gs-ease), filter .25s var(--gs-ease), visibility 0s;
+    }
+    #guide-section:not(.is-edit) .guide-section__hs--zone.is-press .guide-section__tip{ transform:translate(-50%,-50%); }
+    @container gs (max-width:640px){
+      #guide-section:not(.is-edit) .guide-section__hs.is-press .guide-section__tip{ display:inline-flex; }
+    }
+    @media (hover:hover) and (pointer:fine){
+      #guide-section:not(.is-edit) .guide-section__hs:not(.guide-section__hs--ring):hover::before{
+        opacity:1; transform:none;
+      }
+    }
+    @media (prefers-reduced-motion: reduce){
+      #guide-section .guide-section__touch::before,
+      #guide-section .guide-section__touch::after,
+      #guide-section .guide-section__touch i{ animation:none; }
+      #guide-section .guide-section__touch.is-out::before,
+      #guide-section .guide-section__touch.is-out::after,
+      #guide-section .guide-section__touch.is-out i{ animation:gs-touch-fade .3s ease both; }
+    }
   </style>
 
   <script>
@@ -3226,6 +3351,110 @@
           if (zTimer){ clearTimeout(zTimer); zTimer = null; root.classList.remove('is-zoom-anim'); }
           zs = 1; zx = 0; zy = 0; zApply();
         });
+      }
+
+      /* ── 터치 · 커서 표시 ─────────────────────────────────────
+         PC   : 골드 커서가 마우스를 따라오고, 구역 · 시설 위에서는 링이 커지며 그 색으로 물듭니다
+         모바일 : 손가락이 닿은 자리에 링이 피어나고, 눌린 구역 · 시설 영역이 드러납니다
+         끄려면 FX.cursor / FX.touch 를 false 로 */
+      var FX = { cursor:true, touch:true };
+
+      if (!EDIT){
+        var reduceFx = mq('(prefers-reduced-motion: reduce)');
+
+        function hsAt(t){ return t && t.closest ? t.closest('.guide-section__hs') : null; }
+        function rgbOf(el){ return el ? getComputedStyle(el).getPropertyValue('--gs-rgb').trim() : ''; }
+        function local(e){ var r = map.getBoundingClientRect(); return { x:e.clientX - r.left, y:e.clientY - r.top }; }
+
+        /* PC 골드 커서 */
+        if (FX.cursor && mq('(hover:hover) and (pointer:fine)') && !reduceFx){
+          root.classList.add('has-cursor');
+          var cur = document.createElement('span');
+          cur.className = 'guide-section__cursor';
+          cur.setAttribute('aria-hidden', 'true');
+          cur.innerHTML = '<span class="gs-cur-r"><i></i></span><span class="gs-cur-d"><i></i></span>';
+          map.appendChild(cur);
+          var curR = cur.firstChild, curD = cur.lastChild;
+          var tx = 0, ty = 0, rx = 0, ry = 0, curRAF = 0, curHot = null;
+
+          var curLoop = function(){
+            rx += (tx - rx) * .2; ry += (ty - ry) * .2;
+            curD.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0)';
+            curR.style.transform = 'translate3d(' + rx + 'px,' + ry + 'px,0)';
+            curRAF = (Math.abs(tx - rx) + Math.abs(ty - ry) > .2) ? requestAnimationFrame(curLoop) : 0;
+          };
+
+          map.addEventListener('mousemove', function(e){
+            var p = local(e);
+            tx = p.x; ty = p.y;
+            if (!cur.classList.contains('is-on')){ rx = tx; ry = ty; cur.classList.add('is-on'); }
+            var hot = hsAt(e.target);
+            if (hot !== curHot){
+              curHot = hot;
+              cur.classList.toggle('is-hot', !!hot);
+              if (hot) cur.style.setProperty('--gs-cc', rgbOf(hot));
+              else cur.style.removeProperty('--gs-cc');
+            }
+            if (!curRAF) curRAF = requestAnimationFrame(curLoop);
+          });
+          map.addEventListener('mouseleave', function(){
+            cur.classList.remove('is-on', 'is-down', 'is-hot');
+            curHot = null;
+          });
+          map.addEventListener('mousedown', function(e){ if (e.button === 0) cur.classList.add('is-down'); });
+          window.addEventListener('mouseup', function(){ cur.classList.remove('is-down'); });
+        }
+
+        /* 모바일(손가락 · 펜) 터치 표시 */
+        if (FX.touch){
+          var touches = {};
+          var IN_MS = 260;   /* 짧게 톡 쳐도 링이 다 피어난 뒤 사라지게 */
+
+          var releaseTouch = function(id){
+            var t = touches[id];
+            if (!t) return;
+            delete touches[id];
+            var wait = Math.max(0, IN_MS - (Date.now() - t.t0));
+            setTimeout(function(){
+              t.el.classList.add('is-out');
+              setTimeout(function(){ if (t.el.parentNode) t.el.parentNode.removeChild(t.el); }, 800);
+              if (t.hs) setTimeout(function(){ t.hs.classList.remove('is-press'); }, 380);
+            }, wait);
+          };
+          var releaseAll = function(){ Object.keys(touches).forEach(releaseTouch); };
+
+          map.addEventListener('pointerdown', function(e){
+            if (e.pointerType === 'mouse') return;
+            /* 두 손가락(핀치)이 되면 표시를 거둡니다 */
+            if (Object.keys(touches).length){ releaseAll(); return; }
+            var p = local(e), hs = hsAt(e.target);
+            var el = document.createElement('span');
+            el.className = 'guide-section__touch';
+            el.setAttribute('aria-hidden', 'true');
+            el.style.left = p.x + 'px';
+            el.style.top  = p.y + 'px';
+            if (hs){
+              var c = rgbOf(hs);
+              if (c) el.style.setProperty('--gs-tc', c);
+              hs.classList.add('is-press');
+            }
+            el.innerHTML = '<i></i>';
+            map.appendChild(el);
+            touches[e.pointerId] = { el:el, hs:hs, x:e.clientX, y:e.clientY, t0:Date.now() };
+          }, { passive:true });
+
+          map.addEventListener('pointermove', function(e){
+            var t = touches[e.pointerId];
+            if (!t) return;
+            /* 손가락이 미끄러지면(스크롤 · 이동) 바로 거둠 */
+            if (Math.abs(e.clientX - t.x) + Math.abs(e.clientY - t.y) > 12) releaseTouch(e.pointerId);
+          }, { passive:true });
+
+          ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev){
+            map.addEventListener(ev, function(e){ releaseTouch(e.pointerId); }, { passive:true });
+          });
+          window.addEventListener('scroll', releaseAll, { passive:true });
+        }
       }
 
       layer.addEventListener('click', function(e){
