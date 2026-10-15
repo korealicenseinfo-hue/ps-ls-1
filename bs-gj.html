@@ -4154,6 +4154,7 @@
 
   <header class="sc-head">
     <p class="sc-head-title">Landscape Course</p>
+    <p class="sc-head-title">Tour Map</p>
   </header>
 
 
@@ -4848,7 +4849,7 @@
         <p class="slg-modal-sub" data-modal-sub></p>
         <p class="slg-modal-line" data-modal-line hidden></p>
 
-        <!-- 장소 음성 해설 (d-1.wav ~ d-13.wav) -->
+        <!-- 장소 음성 해설 (audio/w1~w4 · g5~g10 · f11~f13.wav) -->
         <div class="slg-audio" data-modal-audio hidden>
           <button type="button" class="slg-audio-btn" data-audio-toggle aria-pressed="false" aria-label="음성 해설 듣기">
             <span class="slg-aico">
@@ -6099,7 +6100,7 @@
      feat   : 팝업 '구성' 항목 (비우면 '순서' 표시)
      img    : 흐름 썸네일 · 팝업 갤러리 첫 장
      img2   : 팝업 갤러리 두 번째 장 (시설 사진이 없는 장소용 — 비우면 사진 1장만 표시)
-     audio  : 음성 해설 파일 (비우면 d-{번호}.wav 자동 연결 — 아래 AUDIO_DIR 참고) */
+     audio  : 음성 해설 파일 (비우면 audio/w1 · g5 · f11 처럼 코스 접두어 + 번호로 자동 연결 — 아래 AUDIO_DIR 참고) */
   var PLACES = [
     /* ROUTE.1 · WATER COURSE · 250m */
     { code:'1',  course:'water',  name:'워터폴가든',     en:'WATERFALL GARDEN',   key:false, feat:'', img:'./img/bs-gj/f-1.jpg',
@@ -6174,12 +6175,20 @@
       tip:'포레스트 코스의 끝에서 아이들과 함께 숲속 모험을 즐기며 여정을 마무리해 보세요.' }
   ];
 
-  /* [음성 해설] 장소 번호 순서대로 d-1.wav ~ d-13.wav 자동 연결
+  /* [음성 해설] 코스별 접두어 + 장소 번호로 자동 연결
+       Water  Course : w1.wav ~ w4.wav
+       Garden Course : g5.wav ~ g10.wav
+       Forest Course : f11.wav ~ f13.wav
      특정 장소만 다른 파일을 쓰려면 PLACES 항목에 audio:'경로' 를 넣으세요
      (파일이 없으면 그 장소의 플레이어는 자동으로 숨겨집니다) */
-  var AUDIO_DIR = './img/bs-gj/';
-  var AUDIO_EXT = '.wav';
-  function audioOf(p){ return p.audio || (AUDIO_DIR + 'd-' + p.code + AUDIO_EXT); }
+  var AUDIO_DIR    = './img/bs-gj/audio/';
+  var AUDIO_EXT    = '.wav';
+  var AUDIO_PREFIX = { water:'w', garden:'g', forest:'f' };
+  function audioOf(p){
+    if(p.audio) return p.audio;
+    var pre = AUDIO_PREFIX[p.course];
+    return pre ? (AUDIO_DIR + pre + p.code + AUDIO_EXT) : '';
+  }
   /* ▲ 데이터 끝 ============================================== */
 
   var CAT_LABEL = { play:'플레이 랜드', relax:'릴렉스 스팟',
