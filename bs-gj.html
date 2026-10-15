@@ -4177,7 +4177,7 @@
       </div>
     </div>
     <div class="sc-links">
-      <button type="button" class="sc-link sc-tts" data-sc-tts="water" data-tts-key="sc-water" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
+      <button type="button" class="sc-link sc-tts" data-sc-tts="water" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
       <button type="button" class="sc-link" data-sc-video="water">코스 안내 보기</button>
       <button type="button" class="sc-link" data-sc-locate="1,2,3,4">배치도 위치</button>
     </div>
@@ -4203,7 +4203,7 @@
       </div>
     </div>
     <div class="sc-links">
-      <button type="button" class="sc-link sc-tts" data-sc-tts="garden" data-tts-key="sc-garden" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
+      <button type="button" class="sc-link sc-tts" data-sc-tts="garden" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
       <button type="button" class="sc-link" data-sc-video="garden">코스 안내 보기</button>
       <button type="button" class="sc-link" data-sc-locate="5,6,7,8,9,10">배치도 위치</button>
     </div>
@@ -4231,7 +4231,7 @@
       </div>
     </div>
     <div class="sc-links">
-      <button type="button" class="sc-link sc-tts" data-sc-tts="forest" data-tts-key="sc-forest" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
+      <button type="button" class="sc-link sc-tts" data-sc-tts="forest" aria-pressed="false"><span class="tts-ico" aria-hidden="true"><svg class="tts-spk" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg><span class="tts-eq"><i></i><i></i><i></i></span></span><span class="tts-label">설명 듣기</span></button>
       <button type="button" class="sc-link" data-sc-video="forest">코스 안내 보기</button>
       <button type="button" class="sc-link" data-sc-locate="11,12,13">배치도 위치</button>
     </div>
@@ -4376,9 +4376,8 @@
     #seosin-course .sc-link:hover::after{ width:1.6em; }
   }
 
-  /* ── AI 도슨트 음성 (설명 듣기) ── */
+  /* ── 설명 듣기 (녹음 WAV) ── */
   #seosin-course .sc-tts{ margin-right:auto; gap:.7em; }
-  #seosin-course .sc-tts[hidden]{ display:none; }
   #seosin-course .sc-tts::before{ left:1.95em; right:0; }
   #seosin-course .sc-tts::after{ display:none; }
   #seosin-course .tts-ico{ position:relative; display:inline-grid; place-items:center; width:1.3em; height:1.3em; flex:0 0 auto; }
@@ -4386,13 +4385,17 @@
     transition:opacity .35s ease, transform .35s ease; }
   #seosin-course .tts-eq{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:2px; opacity:0; transition:opacity .35s ease; }
   #seosin-course .tts-eq i{ width:2px; height:42%; border-radius:1px; background:currentColor; transform:scaleY(.5); }
-  #seosin-course .sc-tts.is-speaking{ color:var(--sc-gold); }
+  #seosin-course .sc-tts.is-speaking,
+  #seosin-course .sc-tts.is-loading{ color:var(--sc-c, var(--sc-gold)); }
   #seosin-course .sc-tts.is-speaking .tts-spk{ opacity:0; transform:scale(.7); }
   #seosin-course .sc-tts.is-speaking .tts-eq{ opacity:1; }
   #seosin-course .sc-tts.is-speaking .tts-eq i{ animation:sc-eq .9s ease-in-out infinite; }
   #seosin-course .sc-tts.is-speaking .tts-eq i:nth-child(2){ animation-delay:-.3s; }
   #seosin-course .sc-tts.is-speaking .tts-eq i:nth-child(3){ animation-delay:-.6s; }
+  #seosin-course .sc-tts.is-loading .tts-spk{ animation:sc-pulse 1s ease-in-out infinite; }
+  #seosin-course .sc-tts.is-error{ color:var(--sc-ink-3); cursor:default; }
   @keyframes sc-eq{ 0%,100%{ transform:scaleY(.45); } 50%{ transform:scaleY(1.5); } }
+  @keyframes sc-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.3; } }
   /* 읽는 문단만 또렷하게 */
   #seosin-course .sc-text p{ transition:opacity .6s ease, color .6s ease; }
   #seosin-course .is-tts .sc-text p.tts-part{ opacity:.38; }
@@ -4469,6 +4472,8 @@
     #seosin-course.is-js .sc-links{ opacity:1; transform:none; animation:none !important; }
     #seosin-course.is-js .sc-fig{ clip-path:none; animation:none !important; }
     #seosin-course .sc-img{ transform:none; transition:opacity .01ms; }
+    #seosin-course .sc-tts .tts-eq i,
+    #seosin-course .sc-tts .tts-spk{ animation:none !important; }
   }
 </style>
 
@@ -4480,6 +4485,18 @@
 
   var GUIDE_ID = 'seosin-landscape-guide';
   var MAP_ID   = 'guide-section';
+
+  /* ★ 코스별 음성 파일 — 앞에서부터 재생 가능한 첫 파일을 씁니다.
+       용량을 줄이려면 mp3 를 앞에 추가: ['./img/bs-gj/audio/1.mp3', './img/bs-gj/audio/1.wav'] */
+  var AUDIO = {
+    water:  ['./img/bs-gj/audio/1.wav'],
+    garden: ['./img/bs-gj/audio/2.wav'],
+    forest: ['./img/bs-gj/audio/3.wav']
+  };
+  /* ★ 녹음에서 본문 첫 문단이 시작되기 전 도입부 길이(초) — 코스명 안내 등이 있으면 조정 */
+  var LEAD_SEC = { water:0, garden:0, forest:0 };
+
+  var LABEL = { idle:'설명 듣기', loading:'불러오는 중', playing:'듣기 멈춤', error:'재생할 수 없어요' };
 
   function each(l, fn){ Array.prototype.forEach.call(l || [], fn); }
   function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
@@ -4551,7 +4568,6 @@
   function openCourse(code){
     var g = document.getElementById(GUIDE_ID);
     if(!g) return;
-    /* 3개 코스가 모두 펼쳐져 있으면 해당 코스 패널로 바로 이동 */
     var course = g.querySelector('#slg-course-' + code);
     if(course){ scrollToEl(course); return; }
     var chip = g.querySelector('.slg-chips[data-filter="zone"] .slg-chip[data-value="' + code + '"]');
@@ -4564,27 +4580,149 @@
     });
   }
 
-  /* 설명 듣기 — 조경 가이드 섹션의 AI 도슨트 음성(FlosDocent)을 함께 씁니다 */
-  function courseSegs(item){
-    var name = item.querySelector('.sc-name'), copy = item.querySelector('.sc-copy'), route = item.querySelector('.sc-route');
-    var title = name ? name.cloneNode(true) : null;
-    if(title) each(title.querySelectorAll('.sc-key,.sc-bar,.sc-en'), function(x){ x.parentNode.removeChild(x); });
-    var rt = route ? Array.prototype.map.call(route.childNodes, function(n){ return n.textContent.trim(); }).filter(Boolean).join(', ') : '';
-    var segs = [{ text:(title ? title.textContent.trim() : '') + '. ' + (rt ? rt + ' 코스입니다.' : '') },
-                { text:copy ? copy.textContent + '.' : '' }];
-    each(item.querySelectorAll('.sc-text p'), function(p){ segs.push({ text:p.textContent, el:p }); });
-    return segs;
+  /* ═════════ 설명 듣기 — 녹음 WAV 재생 ═════════
+     · <audio> 하나를 공유 (Web Audio 미사용 → iOS 무음모드·카톡 인앱 호환)
+     · 클릭 이벤트 안에서 동기적으로 play() 호출 → 모든 브라우저 자동재생 정책 통과
+     · 문단 하이라이트는 재생 위치를 문단 글자 수 비율로 환산 */
+  var player = null, cur = null, reqId = 0, errTimer = 0;
+
+  function getPlayer(){
+    if(player) return player;
+    var a = document.createElement('audio');
+    a.preload = 'none';
+    a.setAttribute('playsinline', '');
+    a.setAttribute('webkit-playsinline', '');
+    a.setAttribute('aria-hidden', 'true');
+    a.style.display = 'none';
+    root.appendChild(a);
+
+    a.addEventListener('playing', function(){ if(cur) setState(cur.btn, 'playing'); });
+    a.addEventListener('waiting', function(){ if(cur && !a.paused) setState(cur.btn, 'loading'); });
+    a.addEventListener('timeupdate', highlight);
+    a.addEventListener('ended', function(){ stopAudio(); });
+    a.addEventListener('error', function(){ if(cur) fail(cur.btn); });
+    player = a;
+    return a;
   }
-  function syncTts(){
-    if(!window.FlosDocent) each(root.querySelectorAll('[data-sc-tts]'), function(b){ b.hidden = true; });
+
+  function typeOf(src){
+    var ext = (src.split('?')[0].split('.').pop() || '').toLowerCase();
+    return { wav:'audio/wav', mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/mp4', ogg:'audio/ogg', oga:'audio/ogg', webm:'audio/webm' }[ext] || '';
   }
-  if(document.readyState === 'complete') syncTts(); else window.addEventListener('load', syncTts);
+  function pickSrc(list){
+    var a = getPlayer();
+    for(var i = 0; i < list.length; i++){
+      var t = typeOf(list[i]);
+      if(!t || a.canPlayType(t) || (t === 'audio/wav' && a.canPlayType('audio/wave; codecs="1"'))) return list[i];
+    }
+    return list[list.length - 1];
+  }
+  function absUrl(src){ var x = document.createElement('a'); x.href = src; return x.href; }
+
+  function setState(btn, s){
+    var lb = btn.querySelector('.tts-label');
+    btn.classList.toggle('is-loading', s === 'loading');
+    btn.classList.toggle('is-speaking', s === 'playing');
+    btn.classList.toggle('is-error', s === 'error');
+    btn.setAttribute('aria-pressed', (s === 'loading' || s === 'playing') ? 'true' : 'false');
+    if(lb) lb.textContent = LABEL[s];
+    if(s === 'playing' && cur && cur.btn === btn) cur.item.classList.add('is-tts');
+  }
+
+  function prepParts(item, key){
+    var ps = Array.prototype.slice.call(item.querySelectorAll('.sc-text p'));
+    var lens = ps.map(function(p){ return Math.max(1, p.textContent.replace(/\s+/g, '').length); });
+    var total = lens.reduce(function(s, n){ return s + n; }, 0), acc = 0;
+    var bounds = lens.map(function(n){ acc += n; return acc / total; });
+    each(ps, function(p){ p.classList.add('tts-part'); });
+    return { ps:ps, bounds:bounds, lead:LEAD_SEC[key] || 0 };
+  }
+
+  function highlight(){
+    if(!cur || !player) return;
+    var d = player.duration, P = cur.parts;
+    if(!isFinite(d) || d <= 0 || !P.ps.length) return;
+    var span = Math.max(.1, d - P.lead), t = player.currentTime - P.lead, idx = -1;
+    if(t >= 0){
+      var f = t / span;
+      for(var i = 0; i < P.bounds.length; i++){ if(f < P.bounds[i]){ idx = i; break; } }
+      if(idx < 0) idx = P.ps.length - 1;
+    }
+    each(P.ps, function(p, i){ p.classList.toggle('is-reading', i === idx); });
+  }
+
+  function stopOthers(){
+    var d = window.FlosDocent;
+    if(d && typeof d.stop === 'function'){ try{ d.stop(); }catch(_){} }
+    else if(window.speechSynthesis){ try{ window.speechSynthesis.cancel(); }catch(_){} }
+  }
+
+  function stopAudio(){
+    reqId++;
+    if(player){
+      try{ player.pause(); }catch(_){}
+      try{ if(player.readyState > 0) player.currentTime = 0; }catch(_){}
+    }
+    if(cur){
+      setState(cur.btn, 'idle');
+      cur.item.classList.remove('is-tts');
+      each(cur.parts.ps, function(p){ p.classList.remove('tts-part', 'is-reading'); });
+      cur = null;
+    }
+  }
+
+  function fail(btn){
+    stopAudio();
+    clearTimeout(errTimer);
+    setState(btn, 'error');
+    errTimer = setTimeout(function(){ if(btn.classList.contains('is-error')) setState(btn, 'idle'); }, 2600);
+  }
+
+  function startAudio(btn){
+    var key = btn.getAttribute('data-sc-tts'), list = AUDIO[key];
+    var item = btn.closest('.sc-item');
+    if(!list || !list.length || !item) return;
+
+    var a = getPlayer();
+    stopAudio();
+    stopOthers();
+    clearTimeout(errTimer);
+
+    var src = pickSrc(list);
+    if(a.src !== absUrl(src)){
+      a.src = src;
+      a.load();                          /* iOS/구형 WebView 에서 소스 교체 확정 */
+    } else {
+      try{ if(a.readyState > 0) a.currentTime = 0; }catch(_){}
+    }
+
+    cur = { btn:btn, item:item, key:key, parts:prepParts(item, key) };
+    setState(btn, 'loading');
+
+    var my = ++reqId, p;
+    try{ p = a.play(); }                 /* 반드시 클릭 핸들러 안에서 동기 호출 */
+    catch(err){ fail(btn); return; }
+    if(p && typeof p.then === 'function'){
+      p.catch(function(err){
+        if(my !== reqId) return;         /* 다른 코스로 바뀌며 중단된 경우 */
+        if(err && err.name === 'AbortError') return;
+        fail(btn);
+      });
+    }
+  }
+
+  /* 다른 영상·오디오가 재생되면 멈춤 */
+  document.addEventListener('play', function(e){
+    if(player && cur && e.target !== player) stopAudio();
+  }, true);
+  /* 탭 전환·앱 백그라운드(카톡 인앱 포함)·페이지 이탈 시 멈춤 */
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && cur) stopAudio(); });
+  window.addEventListener('pagehide', function(){ if(cur) stopAudio(); });
 
   root.addEventListener('click', function(e){
     var tb = e.target.closest('[data-sc-tts]');
     if(tb){
-      var d = window.FlosDocent, item = tb.closest('.sc-item');
-      if(d && item) d.toggle(tb.getAttribute('data-tts-key'), function(){ return courseSegs(item); }, { scope:item });
+      if(cur && cur.btn === tb) stopAudio(); else startAudio(tb);
       return;
     }
     var v = e.target.closest('[data-sc-video]');
