@@ -5016,18 +5016,15 @@
   display:grid; place-items:center;
   scroll-snap-align:start; scroll-snap-stop:always;
 }
-/* 사진 전체가 보이게(contain) + 같은 사진을 흐리게 깔아 여백을 채웁니다 */
-#seosin-landscape-guide .slg-slide .slg-thumb-fallback{ position:relative; z-index:0; }
+/* 사진 전체가 보이게(contain) — 겹치는 레이어 없이 한 장만 표시
+   (모바일 사파리에서 흐림 레이어가 원본을 덮던 문제 제거) */
+#seosin-landscape-guide .slg-slide{ background:#070b0a; }
+#seosin-landscape-guide .slg-slide .slg-thumb-fallback{ position:absolute; inset:0; z-index:0; }
 #seosin-landscape-guide .slg-slide .slg-thumb-fallback b{ font-size:34px; color:var(--slg-c); }
-#seosin-landscape-guide .slg-slide .slg-fig-bg{
-  position:absolute; top:-8%; left:-8%; width:116%; height:116%; z-index:1;
-  object-fit:cover; pointer-events:none;
-  filter:blur(26px) saturate(1.1) brightness(.4);
-  transform:translateZ(0);
-}
 #seosin-landscape-guide .slg-slide .slg-fig-main{
-  position:absolute; inset:0; z-index:2;
+  position:absolute; top:0; left:0; z-index:1;
   width:100%; height:100%; object-fit:contain; display:block;
+  background:#070b0a;
   -webkit-user-drag:none; user-select:none;
 }
 /* 넘김 버튼 · 장수 */
@@ -6302,11 +6299,14 @@
   }
 
   /* 이미지 파일이 없으면 깨진 아이콘 대신 뒤의 번호 · 배경이 보이게 숨깁니다 */
+  /* 모바일 사파리는 캐시된 이미지를 막 넣은 직후 complete=true · naturalWidth=0 으로
+     잠깐 보고하기 때문에, 즉시 검사하면 멀쩡한 이미지까지 숨겨집니다.
+     → 실제 error 이벤트에서만 숨기고, 나중에 load 되면 다시 보이게 합니다 */
   function hideBroken(box){
     Array.prototype.forEach.call(box.querySelectorAll('img'), function(img){
-      function bad(){ img.style.display = 'none'; }
-      if(img.complete && !img.naturalWidth && img.getAttribute('src')) bad();
-      img.addEventListener('error', bad);
+      if(!img.getAttribute('src')) return;
+      img.addEventListener('error', function(){ img.style.display = 'none'; });
+      img.addEventListener('load',  function(){ img.style.display = ''; });
     });
   }
 
@@ -6434,9 +6434,9 @@
   var galTimer = null, galHold = false;
 
   function slideHTML(s, i, n){
+    /* 사진 1장만 — 흐림 배경 레이어 없이 원본 전체가 보이게 */
     var imgs = s.src
-      ? '<img class="slg-fig-bg" src="' + esc(s.src) + '" alt="" aria-hidden="true" decoding="async">'
-      + '<img class="slg-fig-main" src="' + esc(s.src) + '" alt="' + esc(s.alt || '') + '" decoding="async" draggable="false">'
+      ? '<img class="slg-fig-main" src="' + esc(s.src) + '" alt="' + esc(s.alt || '') + '" loading="eager" draggable="false">'
       : '';
     /* 이미지가 없을 때 — 시설 사진은 이름만, 장소 사진은 번호 + 코스명 */
     var fb = s.cap
