@@ -2082,7 +2082,7 @@
   </script>
 </section>
 
-<section id="guide-section" aria-label="단지 조경 배치도" style="scroll-margin-top: 86px;">
+<section id="guide-section" aria-label="단지 조경 배치도" style="scroll-margin-top: 96px;">
   <div class="guide-section__inner">
     <div class="guide-section__map" data-gs-map="">
       <img class="guide-section__img" src="./img/jj-eco/guide-jj.png" alt="에코시티 더샵 4차 도슨트 투어 맵 — 루트나 장소를 누르면 해당 안내로 이동합니다" decoding="async" draggable="false">
@@ -2177,6 +2177,13 @@
     #guide-section .guide-section__hs[data-cat="forest"],
     #guide-section .guide-section__hs--zone[data-code="forest" i]{ --gs-rgb:92,138,74; }
     #guide-section .guide-section__hs[data-cat="play"] { --gs-rgb:46,118,160; }
+    /* ▼ 조감도 3개 구분 — 이미지 색 그대로 (GROUPS 의 rgb 와 같게) */
+    #guide-section .guide-section__hs[data-cat="tour"],
+    #guide-section .guide-section__hs--zone[data-code="tour" i]{ --gs-rgb:76,96,128; }   /* 조경투어 동선 · 남색 */
+    #guide-section .guide-section__hs[data-cat="play"],
+    #guide-section .guide-section__hs--zone[data-code="play" i]{ --gs-rgb:184,98,64; }   /* 플레이그라운드 · 주황 */
+    #guide-section .guide-section__hs[data-cat="walk"],
+    #guide-section .guide-section__hs--zone[data-code="walk" i]{ --gs-rgb:132,168,108; } /* 단지외곽산책로 · 초록 */
     #guide-section .guide-section__hs[data-cat="relax"]{ --gs-rgb:184,116,70; }
 
     #guide-section .guide-section__hs::before,
@@ -2446,6 +2453,12 @@
     #guide-section .guide-section__route g[data-cat="water"] { --gs-rgb:52,72,122;  --gs-lt:150,190,255; }
     #guide-section .guide-section__route g[data-cat="garden"]{ --gs-rgb:214,96,40;  --gs-lt:255,180,120; }
     #guide-section .guide-section__route g[data-cat="forest"]{ --gs-rgb:92,138,74;  --gs-lt:170,235,140; }
+    #guide-section .guide-section__route g[data-cat="tour"]{ --gs-lt:150,185,240; }
+    #guide-section .guide-section__route g[data-cat="play"]{ --gs-lt:255,170,120; }
+    #guide-section .guide-section__route g[data-cat="walk"]{ --gs-lt:180,235,140; }
+    #guide-section .guide-section__route.is-static polyline{ animation:none !important; stroke-dashoffset:0; opacity:1; }
+    #guide-section .guide-section__route.is-static .gs-r-flow{ display:none; }
+    #guide-section .guide-section__route.is-static .gs-r-dot{ fill:#ffd54a; stroke:#111; stroke-width:1.5; }
     #guide-section .guide-section__route polyline{
       fill:none; stroke-linecap:round; stroke-linejoin:round;
     }
@@ -2618,46 +2631,58 @@
       root.dataset.inited = '1';
 
       /* ==========================================================
-         ▼ 도슨트 투어 맵 핫스팟 좌표 — 편집 모드로 맞추세요
+         ▼ 조감도 3개 구분 — 이미지의 색 · 번호 그대로
 
-         페이지 주소 뒤에 ?hs=edit 를 붙여 열면
-           · 드래그로 위치 이동, 노란 점 드래그로 크기 조절
-           · [테스트] 로 실제 연동(스크롤 · 팝업) 바로 확인
-           · [전체 코드 복사] → 이 섹션 전체를 통째로 교체
-         ※ 아래 좌표는 팜플렛 맵 기준 추정값입니다 — 실제 guide-jj.png 위에서 한 번 맞춰 주세요.
+           조경투어 동선   (남색 · 번호 1~7)   group:'tour'
+           플레이그라운드 (주황 · A·B·C)      group:'play'
+           단지외곽산책로 (초록 · 바깥 순환길) group:'walk'
 
-         type:'zone' → 누르면 해당 루트 구간을 배치도에서 강조
-                       (code = 'water' ROUTE.1 조경투어 동선 · 'forest' ROUTE.2 단지외곽산책로)
-         type:'item' → 누르면 해당 장소 팝업 (code = 장소 번호 1~7 · 놀이공간 A~C)
-         같은 루트 안에서는 배열 순서대로 라인이 그려집니다 (투어 순서대로 배치)
-         Y 68% 아래(하단 ROUTE 범례)에 놓인 항목은 원 없이 글자만 표시됩니다
+         · 장소 원은 HOTSPOTS 에서 code 와 x·y(%) 만 맞추면 됩니다
+         · 이미지의 이름표(조경투어 동선 등)를 누르면 그 그룹만 배치도에서 빛납니다
+         · 선(path)은 GROUPS 의 path 좌표를 따라 그려집니다 — 루트 선 모양 그대로
+         · 좌표는 이미지 대비 %라서 PC · 모바일 모두 같은 자리에 붙습니다
+
+         편하게 맞추는 법 : 주소 뒤에 ?hs=edit
+           · 원 · 이름표 드래그 = 위치 이동
+           · [경로 그리기] → 그룹 선택 → 루트 선을 따라 클릭 → [전체 코드 복사]
          ========================================================== */
+      /*@GR-START*/
+      var GROUPS = {
+        tour: { name:'조경투어 동선', color:'76,96,128', line:true,
+                path:[[40.9,32.9], [40.9,44.9], [52.9,45.2], [53.9,46.5], [53.9,49.4], [52.9,50.6], [48.3,50.3], [40.9,49.8], [41,59.4], [40.1,61], [37.3,61.6], [36,65], [36.1,75.6], [37.9,78.4], [42.9,79.6], [47.9,77.7], [52.3,74.9], [57.6,72], [58.9,68.1], [57.9,61.6], [55.7,57.8], [53.5,56.8], [46.8,56.5], [42.9,53.7], [40.9,49.8]] },
+        play: { name:'플레이그라운드', color:'184,98,64', line:false,
+                path:[] },
+        walk: { name:'단지외곽산책로', color:'132,168,108', line:true,
+                path:[[40.2,33.8], [40,47.3], [39,52.9], [35.6,60.5], [31.2,67.3], [30.1,71.8], [32.3,75.6], [39,79.4], [43.4,80.8], [50.1,78.6], [55.7,74.9], [60.1,72.4], [61.4,73.9], [62.9,75.6], [69.6,72], [72.4,69], [72.2,59.5], [70.7,56], [61.2,41.8], [53.6,30.4], [51.8,27.2], [49,26.1], [45.2,28], [44.3,31.2], [44,35.5], [42.3,36.3], [40.2,36.5], [40.2,33.8]] }
+      };
+      /*@GR-END*/
+
+      /* type:'zone' = 이미지의 이름표 (누르면 그룹 강조)  ·  type:'item' = 번호 원 (누르면 장소 팝업) */
       /*@HS-START*/
       var HOTSPOTS = [
-        { type:'zone', code:'water', name:'ROUTE.1 조경투어 동선', x:56, y:1.3, w:15, h:3.6 },
-        { type:'zone', code:'forest', name:'ROUTE.2 단지외곽산책로', x:20.5, y:58.4, w:16, h:3.8 },
-        { type:'zone', code:'water', name:'ROUTE.1 조경투어 동선', x:7.5, y:71.4, w:31, h:3.6 },
-        { type:'zone', code:'forest', name:'ROUTE.2 단지외곽산책로', x:28.5, y:96.2, w:31, h:3.4 },
-        { type:'item', code:'5', name:'블루엣가든', x:67.7, y:41, cat:'water' },
-        { type:'item', code:'A', name:'스플래쉬가든', x:61.3, y:40.2, cat:'water' },
-        { type:'item', code:'4', name:'더샵트리', x:45.9, y:30.8, cat:'water' },
-        { type:'item', code:'6', name:'브릭가든', x:54.1, y:31.3, cat:'water' },
-        { type:'item', code:'C', name:'유아놀이터', x:48.8, y:27.1, cat:'water' },
-        { type:'item', code:'B', name:'어린이놀이터', x:58.8, y:46.3, cat:'forest' },
-        { type:'item', code:'2', name:'네이처테라스', x:44.5, y:49.6, cat:'forest' },
-        { type:'item', code:'7', name:'팽나무구릉숲', x:40.5, y:42.3, cat:'forest' },
-        { type:'item', code:'1', name:'미라지포레', x:46.8, y:40.6, cat:'forest' },
-        { type:'item', code:'3', name:'포레스트가든', x:45.7, y:18.1, cat:'forest' },
-        { type:'item', code:'5', name:'블루엣가든', x:7.9, y:78.5, d:6.5 },
-        { type:'item', code:'A', name:'스플래쉬가든', x:21.1, y:78.5, d:6.5 },
-        { type:'item', code:'4', name:'더샵트리', x:42.3, y:78.5, d:6.5 },
-        { type:'item', code:'6', name:'브릭가든', x:64.8, y:78.5, d:6.5 },
-        { type:'item', code:'C', name:'유아놀이터', x:86.6, y:78.5, d:6.5 },
-        { type:'item', code:'B', name:'어린이놀이터', x:7.9, y:90.8, d:6.5 },
-        { type:'item', code:'2', name:'네이처테라스', x:25, y:90.8, d:6.5 },
-        { type:'item', code:'7', name:'팽나무구릉숲', x:44.3, y:90.8, d:6.5 },
-        { type:'item', code:'1', name:'미라지포레', x:62.9, y:90.8, d:6.5 },
-        { type:'item', code:'3', name:'포레스트가든', x:82.9, y:90.8, d:6.5 }
+        { type:'zone', code:'tour', name:'조경투어 동선', x:55.4, y:19.2, w:13.6, h:4.1 },
+        { type:'zone', code:'walk', name:'단지외곽산책로', x:24, y:63.1, w:14.3, h:4.3 },
+        { type:'zone', code:'play', name:'플레이그라운드', x:58.9, y:65.9, w:14.3, h:4.3 },
+        { type:'item', code:'1', name:'미라지포레', x:48.1, y:49.7, cat:'tour' },
+        { type:'item', code:'2', name:'네이처테라스', x:45.8, y:56.8, cat:'tour' },
+        { type:'item', code:'3', name:'포레스트가든', x:47.1, y:32.3, cat:'tour' },
+        { type:'item', code:'4', name:'더샵트리', x:47.1, y:42.6, cat:'tour' },
+        { type:'item', code:'5', name:'블루엣가든', x:66.7, y:50.3, cat:'tour' },
+        { type:'item', code:'6', name:'브릭가든', x:54.6, y:42.8, cat:'tour' },
+        { type:'item', code:'7', name:'팽나무구릉숲', x:42.2, y:51.7, cat:'tour' },
+        { type:'item', code:'A', name:'스플래쉬가든', x:60.8, y:49.7, cat:'play' },
+        { type:'item', code:'B', name:'어린이놀이터', x:58.8, y:54.5, cat:'play' },
+        { type:'item', code:'C', name:'유아놀이터', x:49.9, y:39.5, cat:'play' },
+        { type:'item', code:'5', name:'블루엣가든', x:12.7, y:79.8 },
+        { type:'item', code:'A', name:'스플래쉬가든', x:24.9, y:79.9 },
+        { type:'item', code:'4', name:'더샵트리', x:43.8, y:79.5 },
+        { type:'item', code:'6', name:'브릭가든', x:64.2, y:79.3 },
+        { type:'item', code:'C', name:'유아놀이터', x:83.7, y:79.7 },
+        { type:'item', code:'3', name:'포레스트가든', x:80.3, y:89.8 },
+        { type:'item', code:'1', name:'미라지포레', x:62.4, y:89.7 },
+        { type:'item', code:'7', name:'팽나무구릉숲', x:45.6, y:89.3 },
+        { type:'item', code:'2', name:'네이처테라스', x:28.3, y:89.4 },
+        { type:'item', code:'B', name:'어린이놀이터', x:13, y:89.4 }
       ];
       /*@HS-END*/
 
@@ -2677,8 +2702,8 @@
 
       var GUIDE_ID = 'seosin-landscape-guide';
       var POINT_D  = 4.2;
-      var MAP_D    = 5.6;
-      var LEGEND_Y = 68;
+      var MAP_D    = 4.2;   /* 번호 원 터치 지름 (이미지 폭 대비 %) — 이미지 원 크기에 맞춤 */
+      var LEGEND_Y = 101;   /* 하단 범례 없음 — 모든 원이 배치도 위 */
 
       var map   = root.querySelector('[data-gs-map]');
       var layer = root.querySelector('[data-gs-layer]');
@@ -2722,12 +2747,8 @@
 
       function catalog(){
         var g = guide(), zones = [], items = [];
-        each(zoneChips(g), function(b){
-          var v = b.getAttribute('data-value');
-          if (!v || v === 'all') return;
-          var t = b.cloneNode(true), m = t.querySelector('.slg-mark');
-          if (m) m.parentNode.removeChild(m);
-          zones.push({ type:'zone', code:v, name:t.textContent.trim() });
+        Object.keys(GROUPS).forEach(function(k){
+          zones.push({ type:'zone', code:k, name:GROUPS[k].name });
         });
         if (g){
           each(g.querySelectorAll('.slg-card'), function(c){
@@ -2758,7 +2779,7 @@
           var o = HOTSPOTS[i];
           if (o !== h && !isZone(o) && o.cat && up(o.code) === up(h.code)) return o.cat;
         }
-        return 'play';
+        return 'tour';
       }
       function nameOf(h){
         if (isZone(h)) return h.name || h.code;
@@ -2786,7 +2807,7 @@
             ? h.code + ' ' + name + ' — 배치도에서 위치 보기'
             : h.code + ' ' + name + ' — 장소 설명 보기';
         var tip = zone
-          ? '<b>' + esc(name) + '</b><em>루트 보기</em>'
+          ? '<b>' + esc(name) + '</b><em>위치 보기</em>'
           : '<i>' + esc(h.code) + '</i>' + esc(name);
         var below = !zone && h.y < 14;
         var handles = '';
@@ -3174,7 +3195,7 @@
       /* ── 위치 확인 ── */
       var LOCATE_MS = 3900;
       var locT = null;
-      var COURSE = { water:1, garden:1, forest:1 };
+      var COURSE = GROUPS;   /* 이름표 code 가 그룹 키면 그룹 전체 강조 */
 
       function hsData(b){ return HOTSPOTS[Number(b.getAttribute('data-i'))] || {}; }
       function onMap(b){ return !isLegend(hsData(b)); }
@@ -3183,31 +3204,26 @@
         var codes = String(code).split(',')
           .map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean);
         var all = Array.prototype.slice.call(layer.querySelectorAll('.guide-section__hs'));
-        var els = [], lines = [], route = null;
+        var els = [], lines = [];
         function add(b){ if (els.indexOf(b) < 0) els.push(b); }
-        function pt(b){ var h = hsData(b); return { x:h.x, y:h.y }; }
 
         codes.forEach(function(c){
           if (COURSE[c]){
-            var line = { cat:c, pts:[] };
+            var gp = COURSE[c];
             all.forEach(function(b){
               if (!onMap(b)) return;
               var zone = b.getAttribute('data-type') === 'zone';
               if (zone && String(b.getAttribute('data-code')).toLowerCase() === c) add(b);
-              else if (!zone && b.getAttribute('data-cat') === c){
-                add(b);
-                if (b.classList.contains('guide-section__hs--ring')) line.pts.push(pt(b));
-              }
+              else if (!zone && b.getAttribute('data-cat') === c) add(b);
             });
-            lines.push(line);
+            if (gp.line && gp.path && gp.path.length > 1){
+              lines.push({ cat:c, pts:gp.path.map(function(q){ return { x:q[0], y:q[1] }; }) });
+            }
           } else {
+            /* 장소 번호 목록 (예: '5,A,4') — 해당 원만 강조 */
             all.forEach(function(b){
               if (!onMap(b) || String(b.getAttribute('data-code')).toLowerCase() !== c) return;
               add(b);
-              if (b.classList.contains('guide-section__hs--ring')){
-                if (!route){ route = { cat:b.getAttribute('data-cat'), pts:[] }; lines.push(route); }
-                route.pts.push(pt(b));
-              }
             });
           }
         });
@@ -3224,14 +3240,14 @@
         var s = layer.querySelector('.guide-section__route');
         if (s) s.parentNode.removeChild(s);
       }
-      function drawRoute(lines){
+      function drawRoute(lines, still){
         clearRoute();
-        lines = lines.filter(function(l){ return l.pts.length > 1; });
+        lines = lines.filter(function(l){ return l.pts.length > (still ? 0 : 1); });
         if (!lines.length) return;
         var r = map.getBoundingClientRect();
         var H = r.width ? Math.round(1000 * r.height / r.width) : 1000;
         layer.insertAdjacentHTML('afterbegin',
-          '<svg class="guide-section__route" viewBox="0 0 1000 ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+          '<svg class="guide-section__route' + (still ? ' is-static' : '') + '" viewBox="0 0 1000 ' + H + '" preserveAspectRatio="none" aria-hidden="true">' +
             '<defs>' +
               '<filter id="gs-glow-wide" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>' +
               '<filter id="gs-glow-soft" x="-20%" y="-20%" width="140%" height="140%">' +
@@ -3245,6 +3261,7 @@
                      '<polyline class="gs-r-glow" filter="url(#gs-glow-wide)" pathLength="1" points="' + p + '"/>' +
                      '<polyline class="gs-r-line" filter="url(#gs-glow-soft)" pathLength="1" points="' + p + '"/>' +
                      '<polyline class="gs-r-flow" pathLength="1" points="' + p + '"/>' +
+                     (still ? l.pts.map(function(o){ return '<circle class="gs-r-dot" r="5" cx="' + r1(o.x * 10) + '" cy="' + r1(o.y * H / 100) + '"/>'; }).join('') : '') +
                    '</g>';
           }).join('') + '</svg>');
       }
@@ -3341,7 +3358,7 @@
       ed.setAttribute('data-gs-editor', '');
       ed.innerHTML =
         '<div class="gse-head"><b>배치도 좌표 편집</b><span data-e-count></span><button type="button" data-e-min>접기</button></div>' +
-        '<p class="gse-help">드래그 = 이동 · 노란 점 = 크기 · 방향키 = 0.1% (Shift 1%) · Esc = 선택 해제<br>맵 원 지름은 코드의 MAP_D 로 통일 · Y ' + LEGEND_Y + '% 아래는 범례(글자만)</p>' +
+        '<p class="gse-help">드래그 = 이동 · 노란 점 = 이름표 크기 · 방향키 = 0.1% (Shift 1%) · Esc = 선택 해제<br>남색 = 조경투어 1~7 · 주황 = 플레이그라운드 A~C · 초록 = 단지외곽산책로</p>' +
         '<p class="gse-link" data-e-link></p>' +
         '<div class="gse-row">' +
           '<button type="button" data-e-mode="edit" class="is-on">편집</button>' +
@@ -3355,6 +3372,15 @@
           '<label class="gse-f"><span>추가할 항목 (조경 가이드 섹션 목록)</span></label>' +
           '<div class="gse-add"><select data-e-addsel></select><button type="button" data-e-add>+ 추가</button></div>' +
           '<div class="gse-row"><button type="button" data-e-addall>미배치 항목 모두 추가</button></div>' +
+        '</div>' +
+        '<div class="gse-box">' +
+          '<label class="gse-f"><span>경로 그리기 — 루트 선을 따라 배치도를 차례로 클릭</span><select data-e-pg></select></label>' +
+          '<div class="gse-row">' +
+            '<button type="button" data-e-pdraw>그리기 시작</button>' +
+            '<button type="button" data-e-pundo>한 점 취소</button>' +
+            '<button type="button" class="is-danger" data-e-pclear>지우기</button>' +
+          '</div>' +
+          '<div class="gse-row"><button type="button" data-e-pplay>선 미리보기 (애니메이션)</button></div>' +
         '</div>' +
         '<div class="gse-box">' +
           '<label class="gse-f"><span>선택</span><select data-e-pick></select></label>' +
@@ -3379,13 +3405,58 @@
         '<div class="gse-box">' +
           '<div class="gse-row"><button type="button" class="is-main" data-e-copy="all">전체 코드 복사</button></div>' +
           '<div class="gse-row">' +
-            '<button type="button" data-e-copy="data">좌표만 복사</button>' +
+            '<button type="button" data-e-copy="data">원 좌표만 복사</button>' +
             '<button type="button" data-e-reset>코드 값으로 되돌리기</button>' +
           '</div>' +
           '<p class="gse-msg" data-e-msg></p>' +
           '<textarea data-e-out readonly hidden></textarea>' +
         '</div>';
       root.appendChild(ed);
+
+      /* 경로 그리기 */
+      var GBASE = JSON.stringify(GROUPS);
+      var GKEY = 'gs-groups:' + location.pathname;
+      try{
+        var gsaved = JSON.parse(localStorage.getItem(GKEY) || 'null');
+        if (gsaved && gsaved.base === GBASE && gsaved.groups) GROUPS = COURSE = gsaved.groups;
+      }catch(e){}
+      function gsave(){ try{ localStorage.setItem(GKEY, JSON.stringify({ base:GBASE, groups:GROUPS })); }catch(e){} }
+
+      var ePg = ed.querySelector('[data-e-pg]');
+      var PDRAW = false;
+      function pgKey(){ return ePg.value; }
+      function renderPg(){
+        var v = ePg.value;
+        ePg.innerHTML = Object.keys(GROUPS).map(function(k){
+          var g = GROUPS[k];
+          return '<option value="' + k + '">' + esc(g.name + ' · 점 ' + (g.path || []).length + '개' + (g.line ? '' : ' (선 없음)')) + '</option>';
+        }).join('');
+        if (v && GROUPS[v]) ePg.value = v;
+      }
+      function showPath(){
+        var g = GROUPS[pgKey()];
+        if (!g) return;
+        drawRoute([{ cat:pgKey(), pts:(g.path || []).map(function(q){ return { x:q[0], y:q[1] }; }) }], true);
+      }
+      function setPdraw(on){
+        PDRAW = on;
+        var b = ed.querySelector('[data-e-pdraw]');
+        b.classList.toggle('is-on', on);
+        b.textContent = on ? '그리기 끝내기' : '그리기 시작';
+        if (on){ select(-1); showPath(); msg('배치도에서 루트 선을 따라 차례로 클릭하세요'); }
+        else { clearRoute(); renderPg(); }
+      }
+      function addPathPoint(e){
+        var r = map.getBoundingClientRect();
+        var g = GROUPS[pgKey()];
+        if (!g) return;
+        g.path = g.path || [];
+        g.path.push([ r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100)),
+                      r1(clamp((e.clientY - r.top) / r.height * 100, 0, 100)) ]);
+        gsave(); showPath(); renderPg();
+      }
+      renderPg();
+      ePg.addEventListener('change', function(){ if (PDRAW) showPath(); });
 
       var ePick   = ed.querySelector('[data-e-pick]');
       var eFields = ed.querySelector('[data-e-fields]');
@@ -3434,7 +3505,7 @@
         }
         var places = c.items.filter(function(i){ return i.place; });
         var rest   = c.items.filter(function(i){ return !i.place; });
-        return '<optgroup label="루트 → 구간 강조">' + c.zones.map(opt).join('') + '</optgroup>' +
+        return '<optgroup label="이름표 → 그룹 강조">' + c.zones.map(opt).join('') + '</optgroup>' +
                (places.length ? '<optgroup label="장소 1~7 · 놀이 A~C → 팝업">' + places.map(opt).join('') + '</optgroup>' : '') +
                (rest.length   ? '<optgroup label="기타 → 팝업">' + rest.map(opt).join('') + '</optgroup>' : '');
       }
@@ -3569,6 +3640,7 @@
 
       layer.addEventListener('pointerdown', function(e){
         if (TEST || ed.contains(e.target)) return;
+        if (PDRAW){ e.preventDefault(); addPathPoint(e); return; }
         var btn = e.target.closest('.guide-section__hs');
         if (!btn){ select(-1); return; }
         e.preventDefault();
@@ -3693,7 +3765,20 @@
           b.textContent = min ? '펼치기' : '접기';
           return;
         }
-        if (b.hasAttribute('data-e-mode')){ setMode(b.getAttribute('data-e-mode') === 'test'); return; }
+        if (b.hasAttribute('data-e-mode')){ setPdraw(false); setMode(b.getAttribute('data-e-mode') === 'test'); return; }
+        if (b.hasAttribute('data-e-pdraw')){ setMode(false); setPdraw(!PDRAW); return; }
+        if (b.hasAttribute('data-e-pundo')){
+          var gu = GROUPS[pgKey()];
+          if (gu && gu.path && gu.path.length){ gu.path.pop(); gsave(); renderPg(); if (PDRAW) showPath(); }
+          return;
+        }
+        if (b.hasAttribute('data-e-pclear')){
+          var gc = GROUPS[pgKey()];
+          if (!gc || !window.confirm(gc.name + ' 경로 점을 모두 지울까요?')) return;
+          gc.path = []; gsave(); renderPg(); if (PDRAW) showPath();
+          return;
+        }
+        if (b.hasAttribute('data-e-pplay')){ setPdraw(false); locate(pgKey()); return; }
         if (b.hasAttribute('data-e-view')){
           var mo = b.getAttribute('data-e-view') === 'mo';
           map.style.maxWidth = mo ? '375px' : '';
@@ -3721,7 +3806,8 @@
         if (b.hasAttribute('data-e-try')){
           var t = HOTSPOTS[sel];
           if (!t) return;
-          var ok = isZone(t) ? goZone(t.code) : openFacility(t.code);
+          if (isZone(t)){ locate(t.code); return; }
+          var ok = openFacility(t.code);
           if (!ok) msg('⚠ ' + t.code + ' — 조경 가이드 섹션에서 찾을 수 없습니다');
           return;
         }
@@ -3737,8 +3823,10 @@
         if (b.hasAttribute('data-e-reset')){
           if (!window.confirm('편집한 내용을 버리고 코드에 적힌 좌표로 되돌릴까요?')) return;
           HOTSPOTS = JSON.parse(BASE);
+          GROUPS = COURSE = JSON.parse(GBASE);
           sel = -1;
-          try{ localStorage.removeItem(KEY); }catch(x){}
+          setPdraw(false);
+          try{ localStorage.removeItem(KEY); localStorage.removeItem(GKEY); }catch(x){}
           refresh();
           msg('코드 값으로 되돌렸습니다');
           return;
@@ -3772,6 +3860,14 @@
         }).join(',\n') + '\n      ]';
       }
 
+      function serializeGroups(){
+        return '{\n' + Object.keys(GROUPS).map(function(k){
+          var g = GROUPS[k];
+          var pts = (g.path || []).map(function(q){ return '[' + r1(q[0]) + ',' + r1(q[1]) + ']'; }).join(', ');
+          return '        ' + k + ': { name:' + q(g.name) + ', color:' + q(g.color || '') + ', line:' + (g.line ? 'true' : 'false') + ',\n                path:[' + pts + '] }';
+        }).join(',\n') + '\n      }';
+      }
+
       function fullCode(){
         var c = root.cloneNode(true);
         c.removeAttribute('data-inited');
@@ -3791,6 +3887,13 @@
           txt = txt.slice(0, a + S.length) +
                 '\n      var HOTSPOTS = ' + serialize() + ';\n      ' +
                 txt.slice(b);
+        }
+        var GS = '/*@GR' + '-START*/', GE = '/*@GR' + '-END*/';
+        var ga = txt.indexOf(GS), gb = ga > -1 ? txt.indexOf(GE, ga) : -1;
+        if (ga > -1 && gb > -1){
+          txt = txt.slice(0, ga + GS.length) +
+                '\n      var GROUPS = ' + serializeGroups() + ';\n      ' +
+                txt.slice(gb);
         }
         sc.textContent = txt;
         return c.outerHTML;
