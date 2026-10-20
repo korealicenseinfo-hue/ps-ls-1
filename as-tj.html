@@ -6770,7 +6770,39 @@
   var ARROW_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
   var ARROW_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 
+  /* 실제로 불러와지는 사진만 갤러리에 넣음 — 없는 파일은 칸 자체를 만들지 않음 */
+  var imgOK = {}, galTok = 0;
+  function probe(src, done){
+    if(Object.prototype.hasOwnProperty.call(imgOK, src)){ done(imgOK[src]); return; }
+    var im = new Image();
+    im.onload  = function(){ imgOK[src] = !!im.naturalWidth; done(imgOK[src]); };
+    im.onerror = function(){ imgOK[src] = false; done(false); };
+    im.src = src;
+  }
   function setGallery(slides){
+    var tok = ++galTok;
+    var seen = {};
+    var cand = (slides || []).filter(function(s){
+      if(!s.src || seen[s.src]) return false;
+      seen[s.src] = 1;
+      return true;
+    });
+    /* 사진이 하나도 없을 때만 번호 · 이름 카드 1장 */
+    var empty = slides && slides[0] ? [{ src:'', alt:slides[0].alt, code:slides[0].code, label:slides[0].label, name:slides[0].name, cap:false }] : [];
+    function finish(){
+      if(tok !== galTok) return;
+      var list = cand.filter(function(s){ return imgOK[s.src]; });
+      buildGallery(list.length ? list : empty);
+    }
+    galStop();
+    var left = cand.length;
+    if(!left){ finish(); return; }
+    var known = cand.every(function(s){ return Object.prototype.hasOwnProperty.call(imgOK, s.src); });
+    if(!known){ mFig.innerHTML = ''; gal = null; galN = 0; }
+    cand.forEach(function(s){ probe(s.src, function(){ if(--left === 0) finish(); }); });
+  }
+
+  function buildGallery(slides){
     galN = slides.length;
     var ui = galN > 1
       ? '<button type="button" class="slg-gal-btn slg-gal-btn--prev" data-gal-prev aria-label="이전 사진">' + ARROW_L + '</button>'
@@ -7083,7 +7115,7 @@
   }
 
   /* 팝업 갤러리 최소 장수 — 사진이 모자라면 장소·시설 이름 카드로 채워 항상 넘김이 되게 */
-  var MIN_SLIDES = 2;
+  var MIN_SLIDES = 1;   /* 빈 칸 채우기 없음 — 사진이 있는 장수만큼만 표시 */
   function extraImgs(o){
     return [].concat(o.imgs || [], o.img2 ? [o.img2] : []).filter(Boolean);
   }
