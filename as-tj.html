@@ -2421,6 +2421,62 @@
     #guide-section .gse button.is-danger{ color:#ef5b63; border-color:rgba(239,91,99,.5); }
     #guide-section .gse-head button{ flex:0 0 auto; padding:3px 8px; }
     #guide-section .gse-box{ margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,.12); }
+
+    /* ── 코스 경로 편집 (점 드래그) ── */
+    #guide-section .gse-pe{ position:absolute; inset:0; z-index:8; pointer-events:none; }
+    #guide-section .gse-pe-svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+    #guide-section .gse-pe-ghost{
+      fill:none; stroke:rgba(var(--pc),.7); stroke-width:3; stroke-dasharray:7 5;
+      stroke-linejoin:round; vector-effect:non-scaling-stroke;
+    }
+    #guide-section .gse-pe-line{
+      fill:none; stroke:rgb(var(--pc)); stroke-width:4; stroke-linejoin:round; stroke-linecap:round;
+      vector-effect:non-scaling-stroke; filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 1px #fff);
+    }
+    #guide-section .gse-pe-seg{
+      stroke:transparent; stroke-width:16; stroke-linecap:round;
+      vector-effect:non-scaling-stroke; pointer-events:stroke; cursor:copy;
+    }
+    #guide-section .gse-pe-seg:hover{ stroke:rgba(255,213,74,.5); }
+    #guide-section .gse-pe-pt{
+      position:absolute; z-index:1; display:grid; place-items:center;
+      width:18px; height:18px; margin:-9px 0 0 -9px; border-radius:50%;
+      background:#fff; border:2px solid rgb(var(--pc));
+      box-shadow:0 1px 5px rgba(0,0,0,.45);
+      pointer-events:auto; cursor:grab; touch-action:none;
+      transition:transform .15s ease;
+    }
+    #guide-section .gse-pe-pt b{ font:700 8px/1 -apple-system,"Noto Sans KR",sans-serif; color:rgb(var(--pc)); pointer-events:none; }
+    #guide-section .gse-pe-pt:hover{ transform:scale(1.2); }
+    #guide-section .gse-pe-pt.is-first{ background:rgb(var(--pc)); }
+    #guide-section .gse-pe-pt.is-first b{ color:#fff; }
+    #guide-section .gse-pe-pt.is-sel{ z-index:2; background:#ffd54a; border-color:#111; transform:scale(1.3); }
+    #guide-section .gse-pe-pt.is-sel b{ color:#111; }
+    #guide-section.is-pdrag .gse-pe-pt{ cursor:grabbing; transition:none; }
+    #guide-section.is-pedit .guide-section__hs{ pointer-events:none; opacity:.4; }
+    #guide-section.is-pedit .guide-section__map{ cursor:crosshair; }
+    /* 코스 통째로 이동 */
+    #guide-section .gse-pe-grab{
+      fill:none; stroke:transparent; stroke-width:24; stroke-linejoin:round; stroke-linecap:round;
+      vector-effect:non-scaling-stroke; pointer-events:stroke; cursor:move;
+    }
+    #guide-section .gse-pe-grab:hover{ stroke:rgba(var(--pc),.25); }
+    #guide-section .gse-pe-box{
+      position:absolute; box-sizing:border-box;
+      border:1.5px dashed rgb(var(--pc)); border-radius:8px;
+      background:rgba(var(--pc),.09);
+      pointer-events:auto; cursor:move; touch-action:none;
+    }
+    #guide-section .gse-pe-box span{
+      position:absolute; left:-1px; bottom:100%; margin-bottom:4px;
+      padding:3px 8px; border-radius:4px; white-space:nowrap;
+      font:600 11px/1.2 -apple-system,"Noto Sans KR",sans-serif; color:#fff; background:rgb(var(--pc));
+      pointer-events:none;
+    }
+    #guide-section.is-pdrag .gse-pe-box,
+    #guide-section.is-pdrag .gse-pe-grab{ cursor:grabbing; }
+    #guide-section .gse-pinfo{ margin:8px 0 0; font-size:11px; line-height:1.55; color:#d8d2c4; }
+    #guide-section .gse-pinfo b{ color:#ffd54a; font-weight:600; }
     #guide-section .gse-msg{ margin:8px 0 0; min-height:1.5em; color:#ffd54a; }
     #guide-section .gse-link{ margin:6px 0 0; padding:6px 8px; border-radius:4px; background:rgba(255,255,255,.05); font-size:11px; }
     #guide-section .gse-link.is-ok{ color:#7fd6a0; }
@@ -2637,16 +2693,19 @@
 
          편하게 맞추는 법 : 주소 뒤에 ?hs=edit
            · 원 · 이름표 드래그 = 위치 이동
-           · [경로 그리기] → 그룹 선택 → 루트 선을 따라 클릭 → [전체 코드 복사]
+           · [코스 통째로 이동] → 코스 선이나 점선 상자를 끌면 코스 전체가 한 번에 이동 (축소/확대 버튼으로 크기 조정)
+           · [점 개별 편집] → 점 드래그 · 선 위 클릭으로 점 추가 · 더블클릭 삭제 → [전체 코드 복사]
+           · [끝에 이어 그리기] → 배치도를 차례로 클릭해 점을 이어 붙이기
+           · [모든 루트 함께 보기] → 3개 루트를 한 번에 겹쳐 확인
          ========================================================== */
       /*@GR-START*/
       var GROUPS = {
         open: { name:'OPENVIEW COURSE', color:'208,132,79', line:true,
-                path:[[41.1,40], [44.1,44.5], [45.3,44.7], [47.5,43.5], [47.8,42.9], [47.7,42.2], [44.6,38.5], [44.9,38], [46.6,37.7], [47,35.4], [46.2,34.7], [41.3,33.9], [40.6,33.5], [36.4,27.3], [35.6,26.6], [34.6,26.6], [33.3,27.2], [32.9,28.2], [33.1,28.9], [37.3,34.7], [37.3,36], [36.5,38.5], [36.6,39.6], [37,40.2], [38.7,41], [39.3,40.7], [40.2,39.7], [41.1,40]] },
+                path:[[41.6,52.3], [44.2,55.3], [45.6,55.9], [46.9,55.2], [47.8,54.9], [48.5,53.7], [44.9,51], [45.2,50.5], [46.9,50.2], [47.5,48.5], [46.5,47.2], [42,46.8], [40.5,45.8], [37.4,41.6], [36.5,40.7], [35.6,40.5], [34.2,41], [33.6,41.6], [33.9,43.3], [38,47.2], [38,48.5], [37.2,51], [37.3,51.9], [37.7,52.5], [39.2,53.3], [39.8,53], [41.6,52.1], [41.6,52.3]] },
         community: { name:'COMMUNITY COURSE', color:'92,125,169', line:true,
-                path:[[53.3,16.9], [54.7,14.8], [55.7,13.9], [57.3,13.2], [58.9,13.1], [59.8,14.3], [58.5,18.8], [58.6,19.9], [64.5,22], [65.6,21.8], [66.2,21.1], [67.6,16.7], [68.5,15.1], [69.7,14.8], [71.2,15.2], [73.3,16.7], [73.9,17.8], [73.6,19.8], [71.2,25], [69.8,26.2], [66.3,28.1], [65.4,29], [63.7,34.3], [62.9,35.8], [62.1,36.5], [59.9,36.4], [54.3,34.3], [53.8,33.1], [54.7,30.1], [54.6,28.3], [53.2,27.4], [48.4,26.2], [47.4,25], [49.4,19], [50.5,18.1], [52.6,18.1], [53.3,16.9]] },
+                path:[[53.8,33], [55.2,30.9], [56.2,30], [57.7,29.5], [59.4,29.2], [60.3,30.4], [59,34.9], [59.1,36], [64,37], [65.7,37.1], [66.9,35.8], [68.1,32.8], [69,31.2], [70.2,30.9], [71.7,31.3], [73.4,32.7], [74.4,33.9], [73.8,36.2], [71.1,40.4], [68.2,41.7], [66.1,42.8], [65.1,44.4], [64.2,47], [63.5,48.5], [62.1,49.2], [60.3,49.3], [57.9,48.2], [55.6,47.3], [54.6,46.2], [55.6,43.2], [54.1,42], [49.6,41], [47.9,39.9], [49.9,35.1], [51,34.2], [53.1,34.2], [53.8,33]] },
         walk: { name:'WALKING COURSE', color:'150,182,104', line:true,
-                path:[[22.8,35.9], [17.8,28.7], [17.8,26.6], [19.1,24.9], [26.3,23.9], [41.6,18.2], [49.7,13.8], [61.8,10.7], [64.2,10.6], [67,11.2], [68,12], [68.8,13.6], [72.5,14.8], [74.4,17.1], [74.4,19.8], [72,25.4], [70,27.1], [67.4,28.4], [67.3,28.8], [75.3,31], [76.5,27.4], [77.4,26.3], [79.4,25.9], [80.7,27], [79.9,28.8], [77.9,31.2], [67.4,40.5], [64.4,41.7], [59.4,42.1], [58.4,42.8], [57.3,45.2], [55.8,46.5], [42.8,50.9], [36.4,50.7], [33.3,49.6], [31,48.1], [23.8,39.7], [22.2,37.1], [22.8,35.9]] }
+                path:[[21.8,46.1], [19.5,43.9], [18,41.7], [20,39.5], [28.4,38.6], [41.9,34.5], [50.3,30.3], [62.5,27.8], [65.6,27.8], [67.9,28.1], [68.6,28.5], [68.7,29.1], [69.9,30.2], [71.4,30.7], [73.5,31.3], [75,33.6], [75.3,34.1], [75,36.3], [72.5,40.2], [69.8,41.5], [67.9,42.9], [71.9,43.7], [75,44.4], [76.4,42.6], [78.3,40.4], [80.6,40.4], [80.9,42.4], [78.7,44.7], [75.2,47.1], [67.6,52.6], [63,53.5], [59.2,53.8], [55.9,57.8], [50.9,58.7], [45.5,60.5], [40.7,60.9], [36.6,60.6], [32.4,58.8], [30,57], [27.1,54.4], [24.8,51.9], [23,49], [21.8,46.1]] }
       };
       /*@GR-END*/
 
@@ -2654,7 +2713,7 @@
       /*@HS-START*/
       var HOTSPOTS = [
         { type:'zone', code:'open', name:'OPENVIEW COURSE', x:47.3, y:65.8, w:21.7, h:4.1 },
-        { type:'zone', code:'community', name:'COMMUNITY COURSE', x:63.4, y:0.9, w:24.4, h:4 },
+        { type:'zone', code:'community', name:'COMMUNITY COURSE', x:63.8, y:19.8, w:24.4, h:4 },
         { type:'zone', code:'walk', name:'WALKING COURSE', x:21.6, y:67.4, w:21.4, h:4 },
         { type:'zone', code:'open', name:'ROUTE.1 OPENVIEW COURSE', x:6.7, y:75.6, w:45.2, h:10.1 },
         { type:'zone', code:'community', name:'ROUTE.2 COMMUNITY COURSE', x:57.7, y:78.5, w:36.6, h:17.2 },
@@ -3376,13 +3435,30 @@
           '<div class="gse-row"><button type="button" data-e-addall>미배치 항목 모두 추가</button></div>' +
         '</div>' +
         '<div class="gse-box">' +
-          '<label class="gse-f"><span>경로 그리기 — 루트 선을 따라 배치도를 차례로 클릭</span><select data-e-pg></select></label>' +
+          '<label class="gse-f"><span>코스 경로 — 루트를 고르고 선 · 점을 직접 옮기세요</span><select data-e-pg></select></label>' +
           '<div class="gse-row">' +
-            '<button type="button" data-e-pdraw>그리기 시작</button>' +
-            '<button type="button" data-e-pundo>한 점 취소</button>' +
-            '<button type="button" class="is-danger" data-e-pclear>지우기</button>' +
+            '<button type="button" class="is-main" data-e-pmove>코스 통째로 이동</button>' +
+            '<button type="button" data-e-pedit>점 개별 편집</button>' +
+          '</div>' +
+          '<div class="gse-row">' +
+            '<button type="button" data-e-pscale="-1">코스 축소 −</button>' +
+            '<button type="button" data-e-pscale="1">코스 확대 +</button>' +
+          '</div>' +
+          '<div class="gse-row">' +
+            '<button type="button" data-e-pdraw>끝에 이어 그리기</button>' +
+            '<button type="button" data-e-pall>모든 루트 함께 보기</button>' +
           '</div>' +
           '<div class="gse-row"><button type="button" data-e-pplay>선 미리보기 (애니메이션)</button></div>' +
+          '<div class="gse-row">' +
+            '<button type="button" data-e-pdel>선택 점 삭제</button>' +
+            '<button type="button" data-e-pundo>마지막 점 취소</button>' +
+          '</div>' +
+          '<div class="gse-row">' +
+            '<button type="button" data-e-pclose>시작점으로 닫기</button>' +
+            '<button type="button" class="is-danger" data-e-pclear>경로 지우기</button>' +
+          '</div>' +
+          '<p class="gse-pinfo" data-e-pinfo></p>' +
+          '<div class="gse-row"><button type="button" data-e-copy="groups">경로 좌표만 복사</button></div>' +
         '</div>' +
         '<div class="gse-box">' +
           '<label class="gse-f"><span>선택</span><select data-e-pick></select></label>' +
@@ -3435,30 +3511,336 @@
         }).join('');
         if (v && GROUPS[v]) ePg.value = v;
       }
-      function showPath(){
+      /* ── 코스 경로 편집 ──────────────────────────────
+           점 드래그          = 점 이동
+           Shift + 점 드래그  = 루트 전체 이동
+           선 위 클릭         = 그 자리에 점 추가 (바로 드래그 가능)
+           점 더블클릭 · Delete = 점 삭제
+           방향키             = 선택 점 0.1% 이동 (Shift 1%)
+         ───────────────────────────────────────────── */
+      var PEDIT = false, PALL = false, PMOVE = false, selP = -1, pdrag = null, pe = null;
+      var ePinfo = ed.querySelector('[data-e-pinfo]');
+
+      function gColor(k){ var g = GROUPS[k]; return (g && g.color) ? g.color : '146,52,62'; }
+      function curPath(){
         var g = GROUPS[pgKey()];
-        if (!g) return;
-        drawRoute([{ cat:pgKey(), pts:(g.path || []).map(function(q){ return { x:q[0], y:q[1] }; }) }], true);
+        if (!g) return null;
+        g.path = g.path || [];
+        return g.path;
+      }
+      function mapPct(e){
+        var r = map.getBoundingClientRect();
+        return [ r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100)),
+                 r1(clamp((e.clientY - r.top) / r.height * 100, 0, 100)) ];
+      }
+      /* 시작점 = 끝점이면 닫힌 루트 — 두 점을 하나처럼 다룸 */
+      function isClosed(p){ return p.length > 2 && p[0][0] === p[p.length - 1][0] && p[0][1] === p[p.length - 1][1]; }
+      function ptsAttr(p){ return p.map(function(q){ return q[0] + ',' + q[1]; }).join(' '); }
+
+      function peClear(){ if (pe && pe.parentNode) pe.parentNode.removeChild(pe); pe = null; }
+      function peOn(){ return PEDIT || PDRAW || PMOVE; }
+
+      /* 코스 영역(사각형) */
+      function bbox(p){
+        var x0 = 100, y0 = 100, x1 = 0, y1 = 0;
+        p.forEach(function(q){ x0 = Math.min(x0, q[0]); y0 = Math.min(y0, q[1]); x1 = Math.max(x1, q[0]); y1 = Math.max(y1, q[1]); });
+        return { x0:x0, y0:y0, x1:x1, y1:y1, cx:(x0 + x1) / 2, cy:(y0 + y1) / 2 };
+      }
+      /* 코스 전체 이동 — 범위 밖으로 나가지 않게 한꺼번에 제한 */
+      function shiftPath(src, dx, dy){
+        var b = bbox(src);
+        dx = clamp(dx, -b.x0, 100 - b.x1);
+        dy = clamp(dy, -b.y0, 100 - b.y1);
+        return src.map(function(q){ return [ r1(q[0] + dx), r1(q[1] + dy) ]; });
+      }
+      /* 코스 크기 — 중심 기준 배율 */
+      function scalePath(src, f){
+        var b = bbox(src);
+        return src.map(function(q){
+          return [ r1(clamp(b.cx + (q[0] - b.cx) * f, 0, 100)), r1(clamp(b.cy + (q[1] - b.cy) * f, 0, 100)) ];
+        });
+      }
+
+      /* 코스 통째로 이동 화면 — 모든 루트 선 + 선택 루트 영역 상자 */
+      function peRenderMove(){
+        var key = pgKey();
+        var box = '', svg = '<svg class="gse-pe-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">';
+        Object.keys(GROUPS).forEach(function(k){
+          var p = GROUPS[k].path || [];
+          if (p.length < 2) return;
+          var on = k === key;
+          svg += '<polyline class="' + (on ? 'gse-pe-line' : 'gse-pe-ghost') + '" style="--pc:' + gColor(k) + '" points="' + ptsAttr(p) + '"/>' +
+                 '<polyline class="gse-pe-grab" data-g="' + k + '" style="--pc:' + gColor(k) + '" points="' + ptsAttr(p) + '"/>';
+          if (on){
+            var b = bbox(p), pad = 1.2;
+            box = '<div class="gse-pe-box" data-g="' + k + '" style="--pc:' + gColor(k) + ';' +
+                  'left:' + (b.x0 - pad) + '%;top:' + (b.y0 - pad) + '%;width:' + (b.x1 - b.x0 + pad * 2) + '%;height:' + (b.y1 - b.y0 + pad * 2) + '%">' +
+                  '<span>' + esc(GROUPS[k].name) + ' · 드래그해서 이동</span></div>';
+          }
+        });
+        svg += '</svg>';
+        pe = document.createElement('div');
+        pe.className = 'gse-pe';
+        pe.innerHTML = box + svg;
+        layer.appendChild(pe);
+        peInfo();
+      }
+      function syncPeClass(){ root.classList.toggle('is-pedit', peOn()); }
+
+      function peRender(){
+        peClear();
+        if (PMOVE){ peRenderMove(); return; }
+        if (!peOn() && !PALL) return;
+        var key = pgKey(), pts = curPath();
+        if (!pts) return;
+        var keys = PALL ? Object.keys(GROUPS) : [key];
+        var svg = '<svg class="gse-pe-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">';
+        keys.forEach(function(k){
+          var p = GROUPS[k].path || [];
+          if (p.length < 2 || (k === key && peOn())) return;
+          svg += '<polyline class="' + (k === key ? 'gse-pe-line' : 'gse-pe-ghost') + '" style="--pc:' + gColor(k) + '" points="' + ptsAttr(p) + '"/>';
+        });
+        if (peOn() && pts.length > 1){
+          svg += '<polyline class="gse-pe-line" data-pe-line style="--pc:' + gColor(key) + '" points="' + ptsAttr(pts) + '"/>';
+          if (PEDIT){
+            for (var i = 0; i < pts.length - 1; i++){
+              svg += '<line class="gse-pe-seg" data-s="' + i + '" x1="' + pts[i][0] + '" y1="' + pts[i][1] + '" x2="' + pts[i + 1][0] + '" y2="' + pts[i + 1][1] + '"/>';
+            }
+          }
+        }
+        svg += '</svg>';
+        var closed = isClosed(pts);
+        var dots = peOn() ? pts.map(function(q, i){
+          if (closed && i === pts.length - 1) return '';
+          return '<span class="gse-pe-pt' + (i === 0 ? ' is-first' : '') + (i === selP ? ' is-sel' : '') + '"' +
+                 ' data-p="' + i + '" style="left:' + q[0] + '%;top:' + q[1] + '%;--pc:' + gColor(key) + '"' +
+                 ' title="점 ' + (i + 1) + '"><b>' + (i + 1) + '</b></span>';
+        }).join('') : '';
+        pe = document.createElement('div');
+        pe.className = 'gse-pe';
+        pe.innerHTML = svg + dots;
+        layer.appendChild(pe);
+        peInfo();
+      }
+
+      /* 드래그 중에는 다시 그리지 않고 위치만 갱신 */
+      function peSync(){
+        if (!pe || PMOVE) { peRender(); return; }
+        var pts = curPath() || [];
+        each(pe.querySelectorAll('.gse-pe-pt'), function(el){
+          var q = pts[Number(el.getAttribute('data-p'))];
+          if (q){ el.style.left = q[0] + '%'; el.style.top = q[1] + '%'; }
+        });
+        var ln = pe.querySelector('[data-pe-line]');
+        if (ln) ln.setAttribute('points', ptsAttr(pts));
+        each(pe.querySelectorAll('.gse-pe-seg'), function(s){
+          var i = Number(s.getAttribute('data-s')), a = pts[i], b = pts[i + 1];
+          if (!a || !b) return;
+          s.setAttribute('x1', a[0]); s.setAttribute('y1', a[1]);
+          s.setAttribute('x2', b[0]); s.setAttribute('y2', b[1]);
+        });
+        peInfo();
+      }
+
+      function peInfo(){
+        if (!ePinfo) return;
+        var g = GROUPS[pgKey()], pts = curPath() || [];
+        if (!peOn()){
+          ePinfo.innerHTML = '[코스 통째로 이동]을 누르면 코스 전체를 한 번에 끌어 옮길 수 있습니다.<br>세밀한 수정은 [점 개별 편집]을 쓰세요.';
+          return;
+        }
+        if (PMOVE){
+          var bb = pts.length ? bbox(pts) : null;
+          ePinfo.innerHTML = '<b>' + esc(g ? g.name : '') + '</b> 이동 중' +
+            (bb ? ' · 중심 X ' + r1(bb.cx) + ' · Y ' + r1(bb.cy) : '') +
+            '<br>코스 선이나 점선 상자를 끌면 코스 전체가 이동 · 다른 코스 선을 누르면 그 코스 선택 · 방향키 = 0.1% (Shift 1%) · [축소/확대] = 크기 2%';
+          return;
+        }
+        var head = '<b>' + esc(g ? g.name : '') + '</b> · 점 ' + (isClosed(pts) ? (pts.length - 1) + '개 · 닫힌 루트' : pts.length + '개');
+        if (selP > -1 && pts[selP]) head += ' · 선택 점 <b>' + (selP + 1) + '</b> (X ' + pts[selP][0] + ' · Y ' + pts[selP][1] + ')';
+        ePinfo.innerHTML = head + '<br>' + (PDRAW
+          ? '배치도를 클릭하면 끝에 점이 이어집니다 · 점 드래그 = 이동'
+          : '점 드래그 = 이동 · Shift+드래그 = 루트 전체 이동 · 선 위 클릭 = 점 추가 · 더블클릭/Delete = 삭제 · 방향키 = 미세 이동');
+      }
+
+      function setPmove(on){
+        PMOVE = on;
+        if (on){ PEDIT = false; PDRAW = false; syncPeBtns(); }
+        var b = ed.querySelector('[data-e-pmove]');
+        b.classList.toggle('is-on', on);
+        b.textContent = on ? '코스 이동 끝내기' : '코스 통째로 이동';
+        if (on){ select(-1); clearRoute(); msg('코스 선이나 상자를 끌어 코스 전체를 옮기세요 — 자동 저장됩니다'); }
+        selP = -1;
+        syncPeClass(); peRender(); renderPg();
+      }
+      function syncPeBtns(){
+        var a = ed.querySelector('[data-e-pedit]'), d = ed.querySelector('[data-e-pdraw]'), m = ed.querySelector('[data-e-pmove]');
+        a.classList.toggle('is-on', PEDIT); a.textContent = PEDIT ? '점 편집 끝내기' : '점 개별 편집';
+        d.classList.toggle('is-on', PDRAW); d.textContent = PDRAW ? '이어 그리기 끝내기' : '끝에 이어 그리기';
+        m.classList.toggle('is-on', PMOVE); m.textContent = PMOVE ? '코스 이동 끝내기' : '코스 통째로 이동';
+      }
+      function setPedit(on){
+        PEDIT = on;
+        if (on){ PMOVE = false; syncPeBtns(); }
+        if (on && PDRAW) setPdraw(false);
+        var b = ed.querySelector('[data-e-pedit]');
+        b.classList.toggle('is-on', on);
+        b.textContent = on ? '점 편집 끝내기' : '점 개별 편집';
+        if (on){ select(-1); clearRoute(); msg('점을 드래그해 루트 선을 맞추세요 — 자동 저장됩니다'); }
+        else selP = -1;
+        syncPeClass(); peRender(); renderPg();
       }
       function setPdraw(on){
         PDRAW = on;
+        if (on){ PEDIT = false; PMOVE = false; syncPeBtns(); }
         var b = ed.querySelector('[data-e-pdraw]');
         b.classList.toggle('is-on', on);
-        b.textContent = on ? '그리기 끝내기' : '그리기 시작';
-        if (on){ select(-1); showPath(); msg('배치도에서 루트 선을 따라 차례로 클릭하세요'); }
-        else { clearRoute(); renderPg(); }
+        b.textContent = on ? '이어 그리기 끝내기' : '끝에 이어 그리기';
+        if (on){ select(-1); clearRoute(); msg('배치도에서 루트 선을 따라 차례로 클릭하세요'); }
+        else selP = -1;
+        syncPeClass(); peRender(); renderPg();
+      }
+      function setPall(on){
+        PALL = on;
+        var b = ed.querySelector('[data-e-pall]');
+        b.classList.toggle('is-on', on);
+        b.textContent = on ? '모든 루트 숨기기' : '모든 루트 함께 보기';
+        peRender();
       }
       function addPathPoint(e){
-        var r = map.getBoundingClientRect();
-        var g = GROUPS[pgKey()];
-        if (!g) return;
-        g.path = g.path || [];
-        g.path.push([ r1(clamp((e.clientX - r.left) / r.width * 100, 0, 100)),
-                      r1(clamp((e.clientY - r.top) / r.height * 100, 0, 100)) ]);
-        gsave(); showPath(); renderPg();
+        var pts = curPath();
+        if (!pts) return;
+        pts.push(mapPct(e));
+        selP = pts.length - 1;
+        gsave(); peRender(); renderPg();
       }
+      function delPoint(i){
+        var pts = curPath();
+        if (!pts || i < 0 || i >= pts.length) return;
+        var closed = isClosed(pts);
+        pts.splice(i, 1);
+        if (closed && i === 0 && pts.length > 1) pts[pts.length - 1] = [ pts[0][0], pts[0][1] ];
+        selP = -1;
+        gsave(); peRender(); renderPg();
+        msg('점 ' + (i + 1) + ' 삭제됨');
+      }
+
+      /* 배치도 누름 — 처리했으면 true */
+      function peDown(e){
+        if (PMOVE){
+          var hit = e.target.closest('[data-g]');
+          e.preventDefault();
+          if (!hit) return true;
+          var k = hit.getAttribute('data-g');
+          if (!GROUPS[k]) return true;
+          if (ePg.value !== k){ ePg.value = k; }
+          pdrag = { key:k, all:true, s:mapPct(e), o:JSON.parse(JSON.stringify(GROUPS[k].path || [])) };
+          root.classList.add('is-pdrag');
+          try{ layer.setPointerCapture(e.pointerId); }catch(x){}
+          peRender();
+          return true;
+        }
+        var pts = curPath();
+        if (!pts) return false;
+        var pt = e.target.closest('.gse-pe-pt');
+        var sg = PEDIT ? e.target.closest('.gse-pe-seg') : null;
+        if (pt){
+          var i = Number(pt.getAttribute('data-p'));
+          selP = i;
+          pdrag = { i:i, all:e.shiftKey, s:mapPct(e), o:JSON.parse(JSON.stringify(pts)),
+                    link:(i === 0 && isClosed(pts)) ? pts.length - 1 : -1 };
+        } else if (sg){
+          var at = Number(sg.getAttribute('data-s')) + 1;
+          pts.splice(at, 0, mapPct(e));
+          selP = at;
+          pdrag = { i:at, all:false, s:mapPct(e), o:JSON.parse(JSON.stringify(pts)), link:-1 };
+          msg('점 ' + (at + 1) + ' 추가됨 — 그대로 드래그해 위치를 맞추세요');
+        } else if (PEDIT){
+          e.preventDefault();
+          selP = -1; peRender();
+          return true;
+        } else {
+          return false;
+        }
+        e.preventDefault();
+        root.classList.add('is-pdrag');
+        try{ layer.setPointerCapture(e.pointerId); }catch(x){}
+        peRender(); renderPg();
+        return true;
+      }
+      function peMove(e){
+        if (!pdrag) return;
+        var g = GROUPS[pdrag.key || pgKey()];
+        if (!g) return;
+        var p = mapPct(e), d = pdrag;
+        var dx = p[0] - d.s[0], dy = p[1] - d.s[1];
+        if (d.all){
+          g.path = shiftPath(d.o, dx, dy);
+        } else {
+          g.path[d.i] = [ r1(clamp(d.o[d.i][0] + dx, 0, 100)), r1(clamp(d.o[d.i][1] + dy, 0, 100)) ];
+          if (d.link > -1) g.path[d.link] = [ g.path[d.i][0], g.path[d.i][1] ];
+        }
+        peSync();
+      }
+      function peEnd(){
+        if (!pdrag) return false;
+        pdrag = null;
+        root.classList.remove('is-pdrag');
+        gsave(); renderPg(); peInfo();
+        return true;
+      }
+
+      layer.addEventListener('dblclick', function(e){
+        if (!PEDIT) return;
+        var pt = e.target.closest('.gse-pe-pt');
+        if (!pt) return;
+        e.preventDefault();
+        delPoint(Number(pt.getAttribute('data-p')));
+      });
+
+      document.addEventListener('keydown', function(e){
+        if (PMOVE){
+          var tm = e.target;
+          if (tm && /^(INPUT|SELECT|TEXTAREA)$/.test(tm.tagName)) return;
+          var gm = GROUPS[pgKey()];
+          if (!gm || !gm.path || !gm.path.length) return;
+          var sm = e.shiftKey ? 1 : 0.1, mx = 0, my = 0;
+          if (e.key === 'ArrowLeft') mx = -sm;
+          else if (e.key === 'ArrowRight') mx = sm;
+          else if (e.key === 'ArrowUp') my = -sm;
+          else if (e.key === 'ArrowDown') my = sm;
+          else return;
+          e.preventDefault();
+          gm.path = shiftPath(gm.path, mx, my);
+          gsave(); peRender();
+          return;
+        }
+        if (!peOn() || selP < 0) return;
+        var t = e.target;
+        if (t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName)) return;
+        var pts = curPath();
+        if (!pts || !pts[selP]) return;
+        if (e.key === 'Delete' || e.key === 'Backspace'){ e.preventDefault(); delPoint(selP); return; }
+        if (e.key === 'Escape'){ selP = -1; peRender(); return; }
+        var step = e.shiftKey ? 1 : 0.1, dx = 0, dy = 0;
+        if (e.key === 'ArrowLeft') dx = -step;
+        else if (e.key === 'ArrowRight') dx = step;
+        else if (e.key === 'ArrowUp') dy = -step;
+        else if (e.key === 'ArrowDown') dy = step;
+        else return;
+        e.preventDefault();
+        var lk = (selP === 0 && isClosed(pts)) ? pts.length - 1 : -1;
+        pts[selP] = [ r1(clamp(pts[selP][0] + dx, 0, 100)), r1(clamp(pts[selP][1] + dy, 0, 100)) ];
+        if (lk > -1) pts[lk] = [ pts[selP][0], pts[selP][1] ];
+        gsave(); peSync();
+      });
+
+      /* render()가 배치도 레이어를 다시 그려도 경로 편집 표시가 유지되도록 */
+      var baseRender = render;
+      render = function(){ baseRender(); if (peOn() || PALL) peRender(); };
+
       renderPg();
-      ePg.addEventListener('change', function(){ if (PDRAW) showPath(); });
+      ePg.addEventListener('change', function(){ selP = -1; peRender(); });
 
       var ePick   = ed.querySelector('[data-e-pick]');
       var eFields = ed.querySelector('[data-e-fields]');
@@ -3642,7 +4024,11 @@
 
       layer.addEventListener('pointerdown', function(e){
         if (TEST || ed.contains(e.target)) return;
-        if (PDRAW){ e.preventDefault(); addPathPoint(e); return; }
+        if (peOn()){
+          if (peDown(e)) return;
+          if (PDRAW){ e.preventDefault(); addPathPoint(e); }
+          return;
+        }
         var btn = e.target.closest('.guide-section__hs');
         if (!btn){ select(-1); return; }
         e.preventDefault();
@@ -3659,6 +4045,7 @@
       });
 
       layer.addEventListener('pointermove', function(e){
+        if (pdrag){ peMove(e); return; }
         if (!drag) return;
         var h = HOTSPOTS[drag.i], o = drag.o;
         var dx = (e.clientX - drag.sx) / drag.rw * 100;
@@ -3687,7 +4074,7 @@
         fillFields();
       });
 
-      function endDrag(){ if (drag){ drag = null; save(); } }
+      function endDrag(){ if (peEnd()) return; if (drag){ drag = null; save(); } }
       layer.addEventListener('pointerup', endDrag);
       layer.addEventListener('pointercancel', endDrag);
 
@@ -3767,20 +4154,55 @@
           b.textContent = min ? '펼치기' : '접기';
           return;
         }
-        if (b.hasAttribute('data-e-mode')){ setPdraw(false); setMode(b.getAttribute('data-e-mode') === 'test'); return; }
+        if (b.hasAttribute('data-e-mode')){ setPdraw(false); setPedit(false); setPmove(false); setMode(b.getAttribute('data-e-mode') === 'test'); return; }
+        if (b.hasAttribute('data-e-pmove')){ setMode(false); setPmove(!PMOVE); return; }
+        if (b.hasAttribute('data-e-pedit')){ setMode(false); setPedit(!PEDIT); return; }
+        if (b.hasAttribute('data-e-pscale')){
+          var gs = GROUPS[pgKey()];
+          if (!gs || !gs.path || gs.path.length < 2){ msg('경로 점이 없습니다'); return; }
+          var up = Number(b.getAttribute('data-e-pscale')) > 0;
+          gs.path = scalePath(gs.path, up ? 1.02 : 0.98);
+          gsave(); peRender(); renderPg();
+          msg(gs.name + (up ? ' 2% 확대' : ' 2% 축소'));
+          return;
+        }
         if (b.hasAttribute('data-e-pdraw')){ setMode(false); setPdraw(!PDRAW); return; }
+        if (b.hasAttribute('data-e-pall')){ setPall(!PALL); return; }
+        if (b.hasAttribute('data-e-pdel')){
+          if (selP < 0){ msg('삭제할 점을 먼저 누르세요'); return; }
+          delPoint(selP);
+          return;
+        }
         if (b.hasAttribute('data-e-pundo')){
           var gu = GROUPS[pgKey()];
-          if (gu && gu.path && gu.path.length){ gu.path.pop(); gsave(); renderPg(); if (PDRAW) showPath(); }
+          if (gu && gu.path && gu.path.length){ gu.path.pop(); selP = -1; gsave(); renderPg(); peRender(); }
+          return;
+        }
+        if (b.hasAttribute('data-e-pclose')){
+          var gl = curPath();
+          if (!gl || gl.length < 2){ msg('점이 2개 이상 있어야 닫을 수 있습니다'); return; }
+          var f = gl[0], l = gl[gl.length - 1];
+          if (f[0] === l[0] && f[1] === l[1]){ msg('이미 시작점과 이어져 있습니다'); return; }
+          gl.push([f[0], f[1]]);
+          gsave(); renderPg(); peRender();
+          msg('시작점으로 이어 닫았습니다');
           return;
         }
         if (b.hasAttribute('data-e-pclear')){
           var gc = GROUPS[pgKey()];
           if (!gc || !window.confirm(gc.name + ' 경로 점을 모두 지울까요?')) return;
-          gc.path = []; gsave(); renderPg(); if (PDRAW) showPath();
+          gc.path = []; selP = -1; gsave(); renderPg(); peRender();
           return;
         }
-        if (b.hasAttribute('data-e-pplay')){ setPdraw(false); locate(pgKey()); return; }
+        if (b.hasAttribute('data-e-pplay')){
+          var keep = PMOVE ? 'move' : (PEDIT ? 'edit' : (PDRAW ? 'draw' : ''));
+          setPdraw(false); setPedit(false); setPmove(false);
+          locate(pgKey());
+          if (keep) setTimeout(function(){
+            if (keep === 'move') setPmove(true); else if (keep === 'edit') setPedit(true); else setPdraw(true);
+          }, LOCATE_MS + 200);
+          return;
+        }
         if (b.hasAttribute('data-e-view')){
           var mo = b.getAttribute('data-e-view') === 'mo';
           map.style.maxWidth = mo ? '375px' : '';
@@ -3827,14 +4249,19 @@
           HOTSPOTS = JSON.parse(BASE);
           GROUPS = COURSE = JSON.parse(GBASE);
           sel = -1;
-          setPdraw(false);
+          setPdraw(false); setPedit(false); setPmove(false);
           try{ localStorage.removeItem(KEY); localStorage.removeItem(GKEY); }catch(x){}
           refresh();
           msg('코드 값으로 되돌렸습니다');
           return;
         }
         if (b.hasAttribute('data-e-copy')){
-          var all = b.getAttribute('data-e-copy') === 'all';
+          var kind = b.getAttribute('data-e-copy');
+          if (kind === 'groups'){
+            copy('var GROUPS = ' + serializeGroups() + ';', '경로 좌표 복사됨 — 코드의 var GROUPS 부분을 교체하세요');
+            return;
+          }
+          var all = kind === 'all';
           copy(all ? fullCode() : 'var HOTSPOTS = ' + serialize() + ';',
                all ? '전체 코드 복사됨 — 기존 guide-section 섹션을 통째로 교체하세요'
                    : '좌표 배열 복사됨 — 코드의 var HOTSPOTS 부분을 교체하세요');
