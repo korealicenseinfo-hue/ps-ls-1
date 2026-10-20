@@ -4789,8 +4789,8 @@
 
   /* ★ 루트별 음성 파일 — 앞에서부터 재생 가능한 첫 파일을 씁니다 */
   var AUDIO = {
-    water:  ['./img/jj-eco/audio/1.wav'],
-    forest: ['./img/jj-eco/audio/2.wav']
+    water:  ['./img/jj-eco/audio/a.wav'],
+    forest: ['./img/jj-eco/audio/b.wav']
   };
   var LEAD_SEC = { water:0, forest:0 };
 
@@ -5651,6 +5651,8 @@
   font-size:12px; letter-spacing:.08em; color:var(--slg-ink); font-variant-numeric:tabular-nums;
   pointer-events:none;
 }
+#seosin-landscape-guide .slg-gal-btn[hidden],
+#seosin-landscape-guide .slg-gal-count[hidden]{ display:none; }
 
 #seosin-landscape-guide .slg-modal-body{ padding:clamp(24px,3.4vw,40px); }
 #seosin-landscape-guide .slg-modal-meta{
@@ -6184,16 +6186,19 @@
   try{ document.documentElement.style.overscrollBehavior = 'none'; }catch(e){}
 
   /* ==========================================================
-     ▼ 여기만 고치면 됩니다 — 루트 / 장소 / 시설 / 이미지
+     ▼ 여기만 고치면 됩니다 — 루트 / 장소 / 시설 / 이미지 / 음성
        (팜플렛 'DOCENT TOUR MAP' · 'CURATING STORY' 기준)
 
      [루트]  ZONES — 내부 키 water = ROUTE.1(남색) · forest = ROUTE.2(초록)
        places : 루트에 속한 장소 코드 — 투어 순서대로 표시
      [장소]  PLACES — 정원 1~7 · 놀이공간 A~C
        img   : 썸네일 · 팝업 첫 장
-       imgs  : 팝업에 이어서 넘어갈 추가 사진 배열 — 몇 장이든 추가 가능 (최소 2장 보장)
+       imgs  : 팝업에 이어서 넘어갈 추가 사진 배열 — 넣은 만큼만 표시 (0장도 가능 · 파일이 없으면 자동 제외)
+       audio : '설명 듣기' 음성 파일 — 투어 순서대로 1.wav ~ 10.wav
      [시설]  ITEMS — 장소 팝업 갤러리에 이어서 표시 (place = 소속 장소 코드)
+       audio : 시설 팝업 '설명 듣기' 음성 파일 — 11.wav ~ 13.wav
      ★ 이미지 경로(./img/jj-eco/…)는 실제 파일명으로 교체하세요 — 없으면 번호로 대체 표시
+     ★ 음성 파일 위치: ./img/jj-eco/audio/1.wav ~ 13.wav
      ========================================================== */
   var ZONES = {
 
@@ -6202,7 +6207,7 @@
         desc:'블루엣가든에서 출발해 스플래쉬가든, 더샵트리, 브릭가든을 지나 유아놀이터에 닿는 540m의 조경 투어 동선입니다.',
         quote:'정원과 놀이가 하나의 흐름으로 이어지는 단지의 중심 동선',
         route:'ROUTE.1', length:'540m', places:['5','A','4','6','C'],
-        spots:[], img:'./img/jj-eco/c-1.jpg', video:'' },
+        spots:[], img:'./img/jj-eco/c-1.jpg',  video:'' },
 
     forest:{ mark:'W', title:'Walk Course', ko:'단지외곽산책로', sub:'ROUTE.2 · 577m · 어린이놀이터 → 포레스트가든',
         line:'숲과 물, 정원을 품고 단지를 감싸는 산책길',
@@ -6218,50 +6223,59 @@
     { code:'2-1', cat:'forest', place:'2', name:'티하우스', sub:'2층 실내 휴게공간', where:'2 네이처테라스', zones:['forest'],
       desc:'잔디마당과 맞닿은 2층 티하우스입니다. 실내의 편안함 속에서 탁 트인 야외 풍경을 함께 누릴 수 있습니다.',
       img:'./img/jj-eco/i-teahouse.jpg',
-      imgs:['./img/jj-eco/i-teahouse-2.jpg'] },
+      imgs:['./img/jj-eco/i-teahouse-2.jpg'],
+      audio:'./img/jj-eco/audio/11.wav' },
     { code:'2-2', cat:'forest', place:'2', name:'파고라', sub:'사계절 휴식공간', where:'2 네이처테라스', zones:['forest'],
       desc:'사계절 쾌적함을 누리는 휴식공간입니다. 그늘 아래 머물며 일상 속 여유로운 휴식을 즐길 수 있습니다.',
       img:'./img/jj-eco/i-pergola.jpg',
-      imgs:['./img/jj-eco/i-pergola-2.jpg'] },
+      imgs:['./img/jj-eco/i-pergola-2.jpg'],
+      audio:'./img/jj-eco/audio/12.wav' },
     /* B 어린이놀이터 */
     { code:'B-1', cat:'forest', place:'B', name:'키즈스테이션', sub:'안전한 등하원 공간', where:'B 어린이놀이터 인근', zones:['forest'],
       desc:'아이들의 안전한 등하원을 위한 특별한 공간입니다. 통학 차량을 기다리는 동안 아이들이 편안하고 안전하게 머물 수 있습니다.',
       img:'./img/jj-eco/i-kids.jpg',
-      imgs:['./img/jj-eco/i-kids-2.jpg'] }
+      imgs:['./img/jj-eco/i-kids-2.jpg'],
+      audio:'./img/jj-eco/audio/13.wav' }
   ];
 
   /* [장소] code = 투어 맵 번호 (정원 1~7 · 놀이공간 A~C)
      course : 'water'(ROUTE.1) · 'forest'(ROUTE.2)
-     key    : true = 대표 공간  /  play : true = 플레이그라운드(주황 번호) */
+     key    : true = 대표 공간  /  play : true = 플레이그라운드(주황 번호)
+     audio  : 투어 순서 번호 음성 파일 (1.wav ~ 10.wav) */
   var PLACES = [
     /* ROUTE.1 · 조경투어 동선 · 540m */
     { code:'5', course:'water', name:'블루엣가든', en:'BLUET GARDEN', key:false, play:false,
       feat:'수국 · 곡선형 플랜터', img:'./img/jj-eco/l-11.jpg',
-      imgs:['./img/jj-eco/p5-2.jpg', './img/jj-eco/p5-3.jpg'],
+      imgs:['./img/jj-eco/a-1.jpg', './img/jj-eco/a-2.jpg'],
+      audio:'./img/jj-eco/audio/1.wav',
       line:'수국과 곡선형 플랜터가 조화를 이루는 정원',
       desc:'조경 투어의 첫 장면을 여는 정원입니다. 풍성한 수국과 부드러운 곡선형 플랜터가 어우러져, 계절마다 푸른 꽃물결 속을 거닐 듯 산책을 시작할 수 있습니다.',
       tip:'수국이 피는 계절, 곡선을 따라 이어지는 플랜터 사이를 천천히 걸어 보세요.' },
     { code:'A', course:'water', name:'스플래쉬가든', en:'SPLASH GARDEN', key:false, play:true,
       feat:'워터버킷 · 물놀이시설', img:'./img/jj-eco/l-13.jpg',
-      imgs:['./img/jj-eco/pa-2.jpg', './img/jj-eco/pa-3.jpg'],
+      imgs:['./img/jj-eco/a-3.jpg'],
+      audio:'./img/jj-eco/audio/2.wav',
       line:'워터버킷과 물놀이시설이 어우러진 놀이정원',
       desc:'워터버킷과 다양한 물놀이시설이 정원과 어우러진 놀이 공간입니다. 시원한 물줄기 아래 아이들의 웃음이 퍼지고, 가족이 함께 머무는 여름의 풍경을 만듭니다.',
       tip:'워터버킷에서 물이 쏟아지는 순간을 기다려 보세요. 아이들에게 가장 인기 있는 장면입니다.' },
     { code:'4', course:'water', name:'더샵트리', en:'THE SHARP TREE', key:true, play:false,
       feat:'느티나무 상징수 · 잔디언덕', img:'./img/jj-eco/l-12.jpg',
-      imgs:['./img/jj-eco/p4-2.jpg', './img/jj-eco/p4-3.jpg'],
+      imgs:['./img/jj-eco/a-4.png'],
+      audio:'./img/jj-eco/audio/3.wav',
       line:'시간의 깊이를 간직한 상징수',
       desc:'넓은 잔디언덕 위에 자리한 느티나무는 단지의 중심에서 계절마다 새로운 풍경을 완성합니다. 오직 이곳에서 만날 수 있는 단지만의 상징으로, 자연의 품격과 특별한 가치를 더합니다.',
       tip:'잔디언덕에 올라 나무 그늘 아래 서 보세요. 계절마다 달라지는 잎의 빛깔이 단지의 시간을 알려 줍니다.' },
     { code:'6', course:'water', name:'브릭가든', en:'BRICK GARDEN', key:false, play:false,
       feat:'벽돌 조형 · 친환경 식재', img:'./img/jj-eco/l-9.jpg',
-      imgs:['./img/jj-eco/p6-2.jpg', './img/jj-eco/p6-3.jpg'],
+      imgs:['./img/jj-eco/a-5.jpg', './img/jj-eco/a-6.jpg'],
+      audio:'./img/jj-eco/audio/4.wav',
       line:'벽돌의 조형미와 자연이 어우러진 친환경 정원',
       desc:'따뜻한 질감의 벽돌 조형과 풍성한 식재가 어우러진 정원입니다. 단단한 구조물과 부드러운 초화류가 대비를 이루며 친환경적인 정원 풍경을 완성합니다.',
       tip:'벽돌 사이로 자라난 식물들의 조화를 가까이에서 살펴보세요.' },
     { code:'C', course:'water', name:'유아놀이터', en:'TODDLER PLAYGROUND', key:false, play:true,
       feat:'감각 놀이 조형물', img:'./img/jj-eco/l-4.jpg',
-      imgs:['./img/jj-eco/pc-2.jpg', './img/jj-eco/pc-3.jpg'],
+      imgs:['./img/jj-eco/a-7.jpg'],
+      audio:'./img/jj-eco/audio/5.wav',
       line:'작은 호기심이 즐거움이 되는 감각놀이공간',
       desc:'어린 아이들의 눈높이에 맞춘 감각 놀이 공간입니다. 다채로운 색과 형태의 조형 놀이시설이 작은 호기심을 자극하고, 안전한 놀이 속에서 즐거움을 키워 줍니다.',
       tip:'조형 놀이시설의 색과 형태를 아이와 함께 찾아보며 놀아 보세요.' },
@@ -6269,45 +6283,46 @@
     /* ROUTE.2 · 단지외곽산책로 · 577m */
     { code:'B', course:'forest', name:'어린이놀이터', en:"CHILDREN'S PLAYGROUND", key:false, play:true,
       feat:'창의 놀이시설 · 키즈스테이션', img:'./img/jj-eco/l-6.jpg',
-      imgs:['./img/jj-eco/pb-2.jpg', './img/jj-eco/pb-3.jpg'],
+      imgs:['./img/jj-eco/a-8.jpg'],
+      audio:'./img/jj-eco/audio/6.wav',
       line:'상상력과 모험심을 깨우는 창의놀이공간',
       desc:'오르고 건너며 상상력과 모험심을 키우는 창의 놀이 공간입니다. 개성 있는 놀이 구조물이 아이들의 도전을 이끌고, 인근 키즈스테이션이 안전한 등하원을 돕습니다.',
       tip:'산책로의 출발점입니다. 아이들이 노는 동안 곁의 키즈스테이션도 함께 살펴보세요.' },
     { code:'2', course:'forest', name:'네이처테라스', en:'NATURE TERRACE', key:true, play:false,
       feat:'2층 티하우스 · 야외 테라스 · 잔디마당 · 파고라', img:'./img/jj-eco/l-5.jpg',
-      imgs:['./img/jj-eco/p2-2.jpg', './img/jj-eco/p2-3.jpg'],
+      imgs:['./img/jj-eco/a-9.jpg', './img/jj-eco/a-10.jpg'],
+      audio:'./img/jj-eco/audio/7.wav',
       line:'티하우스와 잔디마당이 어우러진 여유로운 공간',
       desc:'2층 티하우스와 야외 테라스가 푸른 잔디마당과 자연스럽게 이어지는 공간입니다. 실내의 편안함과 탁 트인 야외 풍경을 함께 누리며, 일상 속 차 한 잔과 함께 여유로운 휴식을 즐길 수 있습니다.',
       tip:'티하우스 2층 테라스에서 잔디마당을 내려다보며 잠시 쉬어 가세요.' },
     { code:'7', course:'forest', name:'팽나무구릉숲', en:'HACKBERRY HILL FOREST', key:false, play:false,
       feat:'팽나무 군락 · 구릉 지형', img:'./img/jj-eco/l-7.jpg',
       imgs:['./img/jj-eco/p7-2.jpg', './img/jj-eco/p7-3.jpg'],
+      audio:'./img/jj-eco/audio/8.wav',
       line:'팽나무 군락과 구릉이 어우러진 조형숲',
       desc:'부드럽게 솟은 구릉 위로 팽나무 군락이 어우러진 조형숲입니다. 오르내리는 지형을 따라 걸으며 숲의 깊이와 그늘의 시원함을 온전히 느낄 수 있습니다.',
       tip:'구릉 사이로 난 산책길을 따라 걸으며 팽나무 군락이 만드는 숲의 리듬을 느껴 보세요.' },
     { code:'1', course:'forest', name:'미라지포레', en:'MIRAGE FORET', key:true, play:false,
       feat:'곡선형 플랜터 · 낙수대 · 풍성한 식재', img:'./img/jj-eco/l-2.jpg',
-      imgs:['./img/jj-eco/p1-2.jpg', './img/jj-eco/p1-3.jpg'],
+      imgs:['./img/jj-eco/a-11.jpg'],
+      audio:'./img/jj-eco/audio/9.wav',
       line:'곡선의 미학으로 완성한 특별한 수경공간',
       desc:'유려한 곡선형 플랜터와 낙수대, 풍성한 식재가 조화를 이루며 입체적인 조경 경관을 연출합니다. 차별화된 디자인과 자연스러운 곡선의 흐름이 어우러져 독창적인 풍경을 완성합니다.',
       tip:'낙수대에서 떨어지는 물소리와 곡선형 플랜터가 그리는 물결 같은 풍경을 함께 감상해 보세요.' },
     { code:'3', course:'forest', name:'포레스트가든', en:'FOREST GARDEN', key:true, play:false,
       feat:'전통 정자 · 원형 미러폰드 · 암석원', img:'./img/jj-eco/l-3.jpg',
-      imgs:['./img/jj-eco/p3-2.jpg', './img/jj-eco/p3-3.jpg'],
+      imgs:['./img/jj-eco/a-13.jpg'],
+      audio:'./img/jj-eco/audio/10.wav',
       line:'전통정자와 지당을 재해석한 현대식 입구정원',
       desc:'전통적인 정자와 원형 미러폰드를 중심으로 암석원과 다양한 초화류가 조화롭게 이루어집니다. 전통의 아름다움과 자연의 여유를 담아 단지의 풍경에 고유한 멋을 더하는 입구정원입니다.',
       tip:'정자에 앉아 원형 미러폰드에 비친 하늘과 정원을 바라보며 산책을 마무리해 보세요.' }
   ];
 
-  /* [음성 해설] 파일명 = AUDIO_DIR + 'P' + 장소 코드 (예: P1.wav · PA.wav) — 대소문자 구분 */
-  var AUDIO_DIR    = './img/jj-eco/audio/';
-  var AUDIO_EXTS   = ['.wav'];
-  var AUDIO_PREFIX = { water:'P', garden:'P', forest:'P' };
+  /* [음성 해설] 각 장소·시설의 audio 값을 그대로 사용 — 값이 없으면 '설명 듣기' 버튼 숨김
+     여러 포맷을 함께 두려면 배열로: audio:['./img/jj-eco/audio/1.mp3', './img/jj-eco/audio/1.wav'] */
   function audioOf(p){
-    if(p.audio) return [].concat(p.audio);
-    var pre = AUDIO_PREFIX[p.course];
-    if(!pre) return [];
-    return AUDIO_EXTS.map(function(ext){ return AUDIO_DIR + pre + p.code + ext; });
+    if(!p || !p.audio) return [];
+    return [].concat(p.audio);
   }
   /* ▲ 데이터 끝 ============================================== */
 
@@ -6844,18 +6859,50 @@
   var ARROW_L = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
   var ARROW_R = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
 
+  /* 갤러리 — 실제로 불러와진 사진만 슬라이드로 남김 (파일이 없는 사진은 자동 제거) */
   function setGallery(slides){
     galN = slides.length;
-    var ui = galN > 1
-      ? '<button type="button" class="slg-gal-btn slg-gal-btn--prev" data-gal-prev aria-label="이전 사진">' + ARROW_L + '</button>'
-      + '<button type="button" class="slg-gal-btn slg-gal-btn--next" data-gal-next aria-label="다음 사진">' + ARROW_R + '</button>'
-      + '<span class="slg-gal-count"><span data-gal-cur>1</span> / ' + galN + '</span>'
-      : '';
     mFig.innerHTML = '<div class="slg-gal" data-gal>'
       + slides.map(function(s, i){ return slideHTML(s, i, galN); }).join('')
-      + '</div>' + ui;
+      + '</div>'
+      + '<button type="button" class="slg-gal-btn slg-gal-btn--prev" data-gal-prev aria-label="이전 사진" hidden>' + ARROW_L + '</button>'
+      + '<button type="button" class="slg-gal-btn slg-gal-btn--next" data-gal-next aria-label="다음 사진" hidden>' + ARROW_R + '</button>'
+      + '<span class="slg-gal-count" hidden><span data-gal-cur>1</span> / <span data-gal-total>' + galN + '</span></span>';
     gal = mFig.querySelector('[data-gal]');
-    hideBroken(mFig);
+    var g = gal;
+    Array.prototype.forEach.call(g.querySelectorAll('img.slg-fig-main'), function(img){
+      var done = false;
+      function bad(){
+        if(done || gal !== g) return;
+        done = true;
+        var sl = img.closest('.slg-slide');
+        if(sl && g.querySelectorAll('.slg-slide').length > 1) sl.parentNode.removeChild(sl);
+        else img.style.display = 'none';
+        galPrune();
+      }
+      img.addEventListener('error', bad);
+      if(img.complete && !img.naturalWidth) bad();
+    });
+    galPrune();
+  }
+
+  function galPrune(){
+    if(!gal) return;
+    var list = gal.querySelectorAll('.slg-slide');
+    galN = list.length;
+    Array.prototype.forEach.call(list, function(sl, i){
+      var lb = sl.getAttribute('aria-label') || '';
+      sl.setAttribute('aria-label', lb.replace(/^\d+ \/ \d+/, (i + 1) + ' / ' + galN));
+    });
+    var multi = galN > 1;
+    var p = mFig.querySelector('[data-gal-prev]');
+    var n = mFig.querySelector('[data-gal-next]');
+    var c = mFig.querySelector('.slg-gal-count');
+    var t = mFig.querySelector('[data-gal-total]');
+    if(p) p.hidden = !multi;
+    if(n) n.hidden = !multi;
+    if(c) c.hidden = !multi;
+    if(t) t.textContent = String(galN);
     galSync();
     galStart();
   }
@@ -6998,7 +7045,7 @@
   var mWhereDt   = mWhere.previousElementSibling;
   var mZoneDt    = mZone.previousElementSibling;
 
-  /* ── 장소 음성 해설 ── */
+  /* ── 장소 · 시설 음성 해설 ── */
   var aBox   = modal.querySelector('[data-modal-audio]');
   var aBtn   = aBox.querySelector('[data-audio-toggle]');
   var aLabel = aBtn.querySelector('.slg-tts-label');
@@ -7156,18 +7203,15 @@
     return order;
   }
 
-  /* 팝업 갤러리 최소 장수 — 사진이 모자라면 장소·시설 이름 카드로 채워 항상 넘김이 되게 */
-  var MIN_SLIDES = 2;
+  /* 팝업 갤러리 — 등록된 사진 수만큼만 표시 (빈 카드로 채우지 않음)
+     사진이 하나도 없을 때만 번호 카드 1장 표시 */
   function extraImgs(o){
     return [].concat(o.imgs || [], o.img2 ? [o.img2] : []).filter(Boolean);
   }
   function ensureMin(slides, base){
-    var i = 0;
-    while(slides.length < MIN_SLIDES){
-      i++;
-      slides.push({ src:'', alt:base.name, code:base.code, label:base.label || '', name:base.name + (i > 1 ? ' ' + i : ''), cap:true });
-    }
-    return slides;
+    var out = slides.filter(function(s){ return !!s.src; });
+    if(!out.length) out.push({ src:'', alt:base.name, code:base.code, label:base.label || '', name:base.name, cap:false });
+    return out;
   }
 
   function fillPlace(pi){
@@ -7241,7 +7285,7 @@
     mLine.textContent  = ''; mLine.hidden = true;
     setParas(mDesc, it.desc);
     setParas(mTipText, ''); mTip.hidden = true;
-    setAudio('');
+    setAudio(audioOf(it));
     mWhere.textContent = it.where;
     mZone.textContent  = zoneNames(it.zones);
     modalLocate.hidden = !onMap(it.place || it.code);
